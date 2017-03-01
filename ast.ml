@@ -17,12 +17,15 @@ type expr =
   | Call of string * expr list
   | Noexpr
 
+
 type stmt =
     Block of stmt list
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
   | While of expr * stmt
+
+(*Block here is for writing a piece of code in {}. We need to decide how we want our language to be. Python style or Java style?*)
 
 
 (*Not entirely sure about where the code given below will be used. We are converting types to strings*)
