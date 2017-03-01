@@ -4,7 +4,7 @@
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| "/*"     { comment lexbuf }           (* Comments *)
+| "##"     { comment lexbuf }           (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -26,7 +26,6 @@ rule token = parse
 | "!"      { NOT }
 | "if"     { IF }
 | "else"   { ELSE }
-| "for"    { FOR }
 | "while"  { WHILE }
 | "return" { RETURN }
 | "int"    { INT }
@@ -35,32 +34,35 @@ rule token = parse
 | "string"   { STRING }
 | "true"   { TRUE }
 | "false"  { FALSE }
-| "function" { FUNCTION }
+| "function" { FUNCTION } (* NOT SURE *)
 | "player"  { PLAYER }
 | "item"  { ITEM }
 | "grid"  { GRID }
 | "coordinate"  { COORDINATE }
-| "colocation"  { COLOCATION }
-| "gameloop"  { GAMELOOP }
-| "checkMove"  { CHECKMOVE }
-| "drawGrid"  { DRAWGRID }
 | "rand"  { RAND }
-| "gameOver"  { GAMEOVER }
-| "createGrid"  { CREATEGRID }
-| "traverse"  { TRAVERSE }
-| "checkGameEnd"  { CHECKGAMEEND }
 | "type"  { TYPE }
 | "repeat"  { REPEAT }
-| "print"  { PRINT }
-| "prompt"  { PROMPT }
 | "playerOrder"  { PLAYERORDER }
 | "P"  { P }
-| "LAYOUT"  { LAYOUT }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
-  "*/" { token lexbuf }
+  "##" { token lexbuf }
 | _    { comment lexbuf }
+
+(*
+| "colocation"  { COLOCATION }
+| "gameloop"  { GAMELOOP }
+| "gameOver"  { GAMEOVER }
+| "createGrid"  { CREATEGRID }
+| "traverse"  { TRAVERSE }
+| "checkGameEnd"  { CHECKGAMEEND }
+| "print"  { PRINT }
+| "prompt"  { PROMPT }
+| "checkMove"  { CHECKMOVE }
+| "drawGrid"  { DRAWGRID }
+| "LAYOUT"  { LAYOUT }
+*)
