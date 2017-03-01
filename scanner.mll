@@ -9,7 +9,6 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
-| ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
 | '-'      { MINUS }
@@ -22,8 +21,8 @@ rule token = parse
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
-| "&&"     { AND }
-| "||"     { OR }
+| "and"     { AND }
+| "or"     { OR }
 | "!"      { NOT }
 | "if"     { IF }
 | "else"   { ELSE }
@@ -31,10 +30,31 @@ rule token = parse
 | "while"  { WHILE }
 | "return" { RETURN }
 | "int"    { INT }
-| "bool"   { BOOL }
-| "void"   { VOID }
+| "boolean"   { BOOLEAN }
+| "float"   { FLOAT }
+| "string"   { STRING }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "function" { FUNCTION }
+| "player"  { PLAYER }
+| "item"  { ITEM }
+| "grid"  { GRID }
+| "coordinate"  { COORDINATE }
+| "colocation"  { COLOCATION }
+| "gameloop"  { GAMELOOP }
+| "checkMove"  { CHECKMOVE }
+| "drawGrid"  { DRAWGRID }
+| "rand"  { RAND }
+| "gameOver"  { GAMEOVER }
+| "createGrid"  { CREATEGRID }
+| "traverse"  { TRAVERSE }
+| "checkGameEnd"  { CHECKGAMEEND }
+| "type"  { TYPE }
+| "repeat"  { REPEAT }
+| "print"  { PRINT }
+| "prompt"  { PROMPT }
+| "playerOrder"  { PLAYERORDER }
+| "P"  { P }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
