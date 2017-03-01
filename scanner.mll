@@ -1,4 +1,4 @@
-(* Ocamllex scanner for MicroC *)
+(* Ocamllex scanner for GRID *)
 
 { open Parser }
 
@@ -55,6 +55,7 @@ rule token = parse
 | "prompt"  { PROMPT }
 | "playerOrder"  { PLAYERORDER }
 | "P"  { P }
+| "LAYOUT"  { LAYOUT }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }
