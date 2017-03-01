@@ -14,8 +14,8 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
+  | Call of string * expr list
   | Noexpr
-
 
 type stmt =
     Block of stmt list
@@ -23,5 +23,7 @@ type stmt =
   | Return of expr
   | If of expr * stmt * stmt
   | While of expr * stmt
+
+type program = bind list * func_decl list
 
 (*Block here is for writing a piece of code in {}. We need to decide how we want our language to be. Python style or Java style?*)
