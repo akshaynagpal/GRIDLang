@@ -10,13 +10,14 @@ let translate (globals, functions) =
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
   and void_t = L.void_type context in
+  let str_t = L.pointer_type i8_t in
   (*and string_i8 = L.string_of_lltype[L.i8_type] context in*)
 
   let ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
     | A.Void -> void_t 
-    | A.String -> i8_t in
+    | A.String -> str_t in
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -67,10 +68,10 @@ let translate (globals, functions) =
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
   A.Literal i -> L.const_int i32_t i
-  | A.String_Lit s -> L.const_string context s
   | A.Id s -> L.build_load (lookup s) s builder
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
+    | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
     | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
