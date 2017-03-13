@@ -56,6 +56,7 @@ typ:
     INT { Int }
   | BOOL { Bool }
   | VOID { Void }
+  | ID { String }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -81,6 +82,7 @@ expr_opt:
 expr:
     LITERAL          { Literal($1) }
   | ID               { Id($1) }
+  | ID ASSIGN expr   { Assign($1, $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
 

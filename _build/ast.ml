@@ -1,5 +1,5 @@
 (* Abstract Syntax Tree and functions for printing it *)
-type typ = Int | Bool | Void
+type typ = Int | Bool | Void | String
 
 type bind = typ * string
 
@@ -7,9 +7,9 @@ type expr =
     Literal of int
   | Call of string * expr list
   | Id of string
+  | Assign of string * expr
   | Noexpr
   
-
 type stmt =
     Block of stmt list
   | Expr of expr

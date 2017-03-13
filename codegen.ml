@@ -14,7 +14,8 @@ let translate (globals, functions) =
   let ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
-    | A.Void -> void_t in
+    | A.Void -> void_t 
+    | A.String -> i8_t in
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -44,9 +45,30 @@ let translate (globals, functions) =
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
+    let local_vars =
+      let add_formal m (t, n) p = L.set_value_name n p;
+  let local = L.build_alloca (ltype_of_typ t) n builder in
+  ignore (L.build_store p local builder);
+  StringMap.add n local m in
+
+      let add_local m (t, n) =
+  let local_var = L.build_alloca (ltype_of_typ t) n builder
+  in StringMap.add n local_var m in
+
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+          (Array.to_list (L.params the_function)) in
+      List.fold_left add_local formals fdecl.A.locals in
+
+    (* Return the value for a variable or formal argument *)
+    let lookup n = StringMap.find n local_vars
+    in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
   A.Literal i -> L.const_int i32_t i
+  | A.Id s -> L.build_load (lookup s) s builder
+  | A.Assign (s, e) -> let e' = expr builder e in
+                     ignore (L.build_store e' (lookup s) builder); e'
     | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
