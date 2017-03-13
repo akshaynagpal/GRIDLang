@@ -56,7 +56,7 @@ typ:
     INT { Int }
   | BOOL { Bool }
   | VOID { Void }
-  | ID { String }
+
 
 vdecl_list:
     /* nothing */    { [] }
