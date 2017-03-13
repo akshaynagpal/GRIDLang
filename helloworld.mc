@@ -1,5 +1,5 @@
 int main(){
 	string i;
-	i = "y";
-	print(i);
+	i = "hello world";
+	printStr(i);
 }
