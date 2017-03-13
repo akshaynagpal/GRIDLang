@@ -10,6 +10,7 @@ let translate (globals, functions) =
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
   and void_t = L.void_type context in
+  (*and string_i8 = L.string_of_lltype[L.i8_type] context in*)
 
   let ltype_of_typ = function
       A.Int -> i32_t
@@ -66,6 +67,7 @@ let translate (globals, functions) =
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
   A.Literal i -> L.const_int i32_t i
+  | A.String_Lit s -> L.const_string context s
   | A.Id s -> L.build_load (lookup s) s builder
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'

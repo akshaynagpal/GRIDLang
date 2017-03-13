@@ -29,8 +29,10 @@ type token =
   | INT
   | BOOL
   | VOID
+  | STRING
   | LITERAL of (int)
   | ID of (string)
+  | STRING_LIT of (string)
   | EOF
 
 val program :

@@ -7,6 +7,7 @@ type expr =
     Literal of int
   | Call of string * expr list
   | Id of string
+  | String_Lit of string
   | Assign of string * expr
   | Noexpr
   
@@ -14,7 +15,6 @@ type stmt =
     Block of stmt list
   | Expr of expr
   | Return of expr
-
 
 type func_decl = {
     typ : typ;
