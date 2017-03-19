@@ -1,5 +1,3 @@
-int main(){
-	string i;
-	i = "hello world";
-	printStr(i);
+gameloop(){
+	printStr("hello world");
 }
