@@ -1,3 +1,0 @@
-gameloop(){
-	printStr("hello world");
-}
