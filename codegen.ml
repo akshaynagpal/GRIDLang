@@ -23,10 +23,6 @@ let translate (globals, functions) =
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
-  (* Declare the built-in printbig() function *)
-  let printbig_t = L.function_type i32_t [| i32_t |] in
-  let printbig_func = L.declare_function "printbig" printbig_t the_module in
-
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
@@ -74,16 +70,14 @@ let translate (globals, functions) =
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
-    | A.Call ("print", [e]) | A.Call ("printb", [e]) ->
+    | A.Call ("print", [e]) ->
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
     | A.Call ("printStr", [e]) ->
     L.build_call printf_func [| str_format_str ; (expr builder e) |]
       "printStr" builder
-      | A.Call ("printbig", [e]) ->
-    L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | A.Call (f, act) ->
-         let (fdef, fdecl) = StringMap.find f function_decls in
+    | A.Call (f, act) ->
+      let (fdef, fdecl) = StringMap.find f function_decls in
    let actuals = List.rev (List.map (expr builder) (List.rev act)) in
    let result = (match fdecl.A.typ with A.Void -> ""
                                             | _ -> f ^ "_result") in
