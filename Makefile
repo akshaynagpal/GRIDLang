@@ -16,7 +16,7 @@ grid.native :
 clean :
 	ocamlbuild -clean
 	rm -rf testall.log *.diff grid scanner.ml parser.ml parser.mli
-	rm -rf *.cmx *.cmi *.cmo *.cmx *.o
+	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.err *.ll *.diff
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 
