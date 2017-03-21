@@ -1,5 +1,8 @@
 *.out
 *.ll
+*.err
+*.diff
 *~
 _build/
 *.native
+testall.log
