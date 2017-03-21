@@ -1,3 +1,5 @@
 int gameloop(){
-	printStr("Hello world");
+	string x;
+	x = "hello world";
+	print(x);
 }

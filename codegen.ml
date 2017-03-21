@@ -70,12 +70,44 @@ let translate (globals, functions) =
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
-    | A.Call ("print", [e]) ->
+    (*
+    When we encounter a call with the id being print this pattern gets matched.
+    Now we take e, evaluate it by calling expr and store it in e'.
+    If the type of e' is an int then we call printf_func with int_format_str
+    (equivalent to %d) and expr builder e (which simply recomputes e)
+    Else we assume it to be a string and pass str_format_str (equivalent to %s)
+    to printf_func.
+    Rather than using else we need to use else if and match type of e' to a string,
+    I'm not sure how to do that 
+    *)
+    | A.Call ("print", [e]) -> 
+    let e' = expr builder e in
+    if (L.type_of e' = i32_t ) then 
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
+    else 
+    L.build_call printf_func [| str_format_str ; (expr builder e) |]
+      "printf" builder
+    
+    (*
+    match e with
+    A.Literal i -> 
+    L.build_call printf_func [| int_format_str ; (expr builder e) |]
+      "printf" builder
+    | A.String_Lit(s) ->
+    L.build_call printf_func [| str_format_str ; (expr builder e) |]
+      "printf" builder
+    *)
+    (*
+    let e' = expr builder e in
+    if (e' = i32_t ) then 
+    *)
+    
+    (*
     | A.Call ("printStr", [e]) ->
     L.build_call printf_func [| str_format_str ; (expr builder e) |]
       "printStr" builder
+    *)
     | A.Call (f, act) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
    let actuals = List.rev (List.map (expr builder) (List.rev act)) in
