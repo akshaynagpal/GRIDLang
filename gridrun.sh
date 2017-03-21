@@ -2,7 +2,7 @@
 # If the terminal shows "can't find command", please run "chmod +x gridrun.sh" in terminal first.
 LLI="lli"
 
-GRID_NATIVE="./microc.native"
+GRID_NATIVE="./grid.native"
 
 DEFAULT_PATH="."
 
@@ -11,8 +11,8 @@ Run() {
 }
 
 Usage(){
-	echo "Usage: gridrun.sh [options] [.grid file]"
-    #echo "-a   Print AST of file"
+	echo "Usage: ./gridrun.sh [options] [.grid file]"
+    echo "[options (one at a time)]"
     echo "-c   Compile file"
     echo "-r   Run file"
     echo "-h   Print this help"
