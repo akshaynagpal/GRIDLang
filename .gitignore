@@ -1,5 +1,6 @@
 *.out
 *.ll
+*.err
 *~
 _build/
 *.native
