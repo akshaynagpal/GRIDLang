@@ -1,0 +1,6 @@
+int gameloop(){
+  int x;
+  x = 6;
+  print(x);
+  return 0;
+}
