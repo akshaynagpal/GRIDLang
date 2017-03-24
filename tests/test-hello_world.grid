@@ -1,3 +1,0 @@
-int gameloop(){	
-	print("Hello World");
-}
