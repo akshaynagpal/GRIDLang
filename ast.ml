@@ -1,6 +1,11 @@
 (* Abstract Syntax Tree and functions for printing it *)
 type typ = Int | Bool | Void | String
 
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
+          And | Or
+
+type uop = Neg | Not
+
 type bind = typ * string
 
 type expr =
@@ -8,6 +13,8 @@ type expr =
   | BoolLit of bool
   | Call of string * expr list
   | Id of string
+  | Binop of expr * op * expr
+  | Unop of uop * expr
   | String_Lit of string
   | Assign of string * expr
   | Noexpr
