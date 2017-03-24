@@ -1,5 +1,5 @@
 #GridLang
 
 ### How to run helloworld.grid
-`make`
+`$ make`  
 `$ ./gridrun.sh -r helloworld.grid`
