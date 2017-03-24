@@ -1,3 +1,6 @@
-int gameloop(){	
-	print("Hello World");
+int gameloop(){
+  bool x;
+  x = true;
+  print(x);
+  return 0;
 }

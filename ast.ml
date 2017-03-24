@@ -5,6 +5,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
+  | BoolLit of bool
   | Call of string * expr list
   | Id of string
   | String_Lit of string

@@ -82,6 +82,8 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1) }
+  | TRUE             { BoolLit(true) }
+  | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
   | ID ASSIGN expr   { Assign($1, $3) }

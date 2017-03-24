@@ -66,6 +66,7 @@ let translate (globals, functions) =
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
   A.Literal i -> L.const_int i32_t i
+  | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
   | A.Id s -> L.build_load (lookup s) s builder
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
@@ -82,7 +83,7 @@ let translate (globals, functions) =
     *)
     | A.Call ("print", [e]) -> 
     let e' = expr builder e in
-    if (L.type_of e' = i32_t ) then 
+    if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
       "printf" builder
     else 
