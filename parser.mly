@@ -34,7 +34,7 @@ program:
 
 decls:
    /* nothing */ { [], [] }
- | decls vdecl_new { ($2 :: fst $1), snd $1 }
+ | decls vdecl { ($2 :: fst $1), snd $1 }
  | decls fdecl { fst $1, ($2 :: snd $1) }
 
 fdecl:
@@ -63,12 +63,9 @@ vdecl_list:
     /* nothing */    { [] }
   | vdecl_list vdecl { $2 :: $1 }
 
-vdecl_new:
+vdecl:
    typ ID SEMI { PrimitiveType($1, $2) }
   | typ LARR LITERAL RARR ID SEMI { ArrayType($1, $5, $3)}
-
-vdecl:
-  typ ID SEMI {($1, $2)}
 
 stmt_list:
     /* nothing */  { [] }

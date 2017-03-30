@@ -77,13 +77,22 @@ let translate (globals, functions) =
   ignore (L.build_store p local builder);
   StringMap.add n local m in
 
-      let add_local m (t, n) =
-  let local_var = L.build_alloca (ltype_of_typ t) n builder
-  in StringMap.add n local_var m in
+  let add_local m (t, n) =
+    let local_var = L.build_alloca (ltype_of_typ t) n builder
+      in StringMap.add n local_var m in
 
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.A.locals in
+  let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
+    (Array.to_list (L.params the_function)) in
+
+  let local_non_arrs = List.fold_left get_non_arrs [] fdecl.A.locals in
+  List.fold_left add_local formals local_non_arrs in
+
+  let add_local_arrs m (t, n, s) =
+    let local_var = L.build_alloca (L.array_type (ltype_of_typ t) s) n builder
+      in StringMap.add n local_var m in
+  let local_arrs = List.fold_left get_arrs [] fdecl.A.locals in
+
+  let local_arr_vars = (List.fold_left add_local_arrs StringMap.empty local_arrs) in
 
     (* Return the value for a variable or formal argument *)
     let lookup n = StringMap.find n local_vars
