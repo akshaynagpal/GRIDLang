@@ -19,6 +19,10 @@ type expr =
   | Assign of string * expr
   | Noexpr
   
+type alltyp =
+    PrimitiveType of typ * string
+  | ArrayType of typ * string * int
+
 type stmt =
     Block of stmt list
   | Expr of expr
@@ -32,4 +36,4 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = bind list * func_decl list
+type program = alltyp list * func_decl list

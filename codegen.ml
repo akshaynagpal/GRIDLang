@@ -19,6 +19,32 @@ let translate (globals, functions) =
     | A.Void -> void_t 
     | A.String -> str_t in
 
+  let get_non_arrs my_list my_type = match my_type with
+      A.PrimitiveType(i,j) -> (i,j)::my_list
+    | A.ArrayType(i,j,k)-> my_list
+  in
+
+  let get_arrs my_list my_type = match my_type with
+      A.ArrayType(i,j,k) -> (i,j,k)::my_list
+    | A.PrimitiveType(i,j)-> my_list
+  in
+
+  let global_non_arrs = List.fold_left get_non_arrs [] globals 
+  and global_arrs = List.fold_left get_arrs [] globals in
+  (* Declare each global variable; remember its value in a map *)
+  let global_vars =
+    let global_var m (t, n) =
+      let init = L.const_int (ltype_of_typ t) 0
+      in StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty global_non_arrs in
+
+  (* Declare each global array variable; remember its value in a map *)
+  let global_arr_vars =
+    let global_arr_var m (t, n, s) =
+      let arr_typ = (L.array_type (ltype_of_typ t) s)
+      in StringMap.add n (L.declare_global arr_typ n the_module) m in
+    List.fold_left global_arr_var StringMap.empty global_arrs in
+
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
