@@ -17,6 +17,7 @@ type expr =
   | Unop of uop * expr
   | String_Lit of string
   | Assign of string * expr
+  | ArrAssign of string * int * expr
   | Noexpr
   
 type alltyp =

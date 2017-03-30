@@ -95,8 +95,8 @@ let translate (globals, functions) =
   let local_arr_vars = (List.fold_left add_local_arrs StringMap.empty local_arrs) in
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = StringMap.find n local_vars
-    in
+    let lookup n = StringMap.find n local_vars in 
+    let lookup_arrs n = StringMap.find n local_arr_vars in 
 
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
@@ -105,6 +105,9 @@ let translate (globals, functions) =
   | A.Id s -> L.build_load (lookup s) s builder
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
+  | A.ArrAssign (s, i, e) -> 
+                            let e' = expr builder e in
+                        ignore (L.build_store e' (L.build_in_bounds_gep (lookup_arrs s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "some_name" builder) builder); e'
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
     | A.Binop (e1, op, e2) ->
 	  let e1' = expr builder e1
