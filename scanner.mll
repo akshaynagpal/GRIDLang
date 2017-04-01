@@ -16,6 +16,7 @@ rule token = parse
 | '*'      { TIMES }
 | '/'      { DIVIDE }
 | '='      { ASSIGN }
+| '.'      { DOT }
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
@@ -36,6 +37,7 @@ rule token = parse
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "struct" { STRUCT }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | '"'([^'"']* as lxm)'"' { STRING_LIT(lxm) }

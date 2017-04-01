@@ -1,6 +1,25 @@
-int gameloop(){
-  bool x;
-  x = true;
-  print(x);
-  return 0;
+struct a {
+	int x;
+	int y;
+}
+
+struct b {
+	int j;
+	int k;
+}
+
+
+void gameloop(){
+  /*struct a a1;
+  a1.x=30;
+  a1.y=40;
+  a1.y=56;
+
+  print(a1.y);
+  print("Hello");
+*/
+int z;
+z=10;
+print(z);
+
 }

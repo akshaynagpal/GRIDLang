@@ -1,5 +1,5 @@
 (* Abstract Syntax Tree and functions for printing it *)
-type typ = Int | Bool | Void | String
+type typ = Int | Bool | Void | String | Player | Coordinate | Grid | Item | StructType of string  (*added new data types*)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
@@ -14,10 +14,12 @@ type expr =
   | Call of string * expr list
   | Id of string
   | Binop of expr * op * expr
+  | Dotop of expr * string
   | Unop of uop * expr
   | String_Lit of string
-  | Assign of string * expr
+  | Assign of expr * expr
   | Noexpr
+  | Repeat                (* added repeat keyword in expr*)
   
 type stmt =
     Block of stmt list
@@ -32,4 +34,10 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = bind list * func_decl list
+type struct_decl = {   (* for adding player datatype *)
+    sname: string;
+    sformals: bind list;
+
+}
+
+type program = bind list * func_decl list * struct_decl list
