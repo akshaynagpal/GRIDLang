@@ -73,7 +73,29 @@ let translate (globals, functions) =
                      ignore (L.build_store e' (lookup s) builder); e'
   | A.ArrAssign (s, i, e) -> let e' = expr builder e in
                     ignore (L.build_store e' (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) builder); e'
-    | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
+
+  | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
+  | A.Binop (e1, op, e2) ->
+     let e1' = expr builder e1
+     and e2' = expr builder e2 in
+     (match op with
+       A.Add     -> L.build_add
+      | A.Sub     -> L.build_sub
+      | A.Mult    -> L.build_mul
+      | A.Div     -> L.build_sdiv
+      | A.And     -> L.build_and
+      | A.Or      -> L.build_or
+      | A.Equal   -> L.build_icmp L.Icmp.Eq
+      | A.Neq     -> L.build_icmp L.Icmp.Ne
+      | A.Less    -> L.build_icmp L.Icmp.Slt
+      | A.Leq     -> L.build_icmp L.Icmp.Sle
+      | A.Greater -> L.build_icmp L.Icmp.Sgt
+      | A.Geq     -> L.build_icmp L.Icmp.Sge) e1' e2' "tmp" builder
+      | A.Unop(op, e) ->
+      let e' = expr builder e in
+      (match op with
+        A.Neg     -> L.build_neg
+            | A.Not     -> L.build_not) e' "tmp" builder     
     (*
     When we encounter a call with the id being print this pattern gets matched.
     Now we take e, evaluate it by calling expr and store it in e'.
@@ -142,7 +164,8 @@ let translate (globals, functions) =
           let merge_bb = L.append_block context "merge" the_function in
           ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
           L.builder_at_end context merge_bb
-(*       | A.For (e1, e2, e3, body) -> stmt builder *)
+      | A.For (e1, e2, e3, body) -> stmt builder
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
       | A.Return e -> ignore (match fdecl.A.typ with
     A.Void -> L.build_ret_void builder
   | _ -> L.build_ret (expr builder e) builder); builder
