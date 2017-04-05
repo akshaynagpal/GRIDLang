@@ -4,7 +4,7 @@
 open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING
@@ -58,6 +58,14 @@ typ:
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
+  | arr { $1 } 
+
+arr:
+    typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
+
+arr_literal:
+  LITERAL   {[$1]}
+ | arr_literal COMMA LITERAL {$3::$1}
 
 vdecl_list:
     /* nothing */    { [] }
@@ -87,6 +95,7 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
+  | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}
 
 actuals_opt:
     /* nothing */ { [] }
