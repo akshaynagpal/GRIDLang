@@ -9,6 +9,7 @@ type expr =
   | Id of string
   | String_Lit of string
   | Assign of string * expr
+  | ArrAssign of string * int * expr
   | ArrayLiteral of int list
   | Noexpr
   

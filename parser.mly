@@ -93,6 +93,7 @@ expr:
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
   | ID ASSIGN expr   { Assign($1, $3) }
+  | ID LARRAY LITERAL RARRAY ASSIGN expr {ArrAssign($1, $3, $6)}
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
   | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}
