@@ -1,0 +1,5 @@
+int gameloop(){
+	int[4] x;
+        x = [1,2,3,4];
+        return 0;
+}

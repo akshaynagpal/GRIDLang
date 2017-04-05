@@ -10,7 +10,7 @@ type expr =
   | String_Lit of string
   | Assign of string * expr
   | ArrAssign of string * int * expr
-  | ArrayLiteral of int list
+  | ArrayLiteral of expr list
   | Noexpr
   
 type stmt =

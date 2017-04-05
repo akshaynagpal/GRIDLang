@@ -64,8 +64,8 @@ arr:
     typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
 
 arr_literal:
-  LITERAL   {[$1]}
- | arr_literal COMMA LITERAL {$3::$1}
+  expr   {[$1]}
+ | arr_literal COMMA expr {$3::$1}
 
 vdecl_list:
     /* nothing */    { [] }

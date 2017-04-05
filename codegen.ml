@@ -66,12 +66,13 @@ let translate (globals, functions) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
-  A.Literal i -> L.const_int i32_t i
-  | A.Id s -> L.build_load (lookup s) s builder
-  | A.Assign (s, e) -> let e' = expr builder e in
+      A.Literal i -> L.const_int i32_t i
+    | A.Id s -> L.build_load (lookup s) s builder
+    | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
-  | A.ArrAssign (s, i, e) -> let e' = expr builder e in
+    | A.ArrAssign (s, i, e) -> let e' = expr builder e in
                     ignore (L.build_store e' (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) builder); e'
+    | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
     (*
     When we encounter a call with the id being print this pattern gets matched.
@@ -84,13 +85,13 @@ let translate (globals, functions) =
     I'm not sure how to do that 
     *)
     | A.Call ("print", [e]) -> 
-    let e' = expr builder e in
-    if (L.type_of e' = i32_t ) then 
-    L.build_call printf_func [| int_format_str ; (expr builder e) |]
-      "printf" builder
-    else 
-    L.build_call printf_func [| str_format_str ; (expr builder e) |]
-      "printf" builder
+      let e' = expr builder e in
+      if (L.type_of e' = i32_t ) then 
+        L.build_call printf_func [| int_format_str ; (expr builder e) |]
+        "printf" builder
+      else 
+        L.build_call printf_func [| str_format_str ; (expr builder e) |]
+        "printf" builder
     
     (*
     match e with
