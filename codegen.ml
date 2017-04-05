@@ -74,7 +74,8 @@ let translate (globals, functions) =
     | A.ArrAssign (s, i, e) -> let e' = expr builder e in
                     ignore (L.build_store e' (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) builder); e'
     | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
-  | A.String_Lit(s) -> L.build_global_stringptr s "name" builder 
+  | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
+  | A.ArrElementLit (s, i) ->  L.build_load (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) "name" builder
   | A.Binop (e1, op, e2) ->
      let e1' = expr builder e1
      and e2' = expr builder e2 in
