@@ -67,6 +67,7 @@ let translate (globals, functions) =
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
   A.Literal i -> L.const_int i32_t i
+  | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
   | A.Id s -> L.build_load (lookup s) s builder
   | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
@@ -131,6 +132,17 @@ let translate (globals, functions) =
     let rec stmt builder = function
   A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
+      | A.While (predicate, body) ->
+          let pred_bb = L.append_block context "while" the_function in
+          ignore (L.build_br pred_bb builder);
+          let body_bb = L.append_block context "while_body" the_function in
+          add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
+          let pred_builder = L.builder_at_end context pred_bb in
+          let bool_val = expr pred_builder predicate in
+          let merge_bb = L.append_block context "merge" the_function in
+          ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
+          L.builder_at_end context merge_bb
+(*       | A.For (e1, e2, e3, body) -> stmt builder *)
       | A.Return e -> ignore (match fdecl.A.typ with
     A.Void -> L.build_ret_void builder
   | _ -> L.build_ret (expr builder e) builder); builder

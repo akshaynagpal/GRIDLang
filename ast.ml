@@ -5,6 +5,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
+  | BoolLit of bool
   | Call of string * expr list
   | Id of string
   | String_Lit of string
@@ -16,6 +17,8 @@ type expr =
 type stmt =
     Block of stmt list
   | Expr of expr
+  | For of expr * expr * expr * stmt
+  | While of expr * stmt
   | Return of expr
 
 type func_decl = {
