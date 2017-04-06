@@ -2,7 +2,7 @@ module L = Llvm
 module A = Ast
 
 module StringMap = Map.Make(String)
-
+(*added structs - Dhruv Shekhawat - 4 Apr*)
 let translate (globals, functions, structs) =
   let context = L.global_context () in
   let the_module = L.create_module context "GridLang"
@@ -12,6 +12,7 @@ let translate (globals, functions, structs) =
   and void_t = L.void_type context in
   let str_t = L.pointer_type i8_t in
   
+  (*add all struct names to a hashtable - Dhruv Shekhawat - 4 Apr*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
   let add_empty_named_struct_types sdecl =
     let struct_t = L.named_struct_type context sdecl.A.sname in
@@ -19,7 +20,7 @@ let translate (globals, functions, structs) =
   in
   let _  =  List.map add_empty_named_struct_types structs 
   in
-
+(*struct can be of any type. For e.g. struct book, struct car. Hashtable will return the type by using sname *)
   let rec ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
@@ -28,24 +29,28 @@ let translate (globals, functions, structs) =
     | A.String -> str_t 
 in
     let populate_struct_type sdecl = 
-    let struct_t = Hashtbl.find struct_types sdecl.A.sname in
-    let type_list = Array.of_list(List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals) in
-    L.struct_set_body struct_t type_list true
+    let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
+    let type_list = Array.of_list(List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals) in (*construct list of all datatypes of formals in struct*)
+    L.struct_set_body struct_t type_list true (*finally build struct body in llvm*)
   in 
-    ignore(List.map populate_struct_type structs);
+    ignore(List.map populate_struct_type structs); (*apply populate_struct func on all the structs to build them all*)
 
  let string_option_to_string = function
     None -> ""
     | Some(s) -> s
 in
-
+  (*struct_field_index is a map where key is struct name and value is another map*)
+  (*this second map, the key is the field name and the value is the index number*)
+  (*basically index every field of struct so that they can be accessed later on*)
   let struct_field_index_list =
   let handle_list m individual_struct = 
-    let struct_field_name_list = List.map snd individual_struct.A.sformals in
+    let struct_field_name_list = List.map snd individual_struct.A.sformals in (*list of all fieldnames of a struct*)
     let increment n = n + 1 in
-    let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in
+    (*add each field and index to second map called struct_field_map*)
+    let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in 
     let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list
     in
+    (*add struct_field_map to the main map*)
     StringMap.add individual_struct.A.sname (fst struct_field_map) m  
   in
   List.fold_left handle_list StringMap.empty structs  

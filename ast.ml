@@ -1,5 +1,5 @@
 (* Abstract Syntax Tree and functions for printing it *)
-type typ = Int | Bool | Void | String | Player | Coordinate | Grid | Item | StructType of string  (*added new data types*)
+type typ = Int | Bool | Void | String | StructType of string (*added new data types*)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or

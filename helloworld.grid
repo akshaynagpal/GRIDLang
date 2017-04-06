@@ -1,19 +1,32 @@
-struct a {
+Player good{
 	int x;
 	int y;
+  string s;
+  Item cross c1;
 }
 
-struct b {
-	int x;
-	int y;
+Player bad {
+  int x;
+  int y;
+  string s;
 }
 
+Item cross {
+  int x;
+  int y;
+}
 
 void gameloop(){
-  struct a a1;
-  struct b b1;
-  a1.x = 10;
-  b1.x = 20;
-  print(a1.x);
-  print(b1.x);
+
+Player good p1;
+Player good p2;
+Player bad p3;
+Player bad p4;
+Item cross c1;
+Item cross c2;
+c1.x = 100;
+p1.x = 10;
+p1.s = "player1";
+p1.c1.x = 999;
+print(p1.c1.x);
 }

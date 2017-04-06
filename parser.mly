@@ -11,9 +11,9 @@ let third (_,_,c) = c;;
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING STRUCT
-%token <int> LITERAL
+%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER
 %token <string> ID
+%token <int> LITERAL
 %token <string> STRING_LIT
 %token EOF
 
@@ -64,7 +64,8 @@ typ:
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
-  | STRUCT ID { StructType ($2) }
+  | PLAYER ID { StructType ($2) } 
+  
 
 vdecl_list:
     /* nothing */    { [] }
@@ -74,8 +75,8 @@ vdecl:
    typ ID SEMI { ($1, $2) }
 
 sdecl:
-    STRUCT ID LBRACE vdecl_list RBRACE
-      { { sname = $2;
+    PLAYER ID LBRACE vdecl_list RBRACE
+      { { sname = $2; 
       sformals = $4;
       } }
 
