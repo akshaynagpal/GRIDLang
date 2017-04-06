@@ -101,26 +101,28 @@ in
     let lookup n = StringMap.find n local_vars
     in
 
-    (* Construct code for an expression; return its value *)
+    (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
+    (*structs in GRIDLang, we would remove this.*)
   let rec llvalue_expr_getter builder = function
       A.Id s -> lookup s
-  |A.Dotop(e1, field) ->
+  |A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
     (match e1 with
       A.Id s -> let etype = fst( 
         try List.find (fun t->snd(t)=s) fdecl.A.locals
         with Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
         in
+        (*above three lines we have found the type of b, which is book*)
         (try match etype with
           A.StructType t->
             let index_number_list = StringMap.find t struct_field_index_list in
-            let index_number = StringMap.find field index_number_list in
-            let struct_llvalue = lookup s in
+            let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
+            let struct_llvalue = lookup s in (*return the value of x*)
             let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
-            access_llvalue
+            access_llvalue (*not sure what this last step is for*)
 
         | _ -> raise (Failure("No structype."))
        with Not_found -> raise (Failure("unable to find" ^ s)) )
-    | _ as e1_expr ->  let e1'_llvalue = llvalue_expr_getter builder e1_expr in
+    | _ as e1_expr ->  let e1'_llvalue = llvalue_expr_getter builder e1_expr in (*This is also for handling nested structs*)
       let loaded_e1' = expr builder e1_expr in
       let e1'_lltype = L.type_of loaded_e1' in
       let e1'_struct_name_string_option = L.struct_name e1'_lltype in
@@ -148,7 +150,7 @@ in
           let struct_llvalue = lookup s in
           let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
           let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-          loaded_access
+          loaded_access  (*not sure about the last two steps. What they are doing?*)
 
         | _ -> raise (Failure("No structype."))
        with Not_found -> raise (Failure("unable to find" ^ s)) )
@@ -161,7 +163,7 @@ in
       let index_number = StringMap.find field index_number_list in
       let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
       L.build_load access_llvalue "loaded_dotop" builder )
-   | A.Assign (lhs, e2) -> let e2' = expr builder e2 in
+   | A.Assign (lhs, e2) -> let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
       (match lhs with
       A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
       |A.Dotop (e1, field) ->
