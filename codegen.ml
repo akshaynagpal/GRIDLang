@@ -75,13 +75,10 @@ let translate (globals, functions) =
       | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
       | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
-
-      | A.ArrAssign (e1, e2) -> let addr = expr builder e1 
-                              and e' = expr builder e2 in
-                            ignore(L.build_store e' addr builder); e'
+      | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
+                              and value = expr builder e2 in
+                            ignore(L.build_store value addr builder); value
       | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
-      | A.ArrIndexRef (s, e) ->  let index = expr builder e in lookup_at_index s index builder
-
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
           let e1' = expr builder e1

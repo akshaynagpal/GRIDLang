@@ -19,7 +19,7 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
-  | ArrAssign of expr * expr
+  | ArrAssign of string * expr * expr
   | ArrayLiteral of expr list
   | Noexpr
   
