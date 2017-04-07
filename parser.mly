@@ -5,7 +5,7 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT
+%token PLUS MINUS TIMES DIVIDE ASSIGN NOT PERCENT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING
 %token <int> LITERAL
@@ -97,7 +97,8 @@ expr:
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
-  | ID LARRAY LITERAL RARRAY {ArrElementLit($1,$3)}
+  | PERCENT ID LARRAY expr RARRAY {ArrIndexLiteral($2,$4)}
+  | ID LARRAY expr RARRAY {ArrIndexRef($1,$3)}
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }
@@ -113,7 +114,7 @@ expr:
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }
-  | ID LARRAY LITERAL RARRAY ASSIGN expr {ArrAssign($1, $3, $6)}
+  | expr ASSIGN expr {ArrAssign($1, $3)}
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
   | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}

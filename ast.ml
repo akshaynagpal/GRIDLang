@@ -11,14 +11,15 @@ type bind = typ * string
 type expr =
     Literal of int
   | BoolLit of bool
-  | ArrElementLit of string * int
+  | ArrIndexLiteral of string * expr
+  | ArrIndexRef of string * expr
   | Call of string * expr list
   | Id of string
   | String_Lit of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
-  | ArrAssign of string * int * expr
+  | ArrAssign of expr * expr
   | ArrayLiteral of expr list
   | Noexpr
   

@@ -17,6 +17,7 @@ rule token = parse
 | '-'      { MINUS }
 | '*'      { TIMES }
 | '/'      { DIVIDE }
+| '%'      { PERCENT }
 | '='      { ASSIGN }
 | "=="     { EQ }
 | "!="     { NEQ }

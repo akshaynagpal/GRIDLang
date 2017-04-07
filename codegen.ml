@@ -64,39 +64,45 @@ let translate (globals, functions) =
     (* Return the value for a variable or formal argument *)
     let lookup n = StringMap.find n local_vars in
 
+    let lookup_at_index s index builder=
+       L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
-  A.Literal i -> L.const_int i32_t i
-  | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
-  | A.Id s -> L.build_load (lookup s) s builder
-  | A.Assign (s, e) -> let e' = expr builder e in
+        A.Literal i -> L.const_int i32_t i
+      | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
+      | A.Id s -> L.build_load (lookup s) s builder
+      | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
+      | A.Assign (s, e) -> let e' = expr builder e in
                      ignore (L.build_store e' (lookup s) builder); e'
-    | A.ArrAssign (s, i, e) -> let e' = expr builder e in
-                    ignore (L.build_store e' (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) builder); e'
-    | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
-  | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
-  | A.ArrElementLit (s, i) ->  L.build_load (L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; L.const_int i32_t i]) "name" builder) "name" builder
-  | A.Binop (e1, op, e2) ->
-     let e1' = expr builder e1
-     and e2' = expr builder e2 in
-     (match op with
-       A.Add     -> L.build_add
-      | A.Sub     -> L.build_sub
-      | A.Mult    -> L.build_mul
-      | A.Div     -> L.build_sdiv
-      | A.And     -> L.build_and
-      | A.Or      -> L.build_or
-      | A.Equal   -> L.build_icmp L.Icmp.Eq
-      | A.Neq     -> L.build_icmp L.Icmp.Ne
-      | A.Less    -> L.build_icmp L.Icmp.Slt
-      | A.Leq     -> L.build_icmp L.Icmp.Sle
-      | A.Greater -> L.build_icmp L.Icmp.Sgt
-      | A.Geq     -> L.build_icmp L.Icmp.Sge) e1' e2' "tmp" builder
+
+      | A.ArrAssign (e1, e2) -> let addr = expr builder e1 
+                              and e' = expr builder e2 in
+                            ignore(L.build_store e' addr builder); e'
+      | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
+      | A.ArrIndexRef (s, e) ->  let index = expr builder e in lookup_at_index s index builder
+
+      | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
+      | A.Binop (e1, op, e2) ->
+          let e1' = expr builder e1
+          and e2' = expr builder e2 in
+        (match op with         A.Add     -> L.build_add
+        | A.Sub     -> L.build_sub
+        | A.Mult    -> L.build_mul
+        | A.Div     -> L.build_sdiv
+        | A.And     -> L.build_and
+        | A.Or      -> L.build_or
+        | A.Equal   -> L.build_icmp L.Icmp.Eq
+        | A.Neq     -> L.build_icmp L.Icmp.Ne
+        | A.Less    -> L.build_icmp L.Icmp.Slt
+        | A.Leq     -> L.build_icmp L.Icmp.Sle
+        | A.Greater -> L.build_icmp L.Icmp.Sgt
+        | A.Geq     -> L.build_icmp L.Icmp.Sge) e1' e2' "tmp" builder
       | A.Unop(op, e) ->
-      let e' = expr builder e in
-      (match op with
-        A.Neg     -> L.build_neg
-            | A.Not     -> L.build_not) e' "tmp" builder     
+        let e' = expr builder e in
+        (match op with
+          A.Neg     -> L.build_neg
+              | A.Not     -> L.build_not) e' "tmp" builder     
     (*
     When we encounter a call with the id being print this pattern gets matched.
     Now we take e, evaluate it by calling expr and store it in e'.
