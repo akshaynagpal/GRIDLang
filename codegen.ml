@@ -14,12 +14,12 @@ let translate (globals, functions) =
   let str_t = L.pointer_type i8_t in
   (*and string_i8 = L.string_of_lltype[L.i8_type] context in*)
 
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
     | A.Void -> void_t 
     | A.String -> str_t 
-    | A.ArrayType (typ,size) -> array_t i32_t size in 
+    | A.ArrayType (typ,size) -> array_t (ltype_of_typ typ) size in 
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -158,6 +158,20 @@ let translate (globals, functions) =
     let rec stmt builder = function
   A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
+      | A.If (predicate, then_stmt, else_stmt) ->
+         let bool_val = expr builder predicate in
+   let merge_bb = L.append_block context "merge" the_function in
+
+   let then_bb = L.append_block context "then" the_function in
+   add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+     (L.build_br merge_bb);
+
+   let else_bb = L.append_block context "else" the_function in
+   add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+     (L.build_br merge_bb);
+
+   ignore (L.build_cond_br bool_val then_bb else_bb builder);
+   L.builder_at_end context merge_bb
       | A.While (predicate, body) ->
           let pred_bb = L.append_block context "while" the_function in
           ignore (L.build_br pred_bb builder);

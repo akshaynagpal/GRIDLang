@@ -27,6 +27,7 @@ type stmt =
     Block of stmt list
   | Expr of expr
   | For of expr * expr * expr * stmt
+  | If of expr * stmt * stmt
   | While of expr * stmt
   | Return of expr
 
