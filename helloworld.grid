@@ -2,7 +2,7 @@ Player good{
 	int x;
 	int y;
   string s;
-  Item cross c1;
+  
 }
 
 Player bad {
@@ -27,6 +27,9 @@ Item cross c2;
 c1.x = 100;
 p1.x = 10;
 p1.s = "player1";
-p1.c1.x = 999;
-print(p1.c1.x);
+p2.x = 999;
+print(c1.x);
+print(p1.x);
+print(p1.s);
+print(p2.x);
 }
