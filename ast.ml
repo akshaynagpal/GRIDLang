@@ -18,7 +18,6 @@ type expr =
     Literal of int
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
-  | ArrIndexRef of string * expr
   | Call of string * expr list
   | Id of string
   | String_Lit of string
