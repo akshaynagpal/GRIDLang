@@ -4,6 +4,7 @@ type typ =
         | Bool 
         | Void 
         | String 
+        | CoordinateType
         | ArrayType of typ * int  (* int[m] *)
         | Array2DType of typ * int * int  (* int[m][n] *)
 
@@ -25,6 +26,7 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
+  | CoordinateAssign of int * int
   | ArrAssign of string * expr * expr  (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Noexpr
