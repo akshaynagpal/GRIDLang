@@ -19,20 +19,21 @@ let translate (globals, functions) =
     | A.Bool -> i1_t
     | A.Void -> void_t 
     | A.String -> str_t 
-    | A.ArrayType (typ,size) -> array_t (ltype_of_typ typ) size in 
+    | A.ArrayType (typ,size) -> array_t (ltype_of_typ typ) size 
+    | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 in
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
+
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
     let function_decl m fdecl =
       let name = try StringMap.find fdecl.A.fname main_func_map with Not_found -> fdecl.A.fname
-      and formal_types =
-  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
-      in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+                 and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals) in 
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
   

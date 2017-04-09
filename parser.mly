@@ -59,9 +59,13 @@ typ:
   | VOID { Void }
   | STRING { String }
   | arr { $1 } 
+  | arr2d { $1 } 
 
 arr:
     typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
+
+arr2d:
+    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) }
 
 arr_literal:
   expr   {[$1]}

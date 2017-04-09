@@ -1,0 +1,6 @@
+int gameloop(){
+    int[4][4] y;
+    print("array2d init success");
+    return 0;
+}
+
