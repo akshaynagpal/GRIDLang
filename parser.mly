@@ -59,11 +59,8 @@ typ:
   | VOID { Void }
   | STRING { String }
   | COORDINATE { CoordinateType }
-  | coordinate {$1}
   | arr { $1 } 
   | arr2d { $1 } 
-
-  COORDINATE LPAREN LITERAL COMMA LITERAL RPAREN { [()]}
 
 arr:
     typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
@@ -123,7 +120,7 @@ expr:
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }
-  | ID ASSIGN LPAREN LITERAL COMMA LITERAL RPAREN { CoordinateAssign($1, $4, $6) }
+  | ID ASSIGN LPAREN expr COMMA expr RPAREN { CoordinateAssign($1, $4, $6) }
   | ID LARRAY expr RARRAY ASSIGN expr {ArrAssign($1, $3, $6)}
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }

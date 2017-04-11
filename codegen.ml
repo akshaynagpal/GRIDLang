@@ -80,7 +80,9 @@ let translate (globals, functions) =
       | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
                               and value = expr builder e2 in
                             ignore(L.build_store value addr builder); value
-      | A.CoordinateAssign (x, y) -> L.const_int i32_t x
+      | A.CoordinateAssign (s, x, y) -> let x' = expr builder x and y' = expr builder y in 
+                                        ignore(L.build_store x' (lookup_at_index s (L.const_int i32_t 0) builder) builder);
+                                        ignore(L.build_store y' (lookup_at_index s (L.const_int i32_t 1) builder) builder);x'
       | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
