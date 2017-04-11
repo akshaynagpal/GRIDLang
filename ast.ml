@@ -4,7 +4,7 @@ type typ =
         | Bool 
         | Void 
         | String 
-        | ArrayType of typ * int  (* int[m] *)
+        | Array1DType of typ * int  (* int[m] *)
         | Array2DType of typ * int * int  (* int[m][n] *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
@@ -23,8 +23,8 @@ type expr =
   | String_Lit of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
-  | ArrAssign of string * expr * expr  (* assigning some value to an array *)
+  | Assign of expr * expr
+  | Array1DAccess of string * expr (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Noexpr
   

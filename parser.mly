@@ -15,6 +15,7 @@ open Ast
 
 %nonassoc NOELSE
 %nonassoc ELSE
+%nonassoc NOLARRAY
 %right ASSIGN
 %left OR
 %left AND
@@ -58,14 +59,14 @@ typ:
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
-  | arr { $1 } 
-  | arr2d { $1 } 
+  | array1d_type { $1 }   /* int[4] */
+  | array2d_type { $1 }   /* int[4][3] */
 
-arr:
-    typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
+array1d_type:
+    typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
 
-arr2d:
-    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) }
+array2d_type:
+    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) } /* int[4][3] */
 
 arr_literal:
   expr   {[$1]}
@@ -101,6 +102,7 @@ expr:
     LITERAL          { Literal($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
+  | expr ASSIGN expr { Assign($1,$3) } 
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
   | ID LARRAY expr RARRAY {ArrIndexLiteral($1,$3)}
@@ -118,11 +120,10 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
-  | ID ASSIGN expr   { Assign($1, $3) }
-  | ID LARRAY expr RARRAY ASSIGN expr {ArrAssign($1, $3, $6)}
-  | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
+  | ID LARRAY expr RARRAY %prec NOLARRAY {Array1DAccess($1, $3)} /* x[4] */ 
+  | ID LPAREN actuals_opt RPAREN { Call($1, $3) }                
   | LPAREN expr RPAREN { $2 }
-  | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}
+  | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}       /* [1,2,3,4] */
 
 actuals_opt:
     /* nothing */ { [] }
