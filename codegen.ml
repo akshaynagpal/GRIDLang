@@ -30,8 +30,9 @@ let translate (globals, functions, structs) =
 in
     let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
-    let type_list = Array.of_list(List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals) in (*construct list of all datatypes of formals in struct*)
-    L.struct_set_body struct_t type_list true (*finally build struct body in llvm*)
+    let type_list = List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals in (*construct list of all datatypes of formals in struct*)
+    let type_list_with_ptr = Array.of_list((L.pointer_type struct_t)::type_list) in
+    L.struct_set_body struct_t type_list_with_ptr true (*finally build struct body in llvm*)
   in 
     ignore(List.map populate_struct_type structs); (*apply populate_struct func on all the structs to build them all*)
 
@@ -45,10 +46,11 @@ in
   let struct_field_index_list =
   let handle_list m individual_struct = 
     let struct_field_name_list = List.map snd individual_struct.A.sformals in (*list of all fieldnames of a struct*)
+    let struct_field_name_list_with_ptr = "next"::struct_field_name_list in 
     let increment n = n + 1 in
     (*add each field and index to second map called struct_field_map*)
     let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in 
-    let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list
+    let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list_with_ptr
     in
     (*add struct_field_map to the main map*)
     StringMap.add individual_struct.A.sname (fst struct_field_map) m  
@@ -105,6 +107,7 @@ in
   A.Literal i -> L.const_int i32_t i
   | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
   | A.Id s -> L.build_load (lookup s) s builder
+  | A.StructRef s -> let loaded_access = L.build_load (L.build_struct_gep (lookup s) 0 "name" builder) "structref" builder in loaded_access
    | A.Dotop(e1, field) -> let _ = expr builder e1 in
    (match e1 with
     A.Id s -> let etype = fst( 

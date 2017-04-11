@@ -8,7 +8,7 @@ let second (_,b,_) = b;;
 let third (_,_,c) = c;;
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PERCENT
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER
@@ -100,6 +100,7 @@ expr:
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
+  | PERCENT ID     { StructRef($2)}
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }

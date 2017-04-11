@@ -18,6 +18,7 @@ type expr =
   | Unop of uop * expr
   | String_Lit of string
   | Assign of expr * expr
+  | StructRef of string
   | Noexpr
   | Repeat                (* added repeat keyword in expr*)
   
