@@ -1,3 +1,8 @@
+int checkGameEnd()
+{
+  return 0;
+}
+
 int gameloop(){	
 	print("Hello World");
 	return 0;

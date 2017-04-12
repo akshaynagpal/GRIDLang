@@ -185,12 +185,13 @@ let translate (globals, functions) =
           L.builder_at_end context merge_bb
       | A.For (e1, e2, e3, body) -> stmt builder
       ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-      | A.Return e -> ignore (match fdecl.A.typ with
+      | A.Return e -> if (fdecl.A.fname = "gameloop") then ignore(expr builder (A.Call ("checkGameEnd", [])));ignore (match fdecl.A.typ with
     A.Void -> L.build_ret_void builder
   | _ -> L.build_ret (expr builder e) builder); builder
     in
 
     (* Build the code for each statement in the function *)
+    (*Pass function name as well*)
     let builder = stmt builder (A.Block fdecl.A.body) in
 
     (* Add a return if the last block falls off the end *)
