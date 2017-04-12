@@ -121,9 +121,7 @@ in
           let struct_llvalue = lookup s in
           let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
           let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-          loaded_access  (*not sure about the last two steps. What they are doing?*)
-
-        | _ -> raise (Failure("No structype."))
+          L.build_load loaded_access "loaded" builder;
        with Not_found -> raise (Failure("unable to find" ^ s)) ))
     | A.Assign (lhs, e2) -> let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
       (match lhs with
