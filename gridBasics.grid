@@ -1,1 +1,4 @@
-int x;
+int test(){
+	int x;
+	x = 1;
+}

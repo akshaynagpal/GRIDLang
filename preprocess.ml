@@ -10,7 +10,7 @@ let process_files filename1 =
 				can import only one file because global var will get changed
 			*)
 			let line = input_line in_channel in
-	  		if line = "import gridBasics.grid;" then 
+	  		if (line = "import gridBasics.grid;") then 
 	  			begin
 	  				tempImportFile := "gridBasics.grid";
 	  				read_recursive ("" :: lines);
@@ -23,6 +23,10 @@ let process_files filename1 =
 			let _ = close_in_noerr in_channel in
 			List.rev (lines) in 
 
-	let concat = List.fold_left (fun a x -> a ^ x) "" 
-in let temp = "" ^ concat (read_all_lines filename1) in 
-concat (read_all_lines !tempImportFile) ^ "" ^ temp
+	let concat = List.fold_left (fun a x -> a ^ x) "" in 
+		let temp = "" ^ concat (read_all_lines filename1) in
+			if (!tempImportFile = "") then
+				temp
+			else
+				concat (read_all_lines !tempImportFile) ^ "" ^ temp
+				
