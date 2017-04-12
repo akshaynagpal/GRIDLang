@@ -3,7 +3,7 @@ int gameloop(){
     int[4] x;
     x = [1,2,3,4];
     x[0]=5;
-    j=x[0];
-    print("Success. Able to access a value at index of 1d array.")
+    j = x[0];
+    print("Success. Able to access a value at index of 1d array.");
     return 0;
 }

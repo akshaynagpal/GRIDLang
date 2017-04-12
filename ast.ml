@@ -24,7 +24,7 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of expr * expr
-  | Array1DAccess of string * expr (* assigning some value to an array *)
+  | Array1DAccess of string * expr * expr (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Noexpr
   

@@ -82,15 +82,17 @@ let translate (globals, functions) =
       | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
       | A.Assign (e1, e2) -> let e1' = (match e1 with
                                             A.Id s -> lookup s
-                                            | A.Array1DAccess (s, e1) -> 
-                                                let i1 = (expr builder e1) in 
-                                                    (build_1D_array_access s (L.const_int i32_t 0) i1 builder true)
+                                            | A.Array1DAccess (array_name, i, val) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+                                                and value = expr builder val in
+                                                ignore(L.build_store value addr builder); value
+                                            | _ -> expr builder e1
                                         )
                             and e2' = expr builder e2 in
                             ignore (L.build_store e2' e1' builder); e2'
-      | A.Array1DAccess (array_name, index) -> let index = (expr builder index) in
-                                                            (build_1D_array_access array_name (L.const_int i32_t 0) index builder false)
-      (* | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder *)
+      | A.Array1DAccess (array_name, i, val) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+                                                and value = expr builder val in
+                                                ignore(L.build_store value addr builder); value
+      | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder *)
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
     (* Construct code for an expression; return its value *)
