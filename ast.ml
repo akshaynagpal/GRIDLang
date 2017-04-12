@@ -18,6 +18,7 @@ type expr =
     Literal of int
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
+  | Arr2DIndexLiteral of string * expr * expr
   | Call of string * expr list
   | Id of string
   | String_Lit of string
@@ -25,6 +26,7 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | Array1DAccess of string * expr * expr (* assigning some value to an array *)
+  | Array2DAccess of string * expr * expr * expr (* assigning some value to a 2D array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Noexpr
   

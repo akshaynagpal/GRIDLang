@@ -68,12 +68,16 @@ let translate (globals, functions) =
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
 
+    let lookup_at_2d_index s index1 index2 builder=
+      L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index1; index2]) "name" builder in
+    
     let build_1D_array_access array_name i1 index builder isAssign = 
       if isAssign
         then L.build_gep (lookup array_name) [| i1;index|] array_name builder
       else
         L.build_load (L.build_gep (lookup array_name) [|i1;index|] array_name builder) array_name builder
-    in    
+    in   
+
     (* Construct code for an expression; return its value *)
     let rec expr builder = function
         A.Literal i -> L.const_int i32_t i
@@ -85,6 +89,9 @@ let translate (globals, functions) =
                                             | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
+                                            | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
+                                                and value = expr builder v in
+                                                ignore(L.build_store value addr builder); value
                                             | _ -> expr builder e1
                                         )
                             and e2' = expr builder e2 in
@@ -92,7 +99,11 @@ let translate (globals, functions) =
       | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
+      | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
+                                                and value = expr builder v in
+                                                ignore(L.build_store value addr builder); value
       | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
+      | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
     (* Construct code for an expression; return its value *)
