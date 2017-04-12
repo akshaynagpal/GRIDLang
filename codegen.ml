@@ -20,7 +20,8 @@ let translate (globals, functions) =
     | A.Void -> void_t 
     | A.String -> str_t 
     | A.ArrayType (typ,size) -> array_t (ltype_of_typ typ) size 
-    | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 in
+    | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 
+    | A.CoordinateType -> array_t i32_t 2 in(*Declare struct of type coordinate_t here*)
 
   (* Declare printf(), which the print built-in function will call *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -79,6 +80,9 @@ let translate (globals, functions) =
       | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
                               and value = expr builder e2 in
                             ignore(L.build_store value addr builder); value
+      | A.CoordinateAssign (s, x, y) -> let x' = expr builder x and y' = expr builder y in 
+                                        ignore(L.build_store x' (lookup_at_index s (L.const_int i32_t 0) builder) builder);
+                                        ignore(L.build_store y' (lookup_at_index s (L.const_int i32_t 1) builder) builder);x'
       | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
