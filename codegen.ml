@@ -82,17 +82,17 @@ let translate (globals, functions) =
       | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
       | A.Assign (e1, e2) -> let e1' = (match e1 with
                                             A.Id s -> lookup s
-                                            | A.Array1DAccess (array_name, i, val) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
-                                                and value = expr builder val in
+                                            | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+                                                and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
                                             | _ -> expr builder e1
                                         )
                             and e2' = expr builder e2 in
                             ignore (L.build_store e2' e1' builder); e2'
-      | A.Array1DAccess (array_name, i, val) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
-                                                and value = expr builder val in
+      | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+                                                and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
-      | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder *)
+      | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
       | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
       | A.Binop (e1, op, e2) ->
     (* Construct code for an expression; return its value *)
