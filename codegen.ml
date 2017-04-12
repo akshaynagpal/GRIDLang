@@ -27,6 +27,7 @@ let translate (globals, functions, structs) =
     | A.Void -> void_t 
     | A.StructType s ->  Hashtbl.find struct_types s
     | A.String -> str_t 
+    | A.PointerType t -> L.pointer_type (ltype_of_typ t)
 in
     let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
@@ -132,6 +133,15 @@ in
       let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
       access_llvalue )
   
+  |A.Unop(op, e)  ->
+    (match op with
+      A.Deref ->
+        let e_llvalue = (llvalue_expr_getter builder e) in
+              let e_loaded = L.build_load e_llvalue "loaded_deref" builder in 
+        e_loaded
+      |_ -> raise (Failure("nooo"))
+    )
+|_ -> raise (Failure ("in llvalue_expr_getter but not a dotop!"))
 
     and expr builder = function
   A.Literal i -> L.const_int i32_t i
@@ -163,6 +173,16 @@ in
       let index_number = StringMap.find field index_number_list in
       let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
       L.build_load access_llvalue "loaded_dotop" builder )
+  | A.Unop(op, e) ->
+    let e' = expr builder e in
+    (match op with
+      A.Neg     -> L.build_neg e' "tmp" builder
+          | A.Not     -> L.build_not e' "temp" builder
+    | A.Deref -> let e_loaded = L.build_load e' "loaded_deref" builder in
+      e_loaded
+    | A.Ref -> let e_llvalue = (llvalue_expr_getter builder e) in
+    e_llvalue
+)
    | A.Assign (lhs, e2) -> let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
       (match lhs with
       A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
@@ -193,7 +213,20 @@ in
           let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_Sassign" builder in
           let _ = L.build_store e2' access_llvalue builder in
           e2'
-        ))
+        )
+    |A.Unop(op, e)  ->
+          (match op with
+            A.Deref ->
+              let e_llvalue = (llvalue_expr_getter builder e) in
+                    let e_loaded = L.build_load e_llvalue "loaded_deref" builder in 
+              let _ = L.build_store e2' e_loaded builder in
+              e2' 
+            |_ -> raise (Failure("nooo"))
+          )
+       |_ -> raise (Failure("can't match in assign"))
+
+
+)
      | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
     | A.Binop (e1, op, e2) ->
 	  let e1' = expr builder e1

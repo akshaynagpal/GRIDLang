@@ -9,7 +9,7 @@ let third (_,_,c) = c;;
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT
+%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT DEREF REF
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER
 %token <string> ID
@@ -19,6 +19,7 @@ let third (_,_,c) = c;;
 
 %nonassoc NOELSE
 %nonassoc ELSE
+%nonassoc POINTER
 %right ASSIGN
 %left OR
 %left AND
@@ -26,7 +27,7 @@ let third (_,_,c) = c;;
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
-%right NOT NEG
+%right NOT NEG DEREF REF
 %left DOT
 
 %start program
@@ -65,6 +66,7 @@ typ:
   | VOID { Void }
   | STRING { String }
   | PLAYER ID { StructType ($2) } 
+  | TIMES %prec POINTER typ { PointerType ($2) }  
   
 
 vdecl_list:
@@ -114,6 +116,8 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3) }
   | expr DOT    ID   { Dotop($1, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
+  | TIMES expr %prec DEREF { Unop(Deref, $2) }
+  | REF expr { Unop(Ref, $2) }
   | NOT expr         { Unop(Not, $2) }
   | expr ASSIGN expr   { Assign($1, $3) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }

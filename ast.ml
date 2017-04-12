@@ -1,10 +1,10 @@
 (* Abstract Syntax Tree and functions for printing it *)
-type typ = Int | Bool | Void | String | StructType of string (*added new data types*)
+type typ = Int | Bool | Void | String | StructType of string | PointerType of typ(*added new data types*)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or
 
-type uop = Neg | Not
+type uop = Neg | Not | Deref | Ref
 
 type bind = typ * string
 
