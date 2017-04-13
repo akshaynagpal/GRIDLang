@@ -1,18 +1,18 @@
 Player good{
-	int x;
-	int y;
-        string s;
-        *Player good next;
+  int x;
+  int y;
+  *Player good next;
 }
 void gameloop(){
-
-
+coordinate c;
 Player good p1;
 Player good p2;
 Player good p3;
 int a;
+c = (2,3);
 a=10;
 p2.x = 998;
 p1.next = &p2;
-print(p2.x);
+p3 = *(p1.next);
+print(p3.x);
 }

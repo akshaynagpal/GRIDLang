@@ -29,7 +29,7 @@ type expr =
   | Unop of uop * expr
   | String_Lit of string
   | Assign of expr * expr
-  | CoordinateAssign of string * expr * expr
+  | Coordinate_Lit of expr * expr
   | ArrAssign of string * expr * expr  (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Noexpr
