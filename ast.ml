@@ -22,6 +22,7 @@ type expr =
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
   | Arr2DIndexLiteral of string * expr * expr
+  | Coordinate_Lit of expr * expr
   | Call of string * expr list
   | Id of string
   | Binop of expr * op * expr

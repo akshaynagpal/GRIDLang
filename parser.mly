@@ -122,6 +122,7 @@ expr:
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
+  | LPAREN expr COMMA expr RPAREN    { Coordinate_Lit($2,$4)}
   | ID LPAREN expr COMMA expr RPAREN ASSIGN expr { Array2DAccess($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
   | ID LPAREN expr COMMA expr RPAREN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */
@@ -143,7 +144,6 @@ expr:
   | TIMES expr %prec DEREF { Unop(Deref, $2) }
   | REF expr { Unop(Ref, $2) }
   | NOT expr         { Unop(Not, $2) }
- /* | ID ASSIGN LPAREN expr COMMA expr RPAREN { CoordinateAssign($1, $4, $6) }*/
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
   | LARRAY arr_literal RARRAY {ArrayLiteral(List.rev $2)}       /* [1,2,3,4] */
