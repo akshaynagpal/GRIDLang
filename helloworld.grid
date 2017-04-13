@@ -11,8 +11,13 @@ Player good p1;
 Player good p2;
 Player good p3;
 int a;
+int[4] arr;
+arr[1]=865;
+print(arr[1]);
 a=10;
+print(a);
 p2.x = 998;
 p1.next = &p2;
-print(p2.x);
+p3 = *(p1.next);
+print(p3.x);
 }
