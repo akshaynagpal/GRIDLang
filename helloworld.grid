@@ -1,4 +1,11 @@
 import gridBasics.grid;
+Player good{
+	int x;
+	int y;
+	string s;
+	*Player good next;
+
+}
 
 Item horse{
 	int x;
@@ -11,42 +18,6 @@ Player grid{
 	Item horse item_head;
 }
 
-void addToGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
-
-	*Player good p7; 
-	p7 = &parray[x][y].player_head;
-
-	while(p7.next != &null){
-		p7 = p7.next;
-		if(p7 == &p){
-		print("Player already on grid coordinate");
-		return;
-	}
-	}
-	p7.next = &p;
-    p7 = p7.next;
-    p7.next = &null;
-}
-
-void deleteFromGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
-	
-	*Player good p7;
-	p7 = &parray[x][y].player_head;
-
-	while(p7.next!=&null && p7.next!=&p){
-	p7 = p7.next;
-	}
-
-	if(p7.next == &null){
-		print("Player already removed from coordinate");
-		return;
-	}
-
-	p7.next = p.next;
-	p.next = &null;
-
-
-}
 
 
 int gameloop(){ 
