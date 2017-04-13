@@ -1,0 +1,11 @@
+int gameloop(){
+    int i;
+    int j;
+    i=5;
+    j=0;
+    while(j<i){
+        print(1);
+        j = j+1;
+    }
+    return 0;
+}

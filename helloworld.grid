@@ -6,12 +6,13 @@ Player good{
 }
 void gameloop(){
 
+
 Player good p1;
 Player good p2;
 Player good p3;
-
+int a;
+a=10;
 p2.x = 998;
 p1.next = &p2;
-p3 = *(p1.next);
-print(p3.x);
+print(p2.x);
 }

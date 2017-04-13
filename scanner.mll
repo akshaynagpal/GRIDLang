@@ -9,6 +9,8 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '['      { LARRAY }
+| ']'      { RARRAY }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
@@ -35,6 +37,7 @@ rule token = parse
 | "int"    { INT }
 | "string" { STRING }
 | "bool"   { BOOL }
+| "coordinate" {COORDINATE}
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }

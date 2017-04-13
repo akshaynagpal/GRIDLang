@@ -1,0 +1,7 @@
+int gameloop(){
+    int j;
+    int[4] x;
+    x = [1,2,3,4];
+    print(x[0]);
+    return 0;
+}

@@ -9,8 +9,10 @@ let translate (globals, functions, structs) =
   and i32_t  = L.i32_type  context
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
-  and void_t = L.void_type context in
+  and void_t = L.void_type context 
+  and array_t   = L.array_type in
   let str_t = L.pointer_type i8_t in
+
   
   (*add all struct names to a hashtable - Dhruv Shekhawat - 4 Apr*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
@@ -21,6 +23,7 @@ let translate (globals, functions, structs) =
   let _  =  List.map add_empty_named_struct_types structs 
   in
 (*struct can be of any type. For e.g. struct book, struct car. Hashtable will return the type by using sname *)
+
   let rec ltype_of_typ = function
       A.Int -> i32_t
     | A.Bool -> i1_t
@@ -28,6 +31,9 @@ let translate (globals, functions, structs) =
     | A.StructType s ->  Hashtbl.find struct_types s
     | A.String -> str_t 
     | A.PointerType t -> L.pointer_type (ltype_of_typ t)
+    | A.ArrayType (typ,size) -> array_t (ltype_of_typ typ) size 
+    | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 
+    | A.CoordinateType -> array_t i32_t 2 (*Declare struct of type coordinate_t here*)
 in
     let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
@@ -63,13 +69,13 @@ in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
+
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
     let function_decl m fdecl =
       let name = try StringMap.find fdecl.A.fname main_func_map with Not_found -> fdecl.A.fname
-      and formal_types =
-  Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals)
-      in let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+                 and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals) in 
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
   
@@ -99,8 +105,11 @@ in
       List.fold_left add_local formals fdecl.A.locals in
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = StringMap.find n local_vars
-    in
+    let lookup n = StringMap.find n local_vars in
+
+    let lookup_at_index s index builder=
+       L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
+
 
     (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
     (*structs in GRIDLang, we would remove this.*)
@@ -244,22 +253,19 @@ in
 	  | A.Leq     -> L.build_icmp L.Icmp.Sle
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge) e1' e2' "tmp" builder
-    | A.Unop(op, e) ->
-	  let e' = expr builder e in
-	  (match op with
-	    A.Neg     -> L.build_neg
-          | A.Not     -> L.build_not) e' "tmp" builder      
-    (*
-    When we encounter a call with the id being print this pattern gets matched.
-    Now we take e, evaluate it by calling expr and store it in e'.
-    If the type of e' is an int then we call printf_func with int_format_str
-    (equivalent to %d) and expr builder e (which simply recomputes e)
-    Else we assume it to be a string and pass str_format_str (equivalent to %s)
-    to printf_func.
-    Rather than using else we need to use else if and match type of e' to a string,
-    I'm not sure how to do that 
-    *)
+    
+      
+      | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
+                              and value = expr builder e2 in
+                            ignore(L.build_store value addr builder); value
+      | A.CoordinateAssign (s, x, y) -> let x' = expr builder x and y' = expr builder y in 
+                                        ignore(L.build_store x' (lookup_at_index s (L.const_int i32_t 0) builder) builder);
+                                        ignore(L.build_store y' (lookup_at_index s (L.const_int i32_t 1) builder) builder);x'
+      | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
+      | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
+      
     | A.Call ("print", [e]) -> 
+
     let e' = expr builder e in
     if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
     L.build_call printf_func [| int_format_str ; (expr builder e) |]
@@ -267,26 +273,7 @@ in
     else 
     L.build_call printf_func [| str_format_str ; (expr builder e) |]
       "printf" builder
-    
-    (*
-    match e with
-    A.Literal i -> 
-    L.build_call printf_func [| int_format_str ; (expr builder e) |]
-      "printf" builder
-    | A.String_Lit(s) ->
-    L.build_call printf_func [| str_format_str ; (expr builder e) |]
-      "printf" builder
-    *)
-    (*
-    let e' = expr builder e in
-    if (e' = i32_t ) then 
-    *)
-    
-    (*
-    | A.Call ("printStr", [e]) ->
-    L.build_call printf_func [| str_format_str ; (expr builder e) |]
-      "printStr" builder
-    *)
+
     | A.Call (f, act) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
    let actuals = List.rev (List.map (expr builder) (List.rev act)) in
@@ -307,6 +294,32 @@ in
     let rec stmt builder = function
   A.Block sl -> List.fold_left stmt builder sl
       | A.Expr e -> ignore (expr builder e); builder
+      | A.If (predicate, then_stmt, else_stmt) ->
+         let bool_val = expr builder predicate in
+   let merge_bb = L.append_block context "merge" the_function in
+
+   let then_bb = L.append_block context "then" the_function in
+   add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+     (L.build_br merge_bb);
+
+   let else_bb = L.append_block context "else" the_function in
+   add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+     (L.build_br merge_bb);
+
+   ignore (L.build_cond_br bool_val then_bb else_bb builder);
+   L.builder_at_end context merge_bb
+      | A.While (predicate, body) ->
+          let pred_bb = L.append_block context "while" the_function in
+          ignore (L.build_br pred_bb builder);
+          let body_bb = L.append_block context "while_body" the_function in
+          add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
+          let pred_builder = L.builder_at_end context pred_bb in
+          let bool_val = expr pred_builder predicate in
+          let merge_bb = L.append_block context "merge" the_function in
+          ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
+          L.builder_at_end context merge_bb
+      | A.For (e1, e2, e3, body) -> stmt builder
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
       | A.Return e -> ignore (match fdecl.A.typ with
     A.Void -> L.build_ret_void builder
   | _ -> L.build_ret (expr builder e) builder); builder
