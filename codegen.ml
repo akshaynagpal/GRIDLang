@@ -123,8 +123,9 @@ in
     (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
     (*structs in GRIDLang, we would remove this.*)
   let rec llvalue_expr_getter builder = function
-      A.Id s -> lookup s
-  |A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
+     A.Id s -> lookup s
+    | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in lookup_at_index s index builder
+    |A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
     (match e1 with
       A.Id s -> let etype = fst( 
         try List.find (fun t->snd(t)=s) fdecl.A.locals
@@ -150,16 +151,16 @@ in
       let index_number = StringMap.find field index_number_list in
       let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
       access_llvalue )
-  
-  |A.Unop(op, e)  ->
-    (match op with
+
+    |A.Unop(op, e)  ->
+      (match op with
       A.Deref ->
         let e_llvalue = (llvalue_expr_getter builder e) in
               let e_loaded = L.build_load e_llvalue "loaded_deref" builder in 
         e_loaded
       |_ -> raise (Failure("nooo"))
     )
-|_ -> raise (Failure ("in llvalue_expr_getter but not a dotop!"))
+    |_ -> raise (Failure ("in llvalue_expr_getter but not a dotop!"))
 
     and expr builder = function
   A.Literal i -> L.const_int i32_t i
