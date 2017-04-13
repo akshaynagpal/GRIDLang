@@ -1,0 +1,13 @@
+int gameloop(){
+  int i;
+  int j;
+  int k;
+  int l;
+  int a;
+  i = 3;
+  j = 4;
+  k = -1;
+  l = 2;
+  a = i*j/l-k;
+  print(a);
+}

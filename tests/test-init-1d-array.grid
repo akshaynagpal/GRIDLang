@@ -1,0 +1,6 @@
+int gameloop(){
+    int[4] x;
+    x = [1,2,3,4];
+    print("Success.1d array intialized.");
+    return 0;
+}
