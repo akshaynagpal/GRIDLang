@@ -1,6 +1,6 @@
 int checkGameEnd()
 {
-  return 0;
+  return 1;
 }
 
 int gameloop(){	

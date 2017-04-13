@@ -62,6 +62,9 @@ let translate (globals, functions) =
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.A.locals in
 
+    let local = L.build_alloca i32_t "repeat" builder in
+    let local_vars = StringMap.add "repeat" local local_vars in 
+
     (* Return the value for a variable or formal argument *)
     let lookup n = StringMap.find n local_vars in
 
@@ -185,7 +188,9 @@ let translate (globals, functions) =
           L.builder_at_end context merge_bb
       | A.For (e1, e2, e3, body) -> stmt builder
       ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-      | A.Return e -> if (fdecl.A.fname = "gameloop") then ignore(expr builder (A.Call ("checkGameEnd", [])));ignore (match fdecl.A.typ with
+      | A.Return e -> if (fdecl.A.fname = "gameloop") then (*Assign value of checkGameEnd to "repeat"*)
+                      ignore(expr builder (A.Assign("repeat",A.Call ("checkGameEnd", []))));
+                    ignore (match fdecl.A.typ with
     A.Void -> L.build_ret_void builder
   | _ -> L.build_ret (expr builder e) builder); builder
     in
