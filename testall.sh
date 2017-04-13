@@ -9,6 +9,12 @@
 LLI="lli"
 #LLI="/usr/local/opt/llvm/bin/lli"
 
+# Path to the LLVM compiler
+LLC="llc"
+
+# Path to the C compiler
+CC="cc"
+
 # Path to the grid compiler.  Usually "./grid.native"
 # Try "_build/grid.native" if ocamlbuild was unable to create a symbolic link.
 GRID_NATIVE="./grid.native"
@@ -44,7 +50,7 @@ SignalError() {
 Compare() {
     generatedfiles="$generatedfiles $3"
     echo diff -b $1 $2 ">" $3 1>&2
-    diff -b "$1" "$2" > "$3" 2>&1 || {
+    diff -b "$1" "$2" > "$3" 1>&2 || {
 	SignalError "$1 differs"
 	echo "FAILED $1 differs from $2" 1>&2
     }
@@ -77,18 +83,20 @@ Check() {
                              s/.grid//'`
     reffile=`echo $1 | sed 's/.grid$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
-
-    echo -n "$basename..."
+    echo "$reffile"
+    echo -n "$basename........."
 
     echo 1>&2
     echo "###### Testing $basename" 1>&2
 
     generatedfiles=""
 
-    generatedfiles="$generatedfiles ${basename}.ll ${basename}.out" &&
     Run "$GRID_NATIVE" "<" $1 ">" "${basename}.ll" &&
-    Run "$LLI" "${basename}.ll" ">" "${basename}.out" &&
-    Compare ${basename}.out ${reffile}.golden ${basename}.diff
+    Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
+    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o" &&
+    Run "./${basename}.exe" ">" "${basename}.out" &&
+    Compare ${basename}.out ${reffile}.golden ${basename}.diff &&
+    generatedfiles="$generatedfiles ${basename}.ll ${basename}.out ${basename}.s ${basename}.exe"
 
     # Report the status and clean up the generated files
 
@@ -111,16 +119,16 @@ CheckFail() {
     reffile=`echo $1 | sed 's/.grid$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
 
-    echo -n "$basename..."
+    echo -n "$basename........."
 
     echo 1>&2
     echo "###### Testing $basename" 1>&2
 
     generatedfiles=""
 
-    generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
     RunFail "$GRID_NATIVE" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
-    Compare ${basename}.err ${reffile}.err ${basename}.diff
+    Compare ${basename}.err ${reffile}.err ${basename}.diff &&
+    generatedfiles="$generatedfiles ${basename}.err ${basename}.diff ${basename}.s ${basename}.exe"
 
     # Report the status and clean up the generated files
 
@@ -157,6 +165,12 @@ LLIFail() {
 
 which "$LLI" >> $globallog || LLIFail
 
+if [ ! -f bindings.o ]
+then
+    echo "Could not find bindings.o"
+    echo "Try \"make bindings.o\""
+    exit 1
+fi
 
 if [ $# -ge 1 ]
 then

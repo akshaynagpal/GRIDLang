@@ -67,6 +67,10 @@ in
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
+    (* Declare the built-in input() function *)
+  let input_t = L.function_type str_t [||] in
+  let input_func = L.declare_function "input" input_t the_module in
+
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
 
   (* Define each function (arguments and return type) so we can call it *)
@@ -317,7 +321,10 @@ in
     else 
     L.build_call printf_func [| str_format_str ; (expr builder e) |]
       "printf" builder
-
+    
+    | A.Call ("input", []) ->
+    L.build_call input_func [||] "input" builder
+    
     | A.Call (f, act) ->
       let (fdef, fdecl) = StringMap.find f function_decls in
    let actuals = List.rev (List.map (expr builder) (List.rev act)) in
