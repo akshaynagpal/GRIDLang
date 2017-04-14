@@ -9,11 +9,20 @@ type typ =
         | StructType of string 
         | PointerType of typ
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-           And | Or
+type op = Add 
+          | Sub 
+          | Mult 
+          | Div 
+          | Equal 
+          | Neq 
+          | Less 
+          | Leq 
+          | Greater 
+          | Geq 
+          | And 
+          | Or
 
 type uop = Neg | Not | Deref | Ref
-
 
 type bind = typ * string
 
