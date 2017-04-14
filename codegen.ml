@@ -311,15 +311,33 @@ in
               | A.Not     -> L.build_not) e' "tmp" builder     
 
     | A.Call ("print", [e]) -> 
+      (match e with 
+        A.Id s-> let etype = fst( 
+                try List.find (fun t->snd(t)=s) fdecl.A.locals
+                with Not_found -> raise (Failure("Unable to find" ^ s ^ "in expr A.ID")))
+                in
+                (match etype with
+                  A.CoordinateType -> let x = L.build_load (lookup_at_index s (expr builder (A.Literal(0))) builder) "name" builder
+                                      and y = L.build_load (lookup_at_index s (expr builder (A.Literal(1))) builder) "name" builder
+                                      in let _ = L.build_call printf_func [| int_format_str ; x|] "printf" builder in
+                                      L.build_call printf_func [| int_format_str ; y|] "printf" builder
+                  | _ ->
+                  let e' = expr builder e in
+                  if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
+                    L.build_call printf_func [| int_format_str ; (expr builder e) |]
+                    "printf" builder
+                  else
+                    L.build_call printf_func [| str_format_str ; (expr builder e) |]
+                    "printf" builder)
+        | _ ->
+          let e' = expr builder e in
+            if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
+              L.build_call printf_func [| int_format_str ; (expr builder e) |]
+              "printf" builder
+          else
+            L.build_call printf_func [| str_format_str ; (expr builder e) |]
+            "printf" builder)
 
-    let e' = expr builder e in
-    if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
-    L.build_call printf_func [| int_format_str ; (expr builder e) |]
-      "printf" builder
-    else 
-    L.build_call printf_func [| str_format_str ; (expr builder e) |]
-      "printf" builder
-    
     | A.Call ("input", []) ->
     L.build_call input_func [||] "input" builder
     
