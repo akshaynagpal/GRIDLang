@@ -135,6 +135,7 @@ let translate (globals, functions, structs) =
   let rec llvalue_expr_getter builder = function
      A.Id s -> lookup s
     | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in lookup_at_index s index builder
+    | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in lookup_at_2d_index s index1 index2 builder
 
     | A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
       (match e1 with

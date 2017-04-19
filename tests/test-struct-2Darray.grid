@@ -1,0 +1,20 @@
+Player good
+{ 
+int x; 
+int y; 
+string s; 
+} 
+
+int gameloop()
+{ 
+Player good p1;
+Player good(2,2) parray; 
+p1.x = 3;
+p1.y = 4;
+p1.s = "2D array of structs work";
+parray(0,0) = p1;
+print(parray(0,0).x);
+print(parray(0,0).y);
+print(parray(0,0).s);
+return 0; 
+}
