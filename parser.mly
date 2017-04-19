@@ -91,9 +91,10 @@ vdecl:
    typ ID SEMI { ($1, $2) }
 
 sdecl:
-    PLAYER ID LBRACE vdecl_list RBRACE
+    PLAYER ID LBRACE vdecl_list fdecl RBRACE
       { { sname = $2; 
       sformals = $4;
+      sfunc = $5;
       } }
 
 stmt_list:
