@@ -41,8 +41,9 @@ let translate (globals, functions, structs) =
   in
   let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
-    let type_list = Array.of_list(List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals) in (*construct list of all datatypes of formals in struct*)
-    L.struct_set_body struct_t type_list true (*finally build struct body in llvm*)
+    let type_list = List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals in (*construct list of all datatypes of formals in struct*)
+    let type_list_with_loc = Array.of_list((ltype_of_typ A.CoordinateType)::type_list) in
+    L.struct_set_body struct_t type_list_with_loc true (*finally build struct body in llvm*)
   in 
     ignore(List.map populate_struct_type structs); (*apply populate_struct func on all the structs to build them all*)
 
@@ -60,10 +61,11 @@ let translate (globals, functions, structs) =
   let struct_field_index_list =
     let handle_list m individual_struct = 
       let struct_field_name_list = List.map snd individual_struct.A.sformals in (*list of all fieldnames of a struct*)
+      let struct_field_name_with_loc_list = "location"::struct_field_name_list in
       let increment n = n + 1 in
       (*add each field and index to second map called struct_field_map*)
       let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in 
-      let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list in
+      let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_with_loc_list in
       (*add struct_field_map to the main map*)
       StringMap.add individual_struct.A.sname (fst struct_field_map) m  
     in
@@ -289,6 +291,8 @@ let translate (globals, functions, structs) =
                                                 ignore(L.build_store value addr builder); value
     | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
+                                                (*All of the below assumes struct type*)
+                                                let loc = expr builder (A.Dotop(v, "location")) in (*Need to do something with this*)
                                                 let type_of_value = L.type_of value in
                                                 let struct_name = Hashtbl.find struct_names type_of_value in
                                                 let rule_func_name = struct_name ^ "rule" in
@@ -347,7 +351,9 @@ let translate (globals, functions, structs) =
       (match e with 
         A.Id s-> let etype = fst( 
                   try List.find (fun t->snd(t)=s) fdecl.A.locals
-                  with Not_found -> raise (Failure("Unable to find" ^ s ^ "in expr A.ID"))
+                  with 
+                  |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+                  |Not_found -> raise (Failure ("Unable to find" ^ s ^ "in expr A.ID"))
                  )
                  in
                 (match etype with
