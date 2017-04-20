@@ -79,8 +79,16 @@ let translate (globals, functions, structs) =
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
     let function_decl m fdecl =
+      let get_formal_types formal =
+        let (t, _) = formal in
+        match t with
+          A.Array1DType (typ,size) -> L.pointer_type (ltype_of_typ t)
+        | A.Array2DType (typ, size1, size2) -> L.pointer_type (ltype_of_typ t)
+        | A.StructType s -> L.pointer_type (ltype_of_typ t)
+        | _ -> ltype_of_typ t
+      in
       let name = try StringMap.find fdecl.A.fname main_func_map with Not_found -> fdecl.A.fname
-                 and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals) in 
+                 and formal_types = Array.of_list (List.map get_formal_types fdecl.A.formals) in 
       let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
@@ -98,9 +106,12 @@ let translate (globals, functions, structs) =
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
       let add_formal m (t, n) p = L.set_value_name n p;
-        let local = L.build_alloca (ltype_of_typ t) n builder in
-        ignore (L.build_store p local builder);
-        StringMap.add n local m 
+        match t with
+          A.Array1DType (typ, size) -> StringMap.add n p m
+          | A.Array2DType (typ, size1, size2) -> StringMap.add n p m
+          | A.StructType s -> StringMap.add n p m
+          | _ -> let local = L.build_alloca (ltype_of_typ t) n builder in
+          ignore (L.build_store p local builder);StringMap.add n local m
       in
 
       let add_local m (t, n) =
@@ -209,7 +220,7 @@ let translate (globals, functions, structs) =
         L.build_load access_llvalue "loaded_dotop" builder 
       )
 
-    | A.Unop(op, e) ->
+    | A.Unop(op, e) -> 
       let e' = expr builder e in
       (match op with
         A.Neg     -> L.build_neg e' "tmp" builder
@@ -232,7 +243,8 @@ let translate (globals, functions, structs) =
           (match e1 with
             A.Id s -> let e1typ = fst(
               try List.find (fun t -> snd(t) = s) fdecl.A.locals
-              with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
+              with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+              with Not_found ->raise(Failure("unable to find" ^ s ^ "in Sassign"))
             )
             in
             (match e1typ with
@@ -360,9 +372,22 @@ let translate (globals, functions, structs) =
         L.build_call input_func [||] "input" builder
     
     | A.Call (f, act) ->
-      let (fdef, fdecl) = StringMap.find f function_decls in
-      let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-      let result = (match fdecl.A.typ with A.Void -> ""
+      let (fdef, fdecl_called) = StringMap.find f function_decls in
+      let map_arguments actual =
+        match actual with
+        A.Id s -> let etype = fst( 
+          try List.find (fun t->snd(t)=s) fdecl.A.locals
+          with Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+          in
+          (match etype with
+            A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
+            | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
+            | A.StructType s -> llvalue_expr_getter builder (actual)
+            | _ -> expr builder actual)
+        | _ -> raise (Failure("Unable to find in map_arguments"))
+        in 
+      let actuals = List.rev (List.map map_arguments (List.rev act)) in
+      let result = (match fdecl_called.A.typ with A.Void -> ""
                                           | _ -> f ^ "_result") 
       in L.build_call fdef (Array.of_list actuals) result builder
     in
