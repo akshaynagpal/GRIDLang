@@ -327,8 +327,9 @@ let translate (globals, functions, structs) =
     | A.Call ("print", [e]) -> 
       (match e with 
         A.Id s-> let etype = fst( 
-                  try List.find (fun t->snd(t)=s) fdecl.A.locals
-                  with Not_found -> raise (Failure("Unable to find" ^ s ^ "in expr A.ID"))
+                  try List.find (fun t->snd(t)=s) fdecl.A.locals with 
+                  |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+                  |Not_found -> raise (Failure("Unable to find" ^ s ^ "in expr A.ID"))
                  )
                  in
                 (match etype with
