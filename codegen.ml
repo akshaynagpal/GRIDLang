@@ -2,6 +2,7 @@ module L = Llvm
 module A = Ast
 
 module StringMap = Map.Make(String)
+module S = String
 
 let translate (globals, functions, structs) =
   let context = L.global_context () in
@@ -16,9 +17,12 @@ let translate (globals, functions, structs) =
   
   (*add all struct names to a hashtable*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
+  (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
+  let struct_names:(L.lltype,string) Hashtbl.t = Hashtbl.create 50 in
   let add_empty_named_struct_types sdecl =
     let struct_t = L.named_struct_type context sdecl.A.sname in
-    Hashtbl.add struct_types sdecl.A.sname struct_t
+    let _ = Hashtbl.add struct_types sdecl.A.sname struct_t in
+    Hashtbl.add struct_names struct_t sdecl.A.sname 
   in
 
   let _  =  List.map add_empty_named_struct_types structs in
@@ -234,6 +238,7 @@ let translate (globals, functions, structs) =
         | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
+        (*Check type of v and then use that to call that "type name" ^ "rule"*)
         | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
@@ -284,6 +289,10 @@ let translate (globals, functions, structs) =
                                                 ignore(L.build_store value addr builder); value
     | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
+                                                let type_of_value = L.type_of value in
+                                                let struct_name = Hashtbl.find struct_names type_of_value in
+                                                let rule_func_name = struct_name ^ "rule" in
+                                                let _ = expr builder (A.Call(rule_func_name, [])) in
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
     | A.Binop (e1, op, e2) ->
@@ -369,7 +378,7 @@ let translate (globals, functions, structs) =
         L.build_call input_func [||] "input" builder
     
     | A.Call (f, act) ->
-      let (fdef, fdecl) = StringMap.find f function_decls in
+      let (fdef, fdecl) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
       let actuals = List.rev (List.map (expr builder) (List.rev act)) in
       let result = (match fdecl.A.typ with A.Void -> ""
                                           | _ -> f ^ "_result") 
