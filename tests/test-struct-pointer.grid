@@ -1,0 +1,27 @@
+Player good
+{ 
+int x; 
+int y; 
+string s; 
+*Player good next;
+} 
+
+int gameloop()
+{ 
+Player good p1; 
+Player good p2; 
+Player good p3;
+
+p2.x = 10;
+p2.y = 20;
+p2.s = "struct pointer works";
+
+p1.next = &p2;
+p3 = *(p1.next);
+
+print(p3.x);
+print(p3.y);
+print(p3.s);
+
+return 0; 
+}

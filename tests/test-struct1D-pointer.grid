@@ -21,5 +21,4 @@ print(p3.x);
 
 
 return 0; 
-
 }

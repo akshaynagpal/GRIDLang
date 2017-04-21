@@ -18,6 +18,8 @@ rule token = parse
 | '*'      { TIMES }
 | '/'      { DIVIDE }
 | '='      { ASSIGN }
+| '&'      { REF }
+| '.'      { DOT }
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
@@ -39,6 +41,8 @@ rule token = parse
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "Player" { PLAYER }
+| "Item"   { PLAYER } (*Hacky. Since both Player and Item are just structs, we can avoid code duplication by having PLAYER as token for both*)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | '"'([^'"']* as lxm)'"' { STRING_LIT(lxm) }
