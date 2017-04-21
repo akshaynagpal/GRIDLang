@@ -109,6 +109,7 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | String_Lit _ -> String
       | Id s -> type_of_identifier s
+      | Dotop(e, s) -> string_of_typ s
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
   (match op with
           Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
@@ -126,7 +127,7 @@ let check (globals, functions, structs) =
          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
            string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void
-      | Assign(var, e) as ex -> let lt = type_of_identifier var
+      | Assign(var, e) as ex -> let lt = expr var
                                 and rt = expr e in
         check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
              " = " ^ string_of_typ rt ^ " in " ^ 
