@@ -1,0 +1,18 @@
+Player good
+{ 
+int x; 
+int y; 
+string s; 
+*Player good next;
+} 
+
+int gameloop()
+{ 
+Player good p1; 
+Player good p2; 
+p2.z = 3;
+print(p2.x);
+
+return 0; 
+
+}

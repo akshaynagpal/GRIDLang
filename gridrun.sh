@@ -2,6 +2,12 @@
 # If the terminal shows "can't find command", please run "chmod +x gridrun.sh" in terminal first.
 LLI="lli"
 
+# Path to the LLVM compiler
+LLC="llc"
+
+# Path to the C compiler
+CC="cc"
+
 GRID_NATIVE="./grid.native"
 
 DEFAULT_PATH="."
@@ -25,7 +31,9 @@ CompileFile(){
     echo "# compiling ${basename}.grid"
     Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "     ${basename}.ll ... Done"
-    Run "$LLI" "${DEFAULT_PATH}/${basename}.ll" ">" "${DEFAULT_PATH}/${basename}.out"
+    Run "$LLC" "${DEFAULT_PATH}/${basename}.ll" ">" "${DEFAULT_PATH}/${basename}.s"
+    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o"
+    Run "./${basename}.exe" ">" "${DEFAULT_PATH}/${basename}.out"
     echo "     ${basename}.out ... Done"
 }
 
@@ -34,7 +42,10 @@ RunProgram(){
     basename=`echo ${SPLIT_ARRAY[0]}`
     Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "# Executing ${basename}.grid ..."
-    Run "$LLI" "${DEFAULT_PATH}/${basename}.ll"
+    Run "$LLC" "${basename}.ll" ">" "${basename}.s"
+    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o"
+    Run "./${basename}.exe"
+    
 }
 MODE="Help";
 while getopts crh x; do

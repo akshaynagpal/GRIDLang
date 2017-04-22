@@ -1,0 +1,6 @@
+int gameloop(){
+    coordinate c;
+    c = <2,3>;
+    print(c);
+    return 0;
+}

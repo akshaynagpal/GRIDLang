@@ -1,0 +1,18 @@
+Player good
+{ 
+int x; 
+int y; 
+string s; 
+} 
+
+int gameloop()
+{ 
+Player good p1; 
+p1.x = 10;
+p1.y = 20;
+p1.s = "struct works";
+print(p1.x);
+print(p1.y);
+print(p1.s);
+return 0; 
+}

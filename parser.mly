@@ -2,12 +2,17 @@
 
 %{
 open Ast
+
+let first (a,_,_) = a;;
+let second (_,b,_) = b;;
+let third (_,_,c) = c;;
 %}
 
+
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT PERCENT
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING
+%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT PERCENT DEREF REF
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
+%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER COORDINATE
 %token <int> LITERAL
 %token <string> ID
 %token <string> STRING_LIT
@@ -15,6 +20,8 @@ open Ast
 
 %nonassoc NOELSE
 %nonassoc ELSE
+%nonassoc NOLARRAY
+%nonassoc POINTER
 %right ASSIGN
 %left OR
 %left AND
@@ -22,7 +29,8 @@ open Ast
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
-%right NOT NEG
+%right NOT NEG DEREF REF
+%left DOT
 
 %start program
 %type <Ast.program> program
@@ -33,9 +41,10 @@ program:
   decls EOF { $1 }
 
 decls:
-   /* nothing */ { [], [] }
- | decls vdecl { ($2 :: fst $1), snd $1 }
- | decls fdecl { fst $1, ($2 :: snd $1) }
+   /* nothing */ { [], [], [] } 
+ | decls vdecl { ($2 :: first $1), second $1, third $1 }
+ | decls fdecl { first $1, ($2 :: second $1), third $1 }
+ | decls sdecl { first $1, second $1, ($2 :: third $1) }
 
 fdecl:
    typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
@@ -58,14 +67,17 @@ typ:
   | BOOL { Bool }
   | VOID { Void }
   | STRING { String }
-  | arr { $1 } 
-  | arr2d { $1 } 
+  | array1d_type { $1 }   /* int[4] */
+  | array2d_type { $1 }   /* int[4][3] */
+  | PLAYER ID { StructType ($2) } 
+  | TIMES %prec POINTER typ { PointerType ($2) }  
+  | COORDINATE { CoordinateType }
 
-arr:
-    typ LARRAY LITERAL RARRAY { ArrayType($1,$3)}
+array1d_type:
+    typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
 
-arr2d:
-    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) }
+array2d_type:
+    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) } /* int[4][3] */
 
 arr_literal:
   expr   {[$1]}
@@ -77,6 +89,12 @@ vdecl_list:
 
 vdecl:
    typ ID SEMI { ($1, $2) }
+
+sdecl:
+    PLAYER ID LBRACE vdecl_list RBRACE
+      { { sname = $2; 
+      sformals = $4;
+      } }
 
 stmt_list:
     /* nothing */  { [] }
@@ -101,9 +119,14 @@ expr:
     LITERAL          { Literal($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
+  | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
-  | ID LARRAY expr RARRAY {ArrIndexLiteral($1,$3)}
+  | LT expr COMMA expr GT   { Coordinate_Lit($2,$4)}
+  | ID LARRAY expr RARRAY LARRAY expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$6,$9)}  /* x(3,4) = something */
+  | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
+  | ID LARRAY expr RARRAY LARRAY expr RARRAY { Arr2DIndexLiteral($1,$3,$6) } /* x(3,4) */
+  | ID LARRAY expr RARRAY %prec NOLARRAY{ArrIndexLiteral($1,$3)} /* x[4] */
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }
@@ -116,13 +139,14 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3) }
   | expr AND    expr { Binop($1, And,   $3) }
   | expr OR     expr { Binop($1, Or,    $3) }
+  | expr DOT    ID   { Dotop($1, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
+  | TIMES expr %prec DEREF { Unop(Deref, $2) }
+  | REF expr { Unop(Ref, $2) }
   | NOT expr         { Unop(Not, $2) }
-  | ID ASSIGN expr   { Assign($1, $3) }
-  | ID LARRAY expr RARRAY ASSIGN expr {ArrAssign($1, $3, $6)}
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
-  | LARRAY arr_literal RARRAY  {ArrayLiteral(List.rev $2)}
+  | LARRAY arr_literal RARRAY {ArrayLiteral(List.rev $2)}       /* [1,2,3,4] */
 
 actuals_opt:
     /* nothing */ { [] }

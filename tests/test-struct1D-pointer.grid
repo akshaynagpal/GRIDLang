@@ -1,5 +1,3 @@
-import gridBasics.grid;
-
 Player good
 { 
 int x; 
@@ -23,5 +21,4 @@ print(p3.x);
 
 
 return 0; 
-
 }
