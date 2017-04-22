@@ -6,19 +6,68 @@ string s;
 *Player good next;
 } 
 
-int gameloop()
-{ 
+Item horse{
+	int x;
+	string s;
+	*Item horse next;
+}
+
+Player grid{
+	Player good player_head;
+	Item horse item_head;
+}
+
+void passby_check(Player grid[2][2] parray, int x, int y, Player good p, Player good dummy_null_node){
+
+	*Player good p7; 
+	p7 = &parray[x][y].player_head;
+
+	while(p7.next != &dummy_null_node){
+		p7 = p7.next;
+		print(p7.x);
+	}
+	p7.next = &p;
+    p7 = p7.next;
+    p7.next = &dummy_null_node;
+	}
+
+
+int gameloop(){ 
 Player good p1; 
 Player good p2; 
 Player good p3; 
-Player good[2] parray; 
-p2.x = 3;
+Player good p4; 
+Player good p5;
+Player good p6;  
+*Player good p7; 
+Player good p9;  
+Player good p11;
+*Player good p8;
+Player good dummy_null_node;
+Player grid[2][2] parray;
+p1.x = 1;
+p2.x = 2;
+p3.x = 3;
+p4.x = 4;
+p5.x = 5;
+p6.x = 6;
+p9.x = 9;
+p11.x = 11;
+parray[0][0].player_head.next = &p1;
+p1.next = &p2;
+p2.next = &p3;
+p3.next = &p4;
+p4.next = &p5;
+p5.next = &dummy_null_node;
 
-parray[0] = p1;
-parray[0].next = &p2;
-p3 = *(parray[0].next);
-print(p3.x);
-
+passby_check(parray, 0, 0, p9, dummy_null_node);
+passby_check(parray, 0, 0, p11, dummy_null_node);
+print("Printing p8 now......");
+p8 = &parray[0][0].player_head;
+while(p8.next != &dummy_null_node){
+	p8 = p8.next;
+	print(p8.x);
+}
 
 return 0; 
 }
