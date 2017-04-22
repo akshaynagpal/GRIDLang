@@ -28,5 +28,7 @@ let process_files filename1 =
 			if (!tempImportFile = "") then
 				temp
 			else
-				concat (read_all_lines !tempImportFile) ^ "" ^ temp
+				let importFile = concat (read_all_lines !tempImportFile) in
+				let res = temp ^ "" ^ importFile in
+				res
 				

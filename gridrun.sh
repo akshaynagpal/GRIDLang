@@ -32,7 +32,7 @@ CompileFile(){
 RunProgram(){
     IFS='.' read -ra SPLIT_ARRAY <<< "$1"
     basename=`echo ${SPLIT_ARRAY[0]}`
-    Run "$GRID_NATIVE " " -c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
+    Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "# Executing ${basename}.grid ..."
     Run "$LLI" "${DEFAULT_PATH}/${basename}.ll"
 }
