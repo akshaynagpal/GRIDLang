@@ -7,7 +7,7 @@
 all : grid.native bindings.o
 
 grid.native :
-	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 \
+	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis,str -cflags -w,+a-4 \
 		grid.native
 
 # "make clean" removes all generated files
@@ -27,10 +27,10 @@ cleantest:
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 
-OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx grid.cmx
+OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx grid.cmx str
 
 grid : $(OBJS)
-	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o grid
+	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS)  -o grid
 
 scanner.ml : scanner.mll
 	ocamllex scanner.mll
@@ -60,9 +60,9 @@ grid.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
 parser.cmo : ast.cmo parser.cmi
 parser.cmx : ast.cmx parser.cmi
 scanner.cmo : parser.cmi
-scanner.cmx : parser.cmx
-semant.cmo : ast.cmo
-semant.cmx : ast.cmx
+scanner.cmx : parser.cmx 
+semant.cmo : ast.cmo 
+semant.cmx : ast.cmx 
 parser.cmi : ast.cmo
 
 # Building the tarball
