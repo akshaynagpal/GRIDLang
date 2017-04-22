@@ -23,7 +23,7 @@ CompileFile(){
 	IFS='.' read -ra SPLIT_ARRAY <<< "$1"
     basename=`echo ${SPLIT_ARRAY[0]}`
     echo "# compiling ${basename}.grid"
-    Run "$GRID_NATIVE" "<" $1 ">" "${DEFAULT_PATH}/${basename}.ll"
+    Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "     ${basename}.ll ... Done"
     Run "$LLI" "${DEFAULT_PATH}/${basename}.ll" ">" "${DEFAULT_PATH}/${basename}.out"
     echo "     ${basename}.out ... Done"
@@ -32,7 +32,7 @@ CompileFile(){
 RunProgram(){
     IFS='.' read -ra SPLIT_ARRAY <<< "$1"
     basename=`echo ${SPLIT_ARRAY[0]}`
-    Run "$GRID_NATIVE" "<" $1 ">" "${DEFAULT_PATH}/${basename}.ll"
+    Run "$GRID_NATIVE " " -c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "# Executing ${basename}.grid ..."
     Run "$LLI" "${DEFAULT_PATH}/${basename}.ll"
 }
