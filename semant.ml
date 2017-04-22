@@ -36,13 +36,66 @@ let check (globals, functions, structs) =
   let check_assign_func lvaluet rvaluet =
     if lvaluet == rvaluet then true else false
   in
-   
+  
+  (** Methods for structs **)
+  let match_struct_to_accessor a b = 
+    let s1 = try List.find (fun s-> s.sname=a) structs 
+      with Not_found -> raise (Failure("Struct of name " ^ a ^ "not found.")) in
+    try fst( List.find (fun s-> snd(s)=b) s1.sformals) 
+      with Not_found -> raise (Failure("Struct " ^ a ^ " does not have field " ^ b))
+  in
+
+  let check_access lvaluet rvalues =
+     match lvaluet with
+       StructType s -> match_struct_to_accessor s rvalues
+       | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
+  
+  in
+  (*
+  let add_default_sformals user_struct =
+    if user_struct.sname = "Player" then
+      begin
+        let predefined_formals = [(CoordinateType, "position"); (Bool, "win"); (String, "displayString")] 
+        in
+          let user_struct.modified_sformals = List.append user_struct.sformals predefined_formals
+      end
+  in
+  *)
   (**** Checking Global Variables ****)
 
   List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
    
   report_duplicate (fun n -> "duplicate global " ^ n) (List.map snd globals);
 
+  (**** Checking Structs ****)
+ 
+  report_duplicate (fun n -> "duplicate struct " ^ n)
+    (List.map (fun sd -> sd.sname) structs);
+  
+  (* List.iter add_default_sformals structs; *)
+  
+  (*
+  let struct_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
+                         built_in_decls functions
+  in
+
+  let function_decl s = try StringMap.find s function_decls
+       with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
+
+  type func_decl = {
+      typ : typ;
+      fname : string;
+      formals : bind list;
+      locals : bind list;
+      body : stmt list;
+    }
+
+  type struct_decl = {   (* for adding player datatype *)
+      sname: string;
+      sformals: bind list;
+  }
+  *)
+  
   (**** Checking Functions ****)
 
   if List.mem "print" (List.map (fun fd -> fd.fname) functions)
@@ -109,7 +162,8 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | String_Lit _ -> String
       | Id s -> type_of_identifier s
-      | Dotop(e, s) -> string_of_typ s
+      | Dotop(e1, field) -> let lt = expr e1 in
+         check_access (lt) (field)
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
   (match op with
           Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
