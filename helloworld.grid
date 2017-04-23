@@ -17,19 +17,42 @@ Player grid{
 	Item horse item_head;
 }
 
-void passby_check(Player grid[2][2] parray, int x, int y, Player good p, Player good dummy_null_node){
+void addToGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
 
 	*Player good p7; 
 	p7 = &parray[x][y].player_head;
 
-	while(p7.next != &dummy_null_node){
+	while(p7.next != &null){
 		p7 = p7.next;
-		print(p7.x);
+		if(p7 == &p){
+		print("Player already on grid coordinate");
+		return;
+	}
 	}
 	p7.next = &p;
     p7 = p7.next;
-    p7.next = &dummy_null_node;
+    p7.next = &null;
+}
+
+void deleteFromGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
+	
+	*Player good p7;
+	p7 = &parray[x][y].player_head;
+
+	while(p7.next!=&null && p7.next!=&p){
+	p7 = p7.next;
 	}
+
+	if(p7.next == &null){
+		print("Player already removed from coordinate");
+		return;
+	}
+
+	p7.next = p.next;
+	p.next = &null;
+
+
+}
 
 
 int gameloop(){ 
@@ -43,7 +66,7 @@ Player good p6;
 Player good p9;  
 Player good p11;
 *Player good p8;
-Player good dummy_null_node;
+Player good null;
 Player grid[2][2] parray;
 p1.x = 1;
 p2.x = 2;
@@ -58,16 +81,25 @@ p1.next = &p2;
 p2.next = &p3;
 p3.next = &p4;
 p4.next = &p5;
-p5.next = &dummy_null_node;
+p5.next = &null;
 
-passby_check(parray, 0, 0, p9, dummy_null_node);
-passby_check(parray, 0, 0, p11, dummy_null_node);
+addToGrid(parray, 0, 0, p9, null);
+addToGrid(parray, 0, 0, p11, null);
+
+deleteFromGrid(parray, 0, 0, p4, null);
+deleteFromGrid(parray, 0, 0, p3, null);
+deleteFromGrid(parray, 0, 0, p3, null);
+deleteFromGrid(parray, 0, 0, p4, null);
+deleteFromGrid(parray, 0, 0, p11, null);
+deleteFromGrid(parray, 0, 0, p1, null);
+deleteFromGrid(parray, 0, 0, p5, null);
 print("Printing p8 now......");
 p8 = &parray[0][0].player_head;
-while(p8.next != &dummy_null_node){
+while(p8.next != &null){
 	p8 = p8.next;
 	print(p8.x);
 }
+
 
 return 0; 
 }
