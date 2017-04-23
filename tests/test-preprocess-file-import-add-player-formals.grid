@@ -1,6 +1,6 @@
 import gridBasics.grid;
 
-Player good
+Player good 
 { 
 int x; 
 int y; 
@@ -12,10 +12,9 @@ int gameloop()
 { 
 Player good p1; 
 Player good p2; 
-Player good p3; 
+p1.displayString = "true";
+print(p1.displayString);
 p2.x = 3;
 print(p2.x);
-test();
 return 0; 
-
 }

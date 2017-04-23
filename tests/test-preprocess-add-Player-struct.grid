@@ -3,8 +3,9 @@ import gridBasics.grid;
 int gameloop()
 { 
 Player good p1; 
-p1.displayString = "true";
-print(p1.displayString);
+Player good p2; 
+p2.displayString = "test";
+print(p2.displayString);
 return 0; 
 
 }

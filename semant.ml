@@ -1,7 +1,6 @@
 (* Semantic checking for the MicroC compiler *)
 
 open Ast
-open Str
 module StringMap = Map.Make(String)
 
 (* Semantic checking of a program. Returns void if successful,
@@ -52,7 +51,6 @@ let check (globals, functions, structs) =
   
   in
 
-  let r = Str.regexp "hello \\([A-Za-z]+\\)" in
   (*
   let add_default_sformals user_struct =
     if user_struct.sname = "Player" then
