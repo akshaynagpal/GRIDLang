@@ -10,6 +10,7 @@ let translate (globals, functions, structs) =
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
   and void_t = L.void_type context 
+  and ptr_t  = L.pointer_type (L.i8_type (context))
   and array_t   = L.array_type in
   let str_t = L.pointer_type i8_t in
 
@@ -151,8 +152,9 @@ let translate (globals, functions, structs) =
     | A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
       (match e1 with
         A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals
-          with Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop"))
+          try List.find (fun t->snd(t)=s) fdecl.A.locals with 
+          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop"))
         )
         in
         (*above three lines we have found the type of b, which is book*)
@@ -192,11 +194,12 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
-    | A.Dotop(e1, field) -> let _ = expr builder e1 in
+    | A.Dotop(e1, field) -> let e' = expr builder e1 in
       (match e1 with
         A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals
-          with Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
+          try List.find (fun t->snd(t)=s) fdecl.A.locals with
+          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
           in
           (try match etype with
             A.StructType t->
@@ -205,7 +208,16 @@ let translate (globals, functions, structs) =
               let struct_llvalue = lookup s in
               let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
               let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-              loaded_access  (*not sure about the last two steps. What they are doing?*)
+              loaded_access  
+            | A.PointerType t-> let e_loaded = L.build_load e' "loaded_deref" builder in
+              let e1'_lltype = L.type_of e_loaded in
+              let e1'_struct_name_string_option = L.struct_name e1'_lltype in
+              let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
+              let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
+              let index_number = StringMap.find field index_number_list in
+              let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
+              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+              loaded_access
             | _ -> raise (Failure("No structype."))
             with Not_found -> raise (Failure("unable to find" ^ s)) 
           )
@@ -239,7 +251,7 @@ let translate (globals, functions, structs) =
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
-        |A.Dotop (e1, field) ->
+        |A.Dotop (e1, field) -> let e' = expr builder e1 in
           (match e1 with
             A.Id s -> let e1typ = fst(
               try List.find (fun t -> snd(t) = s) fdecl.A.locals
@@ -257,6 +269,17 @@ let translate (globals, functions, structs) =
                   with Not_found -> raise (Failure("unable to store " ^ t )) 
                 )
                 with Not_found -> raise (Failure("unable to find" ^ s)) )
+
+              | A.PointerType t -> let e_loaded = L.build_load e' "loaded_deref" builder in
+              let e1'_lltype = L.type_of e_loaded in
+              let e1'_struct_name_string_option = L.struct_name e1'_lltype in
+              let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
+              let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
+              let index_number = StringMap.find field index_number_list in
+              let access_llvalue = L.build_struct_gep e' index_number field builder in
+              (try (ignore(L.build_store e2' access_llvalue builder);e2')
+                with Not_found -> raise (Failure("unable to store error" ))
+              )
               | _ -> raise (Failure("StructType not found."))
             )
             |_ as e1_expr -> let e1'_llvalue = llvalue_expr_getter builder e1_expr in 
@@ -376,15 +399,16 @@ let translate (globals, functions, structs) =
       let map_arguments actual =
         match actual with
         A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals
-          with Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+          try List.find (fun t->snd(t)=s) fdecl.A.locals with
+          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
           in
           (match etype with
             A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
             | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
             | A.StructType s -> llvalue_expr_getter builder (actual)
             | _ -> expr builder actual)
-        | _ -> raise (Failure("Unable to find in map_arguments"))
+        | _ -> expr builder actual
         in 
       let actuals = List.rev (List.map map_arguments (List.rev act)) in
       let result = (match fdecl_called.A.typ with A.Void -> ""

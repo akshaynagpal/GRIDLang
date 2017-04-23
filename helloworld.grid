@@ -1,10 +1,99 @@
 import gridBasics.grid;
 
-int gameloop()
-{ 
+Item horse{
+	int x;
+	string s;
+	*Item horse next;
+}
+
+Player grid{
+	Player good player_head;
+	Item horse item_head;
+}
+
+void addToGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
+
+	*Player good p7; 
+	p7 = &parray[x][y].player_head;
+
+	while(p7.next != &null){
+		p7 = p7.next;
+		if(p7 == &p){
+		print("Player already on grid coordinate");
+		return;
+	}
+	}
+	p7.next = &p;
+    p7 = p7.next;
+    p7.next = &null;
+}
+
+void deleteFromGrid(Player grid[2][2] parray, int x, int y, Player good p, Player good null){
+	
+	*Player good p7;
+	p7 = &parray[x][y].player_head;
+
+	while(p7.next!=&null && p7.next!=&p){
+	p7 = p7.next;
+	}
+
+	if(p7.next == &null){
+		print("Player already removed from coordinate");
+		return;
+	}
+
+	p7.next = p.next;
+	p.next = &null;
+
+
+}
+
+
+int gameloop(){ 
 Player good p1; 
-p1.displayString = "true";
-print(p1.displayString);
+Player good p2; 
+Player good p3; 
+Player good p4; 
+Player good p5;
+Player good p6;  
+*Player good p7; 
+Player good p9;  
+Player good p11;
+*Player good p8;
+Player good null;
+Player grid[2][2] parray;
+p1.x = 1;
+p2.x = 2;
+p3.x = 3;
+p4.x = 4;
+p5.x = 5;
+p6.x = 6;
+p9.x = 9;
+p11.x = 11;
+parray[0][0].player_head.next = &p1;
+p1.next = &p2;
+p2.next = &p3;
+p3.next = &p4;
+p4.next = &p5;
+p5.next = &null;
+
+addToGrid(parray, 0, 0, p9, null);
+addToGrid(parray, 0, 0, p11, null);
+
+deleteFromGrid(parray, 0, 0, p4, null);
+deleteFromGrid(parray, 0, 0, p3, null);
+deleteFromGrid(parray, 0, 0, p3, null);
+deleteFromGrid(parray, 0, 0, p4, null);
+deleteFromGrid(parray, 0, 0, p11, null);
+deleteFromGrid(parray, 0, 0, p1, null);
+deleteFromGrid(parray, 0, 0, p5, null);
+print("Printing p8 now......");
+p8 = &parray[0][0].player_head;
+while(p8.next != &null){
+	p8 = p8.next;
+	print(p8.x);
+}
+
 return 0; 
 
 }
