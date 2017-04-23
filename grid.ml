@@ -7,7 +7,10 @@ let _ =
 			      ("-l", LLVM_IR);  (* Generate LLVM, don't check *)
 			      ("-c", Compile) ] (* Generate, check LLVM IR *)
   else Compile in
-  let lexbuf = Lexing.from_string (Preprocess.process_files Sys.argv.(2) ) in
+  let pre = (Preprocess.process_files Sys.argv.(2) ) in
+  (* print_endline (pre) *)
+  
+  let lexbuf = Lexing.from_string pre in
   let ast = Parser.program Scanner.token lexbuf in
   Semant.check ast;
     match action with

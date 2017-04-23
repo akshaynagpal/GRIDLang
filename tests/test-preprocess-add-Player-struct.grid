@@ -1,12 +1,13 @@
 import gridBasics.grid;
 
+
 int gameloop()
 { 
 Player good p1; 
 Player good p2; 
 Player good p3; 
 p2.displayString = "test";
-print(p2.displayString);
+print(p2.x);
 return 0; 
 
 }
