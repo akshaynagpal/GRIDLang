@@ -1,10 +1,4 @@
-Player good
-{ 
-int x; 
-int y; 
-string s; 
-*Player good next;
-} 
+import gridBasics.grid;
 
 Item horse{
 	int x;
@@ -100,6 +94,6 @@ while(p8.next != &null){
 	print(p8.x);
 }
 
-
 return 0; 
+
 }

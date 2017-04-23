@@ -1,0 +1,20 @@
+import gridBasics.grid;
+
+Player good 
+{ 
+int x; 
+int y; 
+string s; 
+*Player good next;
+} 
+
+int gameloop()
+{ 
+Player good p1; 
+Player good p2; 
+p1.displayString = "true";
+print(p1.displayString);
+p2.x = 3;
+print(p2.x);
+return 0; 
+}
