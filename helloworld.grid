@@ -19,6 +19,10 @@ Player grid{
 }
 
 
+int checkGameEnd()
+{
+ return 1;
+}
 
 int gameloop(){ 
 Player good p1; 
