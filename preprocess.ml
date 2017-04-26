@@ -3,6 +3,8 @@ open Str
 let tempImportFile = ref ""
 let playerStuctFound = ref false
 let braceNotFound = ref false
+let doBraceCount = ref false
+let braceCounter = ref 0
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -28,6 +30,39 @@ let process_files filename1 =
 		  				tempImportFile := "gridBasics.grid";
 		  				read_recursive ("" :: lines);
 		  			end
+
+		  		else if (contains line "initialSetup()") then
+		  			begin
+		  				doBraceCount := true;
+		  				braceCounter := if (contains line "{") then	(!braceCounter) + 1 else !braceCounter;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		
+		  		else if (!doBraceCount && contains line "{") then
+		  			begin
+		  				braceCounter := !braceCounter + 1;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		else if (contains line "return" && !doBraceCount && !braceCounter = 1) then
+		  			begin
+		  				read_recursive ( ( "gameloop();\n" ^ line ^ "\n" ) :: lines);
+		  			end
+		  		else if (!doBraceCount && contains line "}") then
+		  			begin
+		  				braceCounter := !braceCounter - 1;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  				(*
+		  				if (!braceCounter = 0) then
+		  					begin
+		  						read_recursive ( ( "gameloop();\n" ^ line ^ "\n" ) :: lines);					
+		  					end
+		  				else
+		  					begin
+		  						read_recursive ( (line ^ "\n") :: lines);
+		  					end
+		  				*)
+		  			end
+		  		
 		  		else if (!playerStuctFound = true && !braceNotFound = true && (contains line "{") ) then 
 		  			begin
 		  				braceNotFound := false;

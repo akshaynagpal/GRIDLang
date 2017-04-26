@@ -75,7 +75,7 @@ let translate (globals, functions, structs) =
   let input_t = L.function_type str_t [||] in
   let input_func = L.declare_function "input" input_t the_module in
 
-  let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
+  let main_func_map = StringMap.add "initialSetup" "main" StringMap.empty in
 
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =

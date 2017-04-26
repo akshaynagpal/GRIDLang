@@ -7,6 +7,7 @@ let _ =
 			      ("-l", LLVM_IR);  (* Generate LLVM, don't check *)
 			      ("-c", Compile) ] (* Generate, check LLVM IR *)
   else Compile in
+  (* print_string (Preprocess.process_files Sys.argv.(2) ) *)
   let lexbuf = Lexing.from_string (Preprocess.process_files Sys.argv.(2) ) in
   let ast = Parser.program Scanner.token lexbuf in
     match action with
@@ -14,3 +15,4 @@ let _ =
   | Compile -> let m = Codegen.translate ast in
     Llvm_analysis.assert_valid_module m;
 print_string (Llvm.string_of_llmodule m)
+  
