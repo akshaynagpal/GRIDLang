@@ -77,6 +77,16 @@ let translate (globals, functions, structs) =
 
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
 
+  (* Define each struct function (arguments and return type) so we can call it *)
+  let struct_function_decls =
+    let function_decl m sdecl =
+      let fdecl = sdecl.A.sfunc in
+        let name = sdecl.A.sname ^ fdecl.A.fname and
+        formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals) in 
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+      StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+    List.fold_left function_decl StringMap.empty structs in
+
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
     let function_decl m fdecl =
@@ -95,8 +105,7 @@ let translate (globals, functions, structs) =
     List.fold_left function_decl StringMap.empty functions in
   
   (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = try StringMap.find fdecl.A.fname function_decls with Not_found -> StringMap.find "main" function_decls in
+  let build_function_body the_function fdecl =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
@@ -476,5 +485,23 @@ let translate (globals, functions, structs) =
                             | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
-List.iter build_function_body functions;
+(*Build the function bodies for struct functions*)
+let the_struct_function_list =
+  let get_struct_func_decls sdecl =
+    let fdecl = sdecl.A.sfunc in
+      let (the_function, _) = StringMap.find (sdecl.A.sname ^ fdecl.A.fname) struct_function_decls
+    in the_function
+  in List.map get_struct_func_decls structs
+in
+List.iter2 build_function_body the_struct_function_list (List.map (fun (sdecl) -> sdecl.A.sfunc) structs);
+(*Build the function bodies*)
+let the_function_list = 
+  let get_func_decls fdecl =
+    let (the_function, _) = 
+      try StringMap.find fdecl.A.fname function_decls with Not_found -> StringMap.find "main" function_decls
+    in the_function
+  in
+  List.map get_func_decls functions
+in
+List.iter2 build_function_body the_function_list functions;
 the_module

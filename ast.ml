@@ -67,6 +67,7 @@ type func_decl = {
 type struct_decl = {   (* for adding player datatype *)
     sname: string;
     sformals: bind list;
+    sfunc: func_decl;
 }
 
 type program = bind list * func_decl list * struct_decl list

@@ -15,7 +15,7 @@ let process_files filename1 =
 	    with Not_found -> false
 	in
 	
-	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n" ^ "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}"
+	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n" 
 	in
 
 	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ "}\n"
