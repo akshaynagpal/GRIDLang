@@ -3,6 +3,9 @@ open Str
 let tempImportFile = ref ""
 let playerStuctFound = ref false
 let braceNotFound = ref false
+let ruleInPlayerFound = ref false
+let insidePlayerStruct = ref false
+let playerStructBraceCounter = ref 0
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -12,7 +15,7 @@ let process_files filename1 =
 	    with Not_found -> false
 	in
 	
-	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
+	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n" ^ "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}"
 	in
 
 	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ "}\n"
@@ -28,9 +31,34 @@ let process_files filename1 =
 		  				tempImportFile := "gridBasics.grid";
 		  				read_recursive ("" :: lines);
 		  			end
+		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "rule") ) then 
+		  			begin
+		  				ruleInPlayerFound := true;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "}") ) then 
+		  			begin
+		  				playerStructBraceCounter := !playerStructBraceCounter - 1;
+		  				if(!playerStructBraceCounter = 0) then 
+		  					begin
+		  						insidePlayerStruct := false;
+		  						read_recursive ( ("int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n" ^ line ^ "\n") :: lines);
+		  					end
+		  				else
+		  					begin
+		  						read_recursive ( (line ^ "\n") :: lines);
+		  					end
+		  			end
+		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "{") ) then 
+		  			begin
+		  				playerStructBraceCounter := !playerStructBraceCounter + 1;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
 		  		else if (!playerStuctFound = true && !braceNotFound = true && (contains line "{") ) then 
 		  			begin
 		  				braceNotFound := false;
+		  				insidePlayerStruct := true;
+		  				playerStructBraceCounter := !playerStructBraceCounter + 1;
 		  				read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  			end
 		  		else if (contains line "Player") then
@@ -38,11 +66,14 @@ let process_files filename1 =
 		  				if (contains line "{") then
 		  					begin
 		  						playerStuctFound := true;
+		  						insidePlayerStruct := true;
+		  						playerStructBraceCounter := !playerStructBraceCounter + 1;
 		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  					end
 		  				else if (contains line ";" = false) then
 		  					begin
 		  						playerStuctFound := true;
+		  						insidePlayerStruct := true;
 		  						braceNotFound := true;
 		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
