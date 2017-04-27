@@ -75,6 +75,13 @@ let translate (globals, functions, structs) =
   let input_t = L.function_type str_t [||] in
   let input_func = L.declare_function "input" input_t the_module in
 
+  let print_endline_t = L.function_type i32_t [||] in
+  let print_endline_func = L.declare_function "print_endline" print_endline_t the_module in
+
+
+  let print_sameline_t = L.function_type i32_t [| str_t |] in
+  let print_sameline_func = L.declare_function "print_sameline" print_sameline_t the_module in
+
   let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
 
   (* Define each function (arguments and return type) so we can call it *)
@@ -395,6 +402,12 @@ let translate (globals, functions, structs) =
 
     | A.Call ("input", []) ->
         L.build_call input_func [||] "input" builder
+    
+    | A.Call ("print_endline", []) ->
+        L.build_call print_endline_func [||] "print_endline" builder
+    
+    | A.Call ("print_sameline", [e]) ->
+        L.build_call print_sameline_func [| expr builder e |] "print_sameline" builder
     
     | A.Call (f, act) ->
       let (fdef, fdecl_called) = StringMap.find f function_decls in
