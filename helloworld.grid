@@ -1,5 +1,14 @@
-int pretty_print(int x){
-	print(x);
+int pretty_print(int[4][4] x){
+	int i;
+	int j;
+	for(i=0;i<4;i=i+1){
+		for(j=0;j<4;j=j+1){
+			print("|");
+			print(x[i][j]);
+			print("|");
+		}
+		print("\n");
+	}
 	return 0;
 }
 
@@ -9,7 +18,7 @@ int gameloop(){
 	int[4][4] y;
 	for(i=0;i<4;i=i+1){
 		for(j=0;j<4;j=j+1){
-			y[i][j] = i+j;
+			y[i][j] = 999;
 		}
 	}
 	pretty_print(y);
