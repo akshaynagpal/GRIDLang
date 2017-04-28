@@ -104,7 +104,7 @@ let translate (globals, functions, structs) =
     List.fold_left function_decl StringMap.empty functions in
   
   (* Fill in the body of the given function *)
-  let build_function_body fdecl =
+let build_function_body fdecl =
     let (the_function, _) = try StringMap.find fdecl.A.fname function_decls with Not_found -> StringMap.find "main" function_decls in
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
@@ -205,6 +205,18 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
+    | A.Grid(l1, l2) -> 
+(*         let rows = expr builder l1
+(*         match l1 with
+        A.Literal i -> i 
+        | _ -> raise(Failure("Error matching in Grid datatype"))
+ *)        and cols = expr builder l2
+(*         match l2 with
+        A.Literal i -> i 
+        | _ -> raise(Failure("Error matching in Grid datatype")) *)
+      in
+ *)      (*Create 2D array of size [rows][cols]*)
+      L.build_alloca (ltype_of_typ (A.Array2DType (A.Int,l1,l2))) "Grid" builder
     | A.Dotop(e1, field) -> let e' = expr builder e1 in
       (match e1 with
         A.Id s -> let etype = fst( 

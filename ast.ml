@@ -31,6 +31,7 @@ type expr =
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
   | Arr2DIndexLiteral of string * expr * expr
+  | Grid of int * int
   | Coordinate_Lit of expr * expr
   | Call of string * expr list
   | Id of string

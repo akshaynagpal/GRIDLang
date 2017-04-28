@@ -1,75 +1,10 @@
-import gridBasics.grid;
 
 int checkGameEnd()
  {
   return 1;
  }
 
-Player good
-{ 
-int x; 
-int y; 
-string s; 
-*Player good next;
-} 
-
-Item horse{
-	int x;
-	string s;
-	*Item horse next;
-}
-
-Player grid{
-	Player good player_head;
-	Item horse item_head;
-}
-
-
-int gameloop(){ 
-	Player good p1; 
-	Player good p2; 
-	Player good p3; 
-	Player good p4; 
-	Player good p5;
-	Player good p6;  
-	*Player good p7; 
-	Player good p9;  
-	Player good p11;
-	*Player good p8;
-	Player good null;
-	Item horse h1;
-	Player grid[2][2] parray;
-	p1.x = 1;
-	p1.s = "P1";
-	p2.x = 2;
-	p2.s = "P2";
-	p3.x = 3;
-	p3.s = "P3";
-	p4.x = 4;
-	p4.s = "P4";
-	p5.x = 5;
-	p5.s = "P5";
-	p6.x = 6;
-	p6.s = "P6";
-	p9.x = 9;
-	p9.s = "P7";
-	p11.x = 11;
-	p11.s = "P11";
-	parray[0][0].player_head.next=&null;
-	parray[0][1].player_head.next=&null;
-	parray[1][0].player_head.next=&null;
-	parray[1][1].player_head.next=&null;
-	addToGrid(parray, 0, 0, p9, null);
-	addToGrid(parray, 0, 0, p11, null);
-	addToGrid(parray, 0, 1, p1, null);
-	addToGrid(parray, 0, 1, p2, null);
-	addToGrid(parray, 1, 0, p3, null);
-	addToGrid(parray, 1, 0, p4, null);
-	addToGrid(parray, 1, 1, p5, null);
-	addToGrid(parray, 1, 1, p6, null);
-
-	printGrid(parray, null);
-
+int gameloop(){
+	Grid<2,3>; 
 	return 0; 
-
 }
