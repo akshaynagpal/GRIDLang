@@ -43,6 +43,7 @@ let translate (globals, functions, structs) =
   in 
     ignore(List.map populate_struct_type structs); (*apply populate_struct func on all the structs to build them all*)
 
+
   let string_option_to_string = function
     None -> ""
     | Some(s) -> s
@@ -53,18 +54,36 @@ let translate (globals, functions, structs) =
     this second map, the key is the field name and the value is the index number
     basically index every field of struct so that they can be accessed later on
   *)
+
+  (*Create struct type for grid (with next field)*)
+  let grid_node_type = L.named_struct_type context "Player" in
+  let type_list = [A.StructType "good"; A.PointerType (A.StructType("good"))] in
+  let type_array = Array.of_list (List.map (fun(t) -> ltype_of_typ t) type_list) in
+  let _ = L.struct_set_body grid_node_type type_array true in 
+  let struct_types = Hashtbl.add struct_types "Player" grid_node_type in
+
+  let gridnode_struct_list = [("Player", ["p1";"next"])] in
+
+  let name_formal_list_1 =
+    let extract_names_and_formals indiv_struct =
+      let sname = indiv_struct.A.sname
+      and field_name_list = List.map snd indiv_struct.A.sformals
+      in (sname,field_name_list)
+    in List.map extract_names_and_formals structs
+  in 
+  let name_formal_list = List.append name_formal_list_1 gridnode_struct_list in 
   
   let struct_field_index_list =
-    let handle_list m individual_struct = 
-      let struct_field_name_list = List.map snd individual_struct.A.sformals in (*list of all fieldnames of a struct*)
+    let handle_list m name_formal = 
+      let struct_field_name_list = snd name_formal in (*list of all fieldnames of a struct*)
       let increment n = n + 1 in
       (*add each field and index to second map called struct_field_map*)
       let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in 
       let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list in
       (*add struct_field_map to the main map*)
-      StringMap.add individual_struct.A.sname (fst struct_field_map) m  
+      StringMap.add (fst name_formal) (fst struct_field_map) m  
     in
-    List.fold_left handle_list StringMap.empty structs  
+    List.fold_left handle_list StringMap.empty name_formal_list  
   in
 
   (* Declare printf(), which the print built-in function will call *)
@@ -206,17 +225,7 @@ let build_function_body fdecl =
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
     | A.Grid(l1, l2) -> 
-(*         let rows = expr builder l1
-(*         match l1 with
-        A.Literal i -> i 
-        | _ -> raise(Failure("Error matching in Grid datatype"))
- *)        and cols = expr builder l2
-(*         match l2 with
-        A.Literal i -> i 
-        | _ -> raise(Failure("Error matching in Grid datatype")) *)
-      in
- *)      (*Create 2D array of size [rows][cols]*)
-      L.build_alloca (ltype_of_typ (A.Array2DType (A.Int,l1,l2))) "Grid" builder
+      L.build_alloca (ltype_of_typ (A.Array2DType (A.StructType("Player"),l1,l2))) "Grid" builder
     | A.Dotop(e1, field) -> let e' = expr builder e1 in
       (match e1 with
         A.Id s -> let etype = fst( 
