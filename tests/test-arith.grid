@@ -11,3 +11,8 @@ int gameloop(){
   a = i*j/l-k;
   print(a);
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

@@ -18,3 +18,8 @@ p2.x = 3;
 print(p2.x);
 return 0; 
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

@@ -15,3 +15,8 @@ int gameloop(){
 	}
 	return 0;
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

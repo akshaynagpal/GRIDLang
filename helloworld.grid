@@ -1,9 +1,9 @@
 import gridBasics.grid;
 
 int checkGameEnd()
- {
+{
   return 1;
- }
+}
 
 Player good
 { 

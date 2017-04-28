@@ -16,3 +16,8 @@ print(p1.y);
 print(p1.s);
 return 0; 
 }
+
+int checkGameEnd()
+{
+  return 1;
+}
