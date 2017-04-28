@@ -12,17 +12,7 @@ int rule(coordinate source, coordinate destination)
 
 int gameloop()
 { 
-Player good p1; 
-Player good p2; 
-Player good p3; 
-Player good[2] parray; 
-p2.x = 3;
-
-parray[0] = p1;
-parray[0].next = &p2;
-p3 = *(parray[0].next);
-print(p3.x);
-
-
+Player good p1;
+Grid<2,3> = p1;
 return 0; 
 }

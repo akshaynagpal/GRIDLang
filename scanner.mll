@@ -41,6 +41,7 @@ rule token = parse
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "Grid"   { GRID }
 | "Player" { PLAYER }
 | "Item"   { PLAYER } (*Hacky. Since both Player and Item are just structs, we can avoid code duplication by having PLAYER as token for both*)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }

@@ -11,7 +11,7 @@ let third (_,_,c) = c;;
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT PERCENT DEREF REF
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRID
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER COORDINATE
 %token <int> LITERAL
 %token <string> ID
@@ -120,10 +120,11 @@ expr:
     LITERAL          { Literal($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
+  | GRID LT expr COMMA expr GT ASSIGN ID { GridAssign($3,$5,$8)}
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
-  | LPAREN expr COMMA expr RPAREN    { Coordinate_Lit($2,$4)}
+  | LT expr COMMA expr GT    { Coordinate_Lit($2,$4)}
   | ID LPAREN expr COMMA expr RPAREN ASSIGN expr { Array2DAccess($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
   | ID LPAREN expr COMMA expr RPAREN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */
