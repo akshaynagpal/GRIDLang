@@ -1,11 +1,17 @@
 import gridBasics.grid;
-Player good{
-	int x;
-	int y;
-	string s;
-	*Player good next;
 
-}
+int checkGameEnd()
+ {
+  return 1;
+ }
+
+Player good
+{ 
+int x; 
+int y; 
+string s; 
+*Player good next;
+} 
 
 Item horse{
 	int x;
@@ -19,52 +25,51 @@ Player grid{
 }
 
 
-
 int gameloop(){ 
-Player good p1; 
-Player good p2; 
-Player good p3; 
-Player good p4; 
-Player good p5;
-Player good p6;  
-*Player good p7; 
-Player good p9;  
-Player good p11;
-*Player good p8;
-Player good null;
-Player grid[2][2] parray;
-p1.x = 1;
-p2.x = 2;
-p3.x = 3;
-p4.x = 4;
-p5.x = 5;
-p6.x = 6;
-p9.x = 9;
-p11.x = 11;
-parray[0][0].player_head.next = &p1;
-p1.next = &p2;
-p2.next = &p3;
-p3.next = &p4;
-p4.next = &p5;
-p5.next = &null;
+	Player good p1; 
+	Player good p2; 
+	Player good p3; 
+	Player good p4; 
+	Player good p5;
+	Player good p6;  
+	*Player good p7; 
+	Player good p9;  
+	Player good p11;
+	*Player good p8;
+	Player good null;
+	Item horse h1;
+	Player grid[2][2] parray;
+	p1.x = 1;
+	p1.s = "P1";
+	p2.x = 2;
+	p2.s = "P2";
+	p3.x = 3;
+	p3.s = "P3";
+	p4.x = 4;
+	p4.s = "P4";
+	p5.x = 5;
+	p5.s = "P5";
+	p6.x = 6;
+	p6.s = "P6";
+	p9.x = 9;
+	p9.s = "P7";
+	p11.x = 11;
+	p11.s = "P11";
+	parray[0][0].player_head.next=&null;
+	parray[0][1].player_head.next=&null;
+	parray[1][0].player_head.next=&null;
+	parray[1][1].player_head.next=&null;
+	addToGrid(parray, 0, 0, p9, null);
+	addToGrid(parray, 0, 0, p11, null);
+	addToGrid(parray, 0, 1, p1, null);
+	addToGrid(parray, 0, 1, p2, null);
+	addToGrid(parray, 1, 0, p3, null);
+	addToGrid(parray, 1, 0, p4, null);
+	addToGrid(parray, 1, 1, p5, null);
+	addToGrid(parray, 1, 1, p6, null);
 
-addToGrid(parray, 0, 0, p9, null);
-addToGrid(parray, 0, 0, p11, null);
+	printGrid(parray, null);
 
-deleteFromGrid(parray, 0, 0, p4, null);
-deleteFromGrid(parray, 0, 0, p3, null);
-deleteFromGrid(parray, 0, 0, p3, null);
-deleteFromGrid(parray, 0, 0, p4, null);
-deleteFromGrid(parray, 0, 0, p11, null);
-deleteFromGrid(parray, 0, 0, p1, null);
-deleteFromGrid(parray, 0, 0, p5, null);
-print("Printing p8 now......");
-p8 = &parray[0][0].player_head;
-while(p8.next != &null){
-	p8 = p8.next;
-	print(p8.x);
-}
-
-return 0; 
+	return 0; 
 
 }
