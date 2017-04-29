@@ -1,1 +1,60 @@
-int x;
+void addToGrid(Player grid[2][2] Grid, int x, int y, Player good p, Player good null){
+
+	*Player good iterator; 
+	iterator = &Grid[x][y].player_head;
+
+	while(iterator.next != &null){
+		iterator = iterator.next;
+		if(iterator == &p){
+		print("Player already on grid coordinate");
+		return;
+	}
+	}
+	iterator.next = &p;
+    iterator = iterator.next;
+    iterator.next = &null;
+}
+
+void deleteFromGrid(Player grid[2][2] Grid, int x, int y, Player good p, Player good null){
+	
+	*Player good iterator;
+	iterator = &Grid[x][y].player_head;
+
+	while(iterator.next!=&null && iterator.next!=&p){
+	iterator = iterator.next;
+	}
+
+	if(iterator.next == &null){
+		print("Player already removed from coordinate");
+		return;
+	}
+
+	iterator.next = p.next;
+	p.next = &null;
+
+
+}
+
+int printGrid(Player grid[2][2] Grid, Player good null){
+	int x;
+	int y;
+
+	*Player good iterator; 
+
+	for(x = 0; x < 2; x = x+1){
+		for(y = 0; y < 2; y = y+1){
+			iterator = &Grid[x][y].player_head;
+			print_sameline("|");
+			while(iterator.next != &null){
+				iterator = iterator.next;
+				print_sameline(iterator.s);
+				print_sameline(", ");
+				
+			}
+			print_sameline("|");	
+		}
+		print_endline();
+	}
+	return 0;
+}
+

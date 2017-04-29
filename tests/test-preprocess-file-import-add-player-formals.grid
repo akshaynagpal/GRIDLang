@@ -1,4 +1,6 @@
-Player good
+import gridBasics.grid;
+
+Player good 
 { 
 int x; 
 int y; 
@@ -10,16 +12,10 @@ int gameloop()
 { 
 Player good p1; 
 Player good p2; 
-Player good p3; 
-Player good[2] parray; 
+p1.displayString = "true";
+print(p1.displayString);
 p2.x = 3;
-
-parray[0] = p1;
-parray[0].next = &p2;
-p3 = *(parray[0].next);
-print(p3.x);
-
-
+print(p2.x);
 return 0; 
 }
 

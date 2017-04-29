@@ -1,4 +1,5 @@
 open Str
+open String
 
 let tempImportFile = ref ""
 let playerStuctFound = ref false
@@ -6,6 +7,7 @@ let braceNotFound = ref false
 let ruleInPlayerFound = ref false
 let insidePlayerStruct = ref false
 let playerStructBraceCounter = ref 0
+let listNode = ref "Player listNode\n{\n"
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -26,6 +28,31 @@ let process_files filename1 =
 		let rec read_recursive lines =
 			try
 				let line = input_line in_channel in
+					let _ =
+						if (contains line "Item") then
+			  			begin
+			  				if (contains line ";" = false && (contains line ")" = false)) then
+			  					begin
+			  						if (contains line "{") then
+			  							begin
+			  								let lis = Str.split (Str.regexp "{") line in
+					  						let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in
+					  						let wordArr = Array.of_list(wordlis) in
+					  						let structType = wordArr.(0) in
+					  						let structName = wordArr.(1) in
+					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";	
+			  							end
+			  						else
+			  							begin
+			  								let wordlis = Str.split (Str.regexp " ") line in
+					  						let wordArr = Array.of_list(wordlis) in
+					  						let structType = wordArr.(0) in
+					  						let structName = wordArr.(1) in
+					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
+			  							end
+			  					end
+			  			end
+			  		in
 		  		if (contains line "import") then 
 		  			begin
 		  				tempImportFile := "gridBasics.grid";
@@ -63,17 +90,31 @@ let process_files filename1 =
 		  			end
 		  		else if (contains line "Player") then
 		  			begin
-		  				if (contains line "{") then
+		  				if ( (contains line "{") && (contains line ";" = false) && (contains line ")" = false) ) then
 		  					begin
 		  						playerStuctFound := true;
 		  						insidePlayerStruct := true;
 		  						playerStructBraceCounter := !playerStructBraceCounter + 1;
+		  						let lis = Str.split (Str.regexp "{") line in
+		  						let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in
+		  						let wordArr = Array.of_list(wordlis) in
+		  						let structType = wordArr.(0) in
+		  						let structName = wordArr.(1) in
+		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
+		  						(* ignore ( List.iter (fun n -> print_string n; print_newline ()) lis ); *)
+		  						(* let _ = print_endline lis in *)
 		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  					end
-		  				else if (contains line ";" = false) then
+		  				else if (contains line ";" = false && (contains line ")" = false)) then
 		  					begin
 		  						playerStuctFound := true;
 		  						insidePlayerStruct := true;
+		  						let wordlis = Str.split (Str.regexp " ") line in
+		  						(* let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in *)
+		  						let wordArr = Array.of_list(wordlis) in
+		  						let structType = wordArr.(0) in
+		  						let structName = wordArr.(1) in
+		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
 		  						braceNotFound := true;
 		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
@@ -91,7 +132,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = "" ^ concat (read_all_lines filename1) in
+		let temp = !listNode ^ "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 			if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then
@@ -110,4 +151,3 @@ let process_files filename1 =
 					let importFile = concat (read_all_lines !tempImportFile) in
 					let res = temp ^ "" ^ importFile in
 						res
-				

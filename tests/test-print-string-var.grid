@@ -4,3 +4,8 @@ int gameloop(){
   print(s);
   return 0;
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

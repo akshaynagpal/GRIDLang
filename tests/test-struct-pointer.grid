@@ -25,3 +25,8 @@ print(p3.s);
 
 return 0; 
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

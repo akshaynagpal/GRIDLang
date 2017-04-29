@@ -1,0 +1,20 @@
+int layout(){
+	return 0;
+}
+
+int gameloop(){	
+	print("hello world");
+	return 0;
+}
+
+int colocation(){
+	return 0;
+}
+
+int checkGameEnd(){	
+	return 1;
+}
+
+int gameOver(){	
+	return 0;
+}

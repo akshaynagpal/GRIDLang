@@ -1,8 +1,7 @@
 int gameloop(){
-    int j;
-    int[4] x;
-    x = [1,2,3,4];
-    print(x[0]);
+    coordinate c;
+    c = <2,3>;
+    print(c);
     return 0;
 }
 

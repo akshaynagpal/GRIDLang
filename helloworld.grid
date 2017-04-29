@@ -1,3 +1,9 @@
+
+int checkGameEnd()
+{
+  return 1;
+}
+
 Player good
 { 
 int x; 

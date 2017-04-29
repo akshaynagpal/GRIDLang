@@ -8,3 +8,8 @@ int gameloop(){
   print(k);
   return 0;
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

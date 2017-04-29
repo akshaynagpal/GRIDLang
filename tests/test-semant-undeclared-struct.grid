@@ -9,18 +9,11 @@ string s;
 int gameloop()
 { 
 Player good p1; 
-Player good p2; 
-Player good p3; 
-Player good[2] parray; 
 p2.x = 3;
-
-parray[0] = p1;
-parray[0].next = &p2;
-p3 = *(parray[0].next);
-print(p3.x);
-
+print(p2.x);
 
 return 0; 
+
 }
 
 int checkGameEnd()
