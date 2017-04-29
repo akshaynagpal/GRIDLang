@@ -1,53 +1,79 @@
-void addToGrid(Player grid[2][2] Grid, int x, int y, Player good p, Player good null){
+void addToGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Player listNode null){
 
-	*Player good iterator; 
-	iterator = &Grid[x][y].player_head;
+	*Player listNode iterator;
+
+	iterator = &g[x][y].node_head;
 
 	while(iterator.next != &null){
 		iterator = iterator.next;
-		if(iterator == &p){
-		print("Player already on grid coordinate");
-		return;
+		if(iterator == &p_n){
+			print("Player already on grid coordinate");
+			return;
 	}
+	
 	}
-	iterator.next = &p;
+	iterator.next = &p_n;
     iterator = iterator.next;
-    iterator.next = &null;
+	iterator.next = &null;
+
 }
 
-void deleteFromGrid(Player grid[2][2] Grid, int x, int y, Player good p, Player good null){
-	
-	*Player good iterator;
-	iterator = &Grid[x][y].player_head;
 
-	while(iterator.next!=&null && iterator.next!=&p){
-	iterator = iterator.next;
+void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Player listNode null){
+	
+	*Player listNode iterator;
+	iterator = &g[x][y].node_head;
+
+	while(iterator.next != &null && iterator.next != &p_n){
+		iterator = iterator.next;
 	}
 
 	if(iterator.next == &null){
-		print("Player already removed from coordinate");
+		print("Not found on given coordinate");
 		return;
 	}
 
-	iterator.next = p.next;
-	p.next = &null;
+	iterator.next = p_n.next;
+	p_n.next = &null;
 
 
 }
 
-int printGrid(Player grid[2][2] Grid, Player good null){
+int printGrid(Player grid[2][2] g, Player listNode null){
 	int x;
 	int y;
+	int len;
+	int max_len;
+	*Player listNode iterator;
+	*Player good printer; 
+	len = 0;
+	max_len = 0;
+	
+	for(x = 0; x < 2; x = x+1){
+		for(y = 0; y < 2; y = y+1){
+			iterator = &g[x][y].node_head;
+	
+			while(iterator.next != &null){
+				iterator = iterator.next;
+				len = len + 1 ;
+			}
+			if(max_len < len){
+				max_len = len;
+			}
 
-	*Player good iterator; 
+		}
+
+	}
+	print(max_len);
 
 	for(x = 0; x < 2; x = x+1){
 		for(y = 0; y < 2; y = y+1){
-			iterator = &Grid[x][y].player_head;
+			iterator = &g[x][y].node_head;
 			print_sameline("|");
 			while(iterator.next != &null){
 				iterator = iterator.next;
-				print_sameline(iterator.s);
+				printer  = iterator.good_node;
+				print_sameline(printer.s);
 				print_sameline(", ");
 				
 			}
@@ -57,4 +83,3 @@ int printGrid(Player grid[2][2] Grid, Player good null){
 	}
 	return 0;
 }
-

@@ -1,17 +1,103 @@
-
+import gridBasics.grid;
 int checkGameEnd()
-{
+ {
   return 1;
-}
+ }
+
 
 Player good
 { 
-int x; 
+	int x; 
+	int y; 
+	string s; 
+	*Player good next;
 } 
 
-int gameloop()
-{ 
-Player good p1;
-Grid<2,3> = p1;
-return 0; 
+Item horse{
+	int x;
+	string s;
+	*Item horse next;
+	int rule(coordinate c1, coordinate c2) {
+		return 1;
+	}
+}
+
+Player grid{
+	Player listNode node_head;
+}
+
+
+int gameloop(){ 
+	int x;
+	int y;
+	Player good p1; 
+	Player listNode p1_n; 
+	Player good p2; 
+	Player listNode p2_n; 
+	Player good p3; 
+	Player listNode p3_n; 
+	Player good p4; 
+	Player listNode p4_n; 
+	Player good p5;
+	Player listNode p5_n; 
+	Player good p6;  
+	Player listNode p6_n; 
+	*Player good p7; 
+	Player good p9;  
+	Player listNode p9_n; 
+	Player good p11;
+	Player listNode p11_n; 
+	*Player listNode p8;
+	Player listNode null;
+	Item horse h1;
+	Player grid[2][2] parray;
+	p1.x = 1;
+	p1.s = "P1";
+	p1_n.good_node = &p1;
+	p2.x = 2;
+	p2.s = "P2";
+	p2_n.good_node = &p2;
+	p3.x = 3;
+	p3.s = "P3";
+	p3_n.good_node = &p3;
+	p4.x = 4;
+	p4.s = "P4";
+	p4_n.good_node = &p4;
+	p5.x = 5;
+	p5.s = "P5";
+	p5_n.good_node = &p5;
+	p6.x = 6;
+	p6.s = "P6";
+	p6_n.good_node = &p6;
+	p9.x = 9;
+	p9.s = "P9";
+	p9_n.good_node = &p9;
+	p11.x = 11;
+	p11.s = "P11";
+	p11_n.good_node = &p11;
+	x = 0;
+	y = 0;
+	parray[0][0].node_head.next=&null;
+	parray[0][1].node_head.next=&null;
+	parray[1][0].node_head.next=&null;
+	parray[1][1].node_head.next=&null;
+
+	Grid<0,0> = p1_n;
+	Grid<1,0> = p2_n;
+	Grid<0,1> = p3_n;
+	Grid<1,1> = p9_n;
+	Grid<1,1> = p11_n;
+	Grid<0,1> = p4_n;
+
+
+	/*
+	deleteFromGrid(parray, 0, 0, p5_n, null);
+	deleteFromGrid(parray, 0, 0, p5_n, null);
+*/
+	p8 = &parray[0][0].node_head;
+
+	printGrid(parray, null);
+
+	return 0; 
+
 }

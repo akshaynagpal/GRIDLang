@@ -222,7 +222,7 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
-    | A.GridAssign (e1, e2, s) -> (*Get type of e (which is a struct)*)
+    | A.GridAssign (e1, e2, s) -> ignore(expr builder (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s); A.Id("null")])));
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
                             let struct_name = Hashtbl.find struct_names struct_type in
