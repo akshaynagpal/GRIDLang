@@ -48,7 +48,6 @@ int gameloop(){
 	Player good p11;
 	Player listNode p11_n; 
 	*Player listNode p8;
-	Player listNode null;
 	Item horse h1;
 	Player grid[2][2] parray;
 	p1.x = 1;
@@ -89,7 +88,7 @@ int gameloop(){
 	Grid<1,1> <-- p11_n;
 	Grid<0,1> <-- p4_n;
 	Grid<0,1> --> p4_n;
-	printGrid(parray, null);
+	printGrid(parray);
 	return 0; 
 
 

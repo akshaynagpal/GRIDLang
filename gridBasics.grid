@@ -1,4 +1,4 @@
-void addToGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Player listNode null){
+void addToGrid(Player grid[2][2] g, int x, int y, Player listNode p_n){
 
 	*Player listNode iterator;
 
@@ -19,7 +19,7 @@ void addToGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Player li
 }
 
 
-void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Player listNode null){
+void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n){
 	
 	*Player listNode iterator;
 	iterator = &g[x][y].node_head;
@@ -39,7 +39,7 @@ void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n, Play
 
 }
 
-int printGrid(Player grid[2][2] g, Player listNode null){
+int printGrid(Player grid[2][2] g){
 	int x;
 	int y;
 	int len;

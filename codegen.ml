@@ -229,14 +229,14 @@ let translate (globals, functions, structs) =
                               let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
                               ignore(Hashtbl.add vars_local "Grid" grid_val);grid_val
 
-    | A.GridAssign (e1, e2, s) -> ignore(expr builder (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s); A.Id("null")])));
+    | A.GridAssign (e1, e2, s) -> ignore(expr builder (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s)])));
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
                             let struct_name = Hashtbl.find struct_names struct_type in
                             let rule_func_name = struct_name ^ "rule" in
                             ignore(expr builder (A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)])));struct_llvalue
     
-    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s); A.Id("null")]));
+    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
     
     | A.Dotop(e1, field) -> let e' = expr builder e1 in
       (match e1 with
