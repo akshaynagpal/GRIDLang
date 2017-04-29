@@ -223,10 +223,10 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
-    | A.GridCreate (l1, l2) -> expr builder l1 (* let rows = expr builder l1 and cols = expr builder l2 in 
-                              let arr_type = A.Array2DType (int, rows, cols) in
-                              let val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
-                              ignore(Hashtbl.add) *)
+    | A.GridCreate (rows, cols) ->  
+                              let arr_type = A.Array2DType (A.Int, rows, cols) in
+                              let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
+                              ignore(Hashtbl.add vars_local "Grid" grid_val);grid_val
     | A.GridAssign (e1, e2, s) -> (*Get type of e (which is a struct)*)
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
@@ -292,6 +292,7 @@ let translate (globals, functions, structs) =
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
+        |A.GridCreate(rows,cols) -> expr builder (A.Literal(rows)) 
         |A.Dotop (e1, field) -> let e' = expr builder e1 in
           (match e1 with
             A.Id s -> let e1typ = fst(

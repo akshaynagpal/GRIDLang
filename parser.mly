@@ -120,7 +120,7 @@ expr:
     LITERAL          { Literal($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
-  | GRID LT expr COMMA expr GT           { GridCreate($3,$5)}
+  | GRID LT LITERAL COMMA LITERAL GT           { GridCreate($3,$5)}
   | GRID LT expr COMMA expr GT ASSIGN ID { GridAssign($3,$5,$8)}
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
