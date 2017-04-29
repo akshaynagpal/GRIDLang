@@ -77,10 +77,10 @@ int gameloop(){
 	p11_n.good_node = &p11;
 	x = 0;
 	y = 0;
-	parray[0][0].node_head.next=&null;
-	parray[0][1].node_head.next=&null;
-	parray[1][0].node_head.next=&null;
-	parray[1][1].node_head.next=&null;
+	parray[0][0].node_head.next=None;
+	parray[0][1].node_head.next=None;
+	parray[1][0].node_head.next=None;
+	parray[1][1].node_head.next=None;
 
 	Grid<0,0> <-- p1_n;
 	Grid<1,0> <-- p2_n;
@@ -88,17 +88,8 @@ int gameloop(){
 	Grid<1,1> <-- p9_n;
 	Grid<1,1> <-- p11_n;
 	Grid<0,1> <-- p4_n;
-
 	Grid<0,1> --> p4_n;
-
-	/*
-	deleteFromGrid(parray, 0, 0, p5_n, null);
-	deleteFromGrid(parray, 0, 0, p5_n, null);
-*/
-	p8 = &parray[0][0].node_head;
-
 	printGrid(parray, null);
-
 	return 0; 
 
 

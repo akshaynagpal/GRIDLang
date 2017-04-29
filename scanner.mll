@@ -39,7 +39,8 @@ rule token = parse
 | "int"    { INT }
 | "string" { STRING }
 | "bool"   { BOOL }
-| "coordinate" {COORDINATE}
+| "None"   { NULL }
+| "coordinate" { COORDINATE }
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }

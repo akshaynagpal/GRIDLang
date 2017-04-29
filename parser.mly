@@ -11,7 +11,7 @@ let third (_,_,c) = c;;
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER COORDINATE
 %token <int> LITERAL
 %token <string> ID
@@ -120,6 +120,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1) }
+  | NULL             { Null("listNode") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | GRIDINIT LT LITERAL COMMA LITERAL GT  { GridCreate($3,$5)}

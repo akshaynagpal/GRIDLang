@@ -219,6 +219,7 @@ let translate (globals, functions, structs) =
 
   and expr builder = function
     A.Literal i -> L.const_int i32_t i
+    | A.Null t -> L.const_pointer_null (ltype_of_typ(A.PointerType(A.StructType(t))))
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])

@@ -28,6 +28,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
+  | Null of string
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
   | Arr2DIndexLiteral of string * expr * expr
