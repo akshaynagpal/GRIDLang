@@ -12,6 +12,7 @@ int x;
 int gameloop()
 { 
 Player good p1;
+Grid <5,5>;
 Grid<2,3> = p1;
 return 0; 
 }

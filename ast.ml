@@ -39,6 +39,7 @@ type expr =
   | Unop of uop * expr
   | Assign of expr * expr
   | GridAssign of expr * expr * string
+  | GridCreate of expr * expr
   | Array1DAccess of string * expr * expr (* assigning some value to an array *)
   | Array2DAccess of string * expr * expr * expr (* assigning some value to a 2D array *)
   | String_Lit of string

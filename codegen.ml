@@ -127,35 +127,36 @@ let translate (globals, functions, structs) =
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
     let str_format_str = L.build_global_stringptr "%s\n" "mmt" builder in
-    
+
+    let vars_local:(string, L.llvalue) Hashtbl.t = Hashtbl.create 1000 in
+
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
-      let add_formal m (t, n) p = L.set_value_name n p;
+      let add_formal (t, n) p = L.set_value_name n p;
         match t with
-          A.Array1DType (typ, size) -> StringMap.add n p m
-          | A.Array2DType (typ, size1, size2) -> StringMap.add n p m
-          | A.StructType s -> StringMap.add n p m
+          A.Array1DType (typ, size) -> Hashtbl.add vars_local n p
+          | A.Array2DType (typ, size1, size2) -> Hashtbl.add vars_local n p
+          | A.StructType s -> Hashtbl.add vars_local n p
           | _ -> let local = L.build_alloca (ltype_of_typ t) n builder in
-          ignore (L.build_store p local builder);StringMap.add n local m
+          ignore (L.build_store p local builder);Hashtbl.add vars_local n local
       in
 
-      let add_local m (t, n) =
+      let add_local (t, n) =
         let local_var = L.build_alloca (ltype_of_typ t) n builder
       in 
-      StringMap.add n local_var m 
+      Hashtbl.add vars_local n local_var 
     in
 
-    let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
-        (Array.to_list (L.params the_function)) in
-        List.fold_left add_local formals fdecl.A.locals 
+    let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
+        List.map add_local fdecl.A.locals 
     in
     let local = L.build_alloca i32_t "repeat" builder in
-    let local_vars = StringMap.add "repeat" local local_vars in 
+    let _ = Hashtbl.add vars_local "repeat" local in 
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = StringMap.find n local_vars in
+    let lookup n = Hashtbl.find vars_local n in
 
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
@@ -222,6 +223,10 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
+    | A.GridCreate (l1, l2) -> expr builder l1 (* let rows = expr builder l1 and cols = expr builder l2 in 
+                              let arr_type = A.Array2DType (int, rows, cols) in
+                              let val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
+                              ignore(Hashtbl.add) *)
     | A.GridAssign (e1, e2, s) -> (*Get type of e (which is a struct)*)
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
