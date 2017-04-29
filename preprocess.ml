@@ -76,11 +76,6 @@ let process_files filename1 =
 		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
 		  			end
-		  		(* else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "{") ) then 
-		  			begin
-		  				playerStructBraceCounter := !playerStructBraceCounter + 1;
-		  				read_recursive ( (line ^ "\n") :: lines);
-		  			end *)
 		  		else if (!playerStuctFound = true && !braceNotFound = true && !insidePlayerStruct = true && (contains line "{") ) then 
 		  			begin
 		  				braceNotFound := false;
@@ -101,8 +96,6 @@ let process_files filename1 =
 		  						let structType = wordArr.(0) in
 		  						let structName = wordArr.(1) in
 		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
-		  						(* ignore ( List.iter (fun n -> print_string n; print_newline ()) lis ); *)
-		  						(* let _ = print_endline lis in *)
 		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  					end
 		  				else if (contains line ";" = false && (contains line ")" = false)) then
@@ -132,7 +125,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "*Player listNode next;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+		let temp = !listNode ^ "string type;\n*Player listNode next;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 			if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then
