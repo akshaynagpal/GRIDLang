@@ -38,6 +38,7 @@ type expr =
   | Dotop of expr * string
   | Unop of uop * expr
   | GridAssign of expr * expr * string
+  | DeletePlayer of expr * expr * string
   | Assign of expr * expr
   | GridCreate of int * int
   | Array1DAccess of string * expr * expr (* assigning some value to an array *)
