@@ -13,11 +13,11 @@ GRID_NATIVE="./grid.native"
 DEFAULT_PATH="."
 
 Run() {
-	eval $*
+    eval $*
 }
 
 Usage(){
-	echo "Usage: ./gridrun.sh [options] [.grid file]"
+    echo "Usage: ./gridrun.sh [options] [.grid file]"
     echo "[options (one at a time)]"
     echo "-c   Compile file"
     echo "-r   Run file"
@@ -26,10 +26,10 @@ Usage(){
 }
 
 CompileFile(){
-	IFS='.' read -ra SPLIT_ARRAY <<< "$1"
+    IFS='.' read -ra SPLIT_ARRAY <<< "$1"
     basename=`echo ${SPLIT_ARRAY[0]}`
     echo "# compiling ${basename}.grid"
-    Run "$GRID_NATIVE" "<" $1 ">" "${DEFAULT_PATH}/${basename}.ll"
+    Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "     ${basename}.ll ... Done"
     Run "$LLC" "${DEFAULT_PATH}/${basename}.ll" ">" "${DEFAULT_PATH}/${basename}.s"
     Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o"
@@ -40,7 +40,7 @@ CompileFile(){
 RunProgram(){
     IFS='.' read -ra SPLIT_ARRAY <<< "$1"
     basename=`echo ${SPLIT_ARRAY[0]}`
-    Run "$GRID_NATIVE" "<" $1 ">" "${DEFAULT_PATH}/${basename}.ll"
+    Run "$GRID_NATIVE " "-c " $1 " > " "${DEFAULT_PATH}/${basename}.ll"
     echo "# Executing ${basename}.grid ..."
     Run "$LLC" "${basename}.ll" ">" "${basename}.s"
     Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o"
@@ -50,18 +50,18 @@ RunProgram(){
 MODE="Help";
 while getopts crh x; do
     case $x in
-	c) # Compile
-		MODE="Compile"
-		;;
-	r) # Run
-		MODE="Run"
-		;;
-	h) # Help
-	    Usage
-	    ;;
-	*) #Help if no opt given
-		Usage
-		;;
+    c) # Compile
+        MODE="Compile"
+        ;;
+    r) # Run
+        MODE="Run"
+        ;;
+    h) # Help
+        Usage
+        ;;
+    *) #Help if no opt given
+        Usage
+        ;;
     esac
 done
 #shift `expr $OPTIND - 1`
@@ -75,6 +75,6 @@ Run)
     RunProgram $file
     ;;
 Help)
-	Usage
-	;;
+    Usage
+    ;;
 esac

@@ -1,13 +1,6 @@
 Player good
 { 
 int x; 
-int y; 
-string s; 
-*Player good next;
-int rule(coordinate source, coordinate destination)
-{
-  return 0;
-}
 } 
 
 int gameloop()
