@@ -223,8 +223,8 @@ let translate (globals, functions, structs) =
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
-    | A.GridCreate (rows, cols) ->  
-                              let arr_type = A.Array2DType (A.Int, rows, cols) in
+    | A.GridCreate (rows, cols) ->  let str_typ = A.StructType("listNode") in
+                              let arr_type = A.Array2DType (str_typ, rows, cols) in
                               let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
                               ignore(Hashtbl.add vars_local "Grid" grid_val);grid_val
     | A.GridAssign (e1, e2, s) -> (*Get type of e (which is a struct)*)
@@ -292,7 +292,15 @@ let translate (globals, functions, structs) =
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
-        |A.GridCreate(rows,cols) -> expr builder (A.Literal(rows)) 
+        |A.GridCreate(rows,cols) -> let struct_type = L.type_of e2' in
+                                    let struct_name = Hashtbl.find struct_names struct_type in
+                                    let rule_func_name = struct_name ^ "rule" in
+                                    ignore(expr builder (A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(A.Literal(rows),A.Literal(cols))])));e2'
+(*            A.GridAssign (e1, e2, s)                         let struct_llvalue = expr builder (A.Id(s)) in 
+                            let struct_type = L.type_of struct_llvalue in
+                            let struct_name = Hashtbl.find struct_names struct_type in
+                            let rule_func_name = struct_name ^ "rule" in
+                            ignore(expr builder (A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)])));struct_llvalue *)
         |A.Dotop (e1, field) -> let e' = expr builder e1 in
           (match e1 with
             A.Id s -> let e1typ = fst(
