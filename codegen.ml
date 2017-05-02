@@ -4,6 +4,8 @@ module A = Ast
 module StringMap = Map.Make(String)
 module S = String
 
+let internal_if_flag = ref 0
+
 let translate (globals, functions, structs) =
   let context = L.global_context () in
   let the_module = L.create_module context "GridLang"
@@ -15,7 +17,7 @@ let translate (globals, functions, structs) =
   and array_t   = L.array_type in
   let str_t = L.pointer_type i8_t in
 
-  
+  let new_global_builder = ref (L.builder context) in
   (*add all struct names to a hashtable*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
   (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
@@ -243,13 +245,23 @@ let translate (globals, functions, structs) =
                               done
                               done);grid_val
 
-    | A.GridAssign (e1, e2, s) -> ignore(expr builder (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s)])));
+    | A.GridAssign (e1, e2, s) ->
+                            
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
                             let struct_name = Hashtbl.find struct_names struct_type in
                             let rule_func_name = struct_name ^ "rule" in
-                            ignore(expr builder (A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)])));struct_llvalue
-    
+                            let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
+                            let _ = Hashtbl.add vars_local "rule" rule_val in 
+                            let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
+                            ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
+                            let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
+                            let then_body = A.Expr (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s);])) in
+                            let else_body = A.Block[] in
+                            let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
+                            ignore(internal_if_flag:=1);
+                            new_global_builder := current_builder; struct_llvalue
+
     | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
     
     | A.Dotop(e1, field) -> let e' = expr builder e1 in
@@ -493,8 +505,15 @@ let translate (globals, functions, structs) =
   
     (* Build the code for the given statement; return the builder for
        the statement's successor *)
-    and stmt builder = function
-    A.Block sl -> List.fold_left stmt builder sl
+    and stmt builder arg_to_match =
+    let builder =
+    if !internal_if_flag = 1 then
+      !new_global_builder
+    else builder
+    in
+    ignore(internal_if_flag := 0);
+    match arg_to_match with
+      A.Block sl -> List.fold_left stmt builder sl
     | A.Expr e -> ignore (expr builder e); builder
     | A.If (predicate, then_stmt, else_stmt) ->
       let bool_val = expr builder predicate in
