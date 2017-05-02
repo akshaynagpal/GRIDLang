@@ -1,4 +1,5 @@
 import gridBasics.grid;
+
 int checkGameEnd()
  {
   return 1;
@@ -12,6 +13,7 @@ Player good
 	string s; 
 	*Player good next;
 } 
+
 
 Item horse{
 	int x;
@@ -50,6 +52,7 @@ int gameloop(){
 	*Player listNode p8;
 	Item horse h1;
 	Player grid[2][2] parray;
+	Grid_Init <8,8>; 
 	p1.x = 1;
 	p1.s = "P1";
 	p1_n.good_node = &p1;

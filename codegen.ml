@@ -169,7 +169,13 @@ let translate (globals, functions, structs) =
         then L.build_gep (lookup array_name) [| i1;index|] array_name builder
       else
         L.build_load (L.build_gep (lookup array_name) [|i1;index|] array_name builder) array_name builder
-    in   
+    in 
+        (* Invoke "f builder" if the current block doesn't already
+       have a terminal (e.g., a branch). *)
+    let add_terminal builder f =
+      match L.block_terminator (L.insertion_block builder) with
+      Some _ -> ()
+      | None -> ignore (f builder) in  
 
     (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
     (*structs in GRIDLang, we would remove this.*)
@@ -227,7 +233,15 @@ let translate (globals, functions, structs) =
     | A.GridCreate (rows, cols) ->  let str_typ = A.StructType("listNode") in
                               let arr_type = A.Array2DType (str_typ, rows, cols) in
                               let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
-                              ignore(Hashtbl.add vars_local "Grid" grid_val);grid_val
+                              let _ = Hashtbl.add vars_local "Grid" grid_val in
+                              (*First do a simple assign for the struct at index 0, 0)*)
+                              ignore(
+                              for x = 0 to rows do
+                              for y = 0 to cols do
+                                let cur_struct_ptr = A.Arr2DIndexLiteral("Grid",A.Literal(x),A.Literal(y)) in (*grid[0][0]*)
+                                expr builder (A.Assign(A.Dotop(cur_struct_ptr,"next"), A.Null("listNode")))
+                              done
+                              done);grid_val
 
     | A.GridAssign (e1, e2, s) -> ignore(expr builder (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s)])));
                             let struct_llvalue = expr builder (A.Id(s)) in 
@@ -456,38 +470,30 @@ let translate (globals, functions, structs) =
         L.build_call diceThrow_num_gen_func [||] "diceThrow" builder
     
     | A.Call (f, act) ->
-      let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
-      let map_arguments actual =
-        match actual with
-        A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals with
-          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
-          in
-          (match etype with
-            A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
-            | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
-            | A.StructType s -> llvalue_expr_getter builder (actual)
-            | _ -> expr builder actual)
-        | _ -> expr builder actual
-        in 
-      let actuals = List.rev (List.map map_arguments (List.rev act)) in
-      let result = (match fdecl_called.A.typ with A.Void -> ""
-                                          | _ -> f ^ "_result") 
-      in L.build_call fdef (Array.of_list actuals) result builder
+        let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
+        let map_arguments actual =
+          match actual with
+          A.Id s -> let etype = fst( 
+            try List.find (fun t->snd(t)=s) fdecl.A.locals with
+            |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+            |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+            in
+            (match etype with
+              A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
+              | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
+              | A.StructType s -> llvalue_expr_getter builder (actual)
+              | _ -> expr builder actual)
+          | _ -> expr builder actual
+          in 
+        let actuals = List.rev (List.map map_arguments (List.rev act)) in
+        let result = (match fdecl_called.A.typ with A.Void -> ""
+                                            | _ -> f ^ "_result") 
+        in L.build_call fdef (Array.of_list actuals) result builder
     | _ -> raise(Failure("Expr builder failed"))
-    in
-
-    (* Invoke "f builder" if the current block doesn't already
-       have a terminal (e.g., a branch). *)
-    let add_terminal builder f =
-      match L.block_terminator (L.insertion_block builder) with
-      Some _ -> ()
-      | None -> ignore (f builder) in
   
     (* Build the code for the given statement; return the builder for
        the statement's successor *)
-    let rec stmt builder = function
+    and stmt builder = function
     A.Block sl -> List.fold_left stmt builder sl
     | A.Expr e -> ignore (expr builder e); builder
     | A.If (predicate, then_stmt, else_stmt) ->
@@ -496,32 +502,32 @@ let translate (globals, functions, structs) =
       let then_bb = L.append_block context "then" the_function in
       add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
       (L.build_br merge_bb);
+       let else_bb = L.append_block context "else" the_function in
+       add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+       (L.build_br merge_bb);
+       ignore (L.build_cond_br bool_val then_bb else_bb builder);       
+       L.builder_at_end context merge_bb
 
-   let else_bb = L.append_block context "else" the_function in
-   add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
-   (L.build_br merge_bb);
-   ignore (L.build_cond_br bool_val then_bb else_bb builder);
-   
-   L.builder_at_end context merge_bb
-      | A.While (predicate, body) ->
-        let pred_bb = L.append_block context "while" the_function in
-        ignore (L.build_br pred_bb builder);
-        let body_bb = L.append_block context "while_body" the_function in
-        add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
-        let pred_builder = L.builder_at_end context pred_bb in
-        let bool_val = expr pred_builder predicate in
-        let merge_bb = L.append_block context "merge" the_function in
-        ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
-        L.builder_at_end context merge_bb
-      | A.For (e1, e2, e3, body) -> stmt builder
-        ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-      | A.Return e -> if (fdecl.A.fname = "gameloop") then (*Assign value of checkGameEnd to "repeat"*)
-                      ignore(expr builder (A.Assign(A.Id("repeat"),A.Call ("checkGameEnd", []))))
+    | A.While (predicate, body) ->
+      let pred_bb = L.append_block context "while" the_function in
+      ignore (L.build_br pred_bb builder);
+      let body_bb = L.append_block context "while_body" the_function in
+      add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
+      let pred_builder = L.builder_at_end context pred_bb in
+      let bool_val = expr pred_builder predicate in
+      let merge_bb = L.append_block context "merge" the_function in
+      ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
+      L.builder_at_end context merge_bb
+    | A.For (e1, e2, e3, body) -> stmt builder
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
+    | A.Return e -> if (fdecl.A.fname = "gameloop") then (*Assign value of checkGameEnd to "repeat"*)
+                    ignore(expr builder (A.Assign(A.Id("repeat"),A.Call ("checkGameEnd", []))))
                     else
-                      ignore (match fdecl.A.typ with
-                        A.Void -> L.build_ret_void builder
-                        | _ -> L.build_ret (expr builder e) builder); builder
+                    ignore (match fdecl.A.typ with
+                      A.Void -> L.build_ret_void builder
+                      | _ -> L.build_ret (expr builder e) builder); builder
     in
+
 
     (* Build the code for each statement in the function *)
     let builder = if (fdecl.A.fname = "gameloop") then
