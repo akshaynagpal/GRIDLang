@@ -10,8 +10,8 @@ let third (_,_,c) = c;;
 
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT DOT PERCENT DEREF REF
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR 
+%token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER COORDINATE
 %token <int> LITERAL
 %token <string> ID
@@ -23,6 +23,8 @@ let third (_,_,c) = c;;
 %nonassoc NOLARRAY
 %nonassoc POINTER
 %right ASSIGN
+%right INARROW
+%right OUTARROW
 %left OR
 %left AND
 %left EQ NEQ
@@ -91,9 +93,10 @@ vdecl:
    typ ID SEMI { ($1, $2) }
 
 sdecl:
-    PLAYER ID LBRACE vdecl_list RBRACE
+    PLAYER ID LBRACE vdecl_list fdecl RBRACE
       { { sname = $2; 
       sformals = $4;
+      sfunc = $5;
       } }
 
 stmt_list:
@@ -117,8 +120,12 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1) }
+  | NULL             { Null("listNode") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
+  | GRIDINIT LT LITERAL COMMA LITERAL GT  { GridCreate($3,$5)}
+  | GRID LT expr COMMA expr GT INARROW ID { GridAssign($3,$5,$8) }
+  | GRID LT expr COMMA expr GT OUTARROW ID { DeletePlayer($3,$5,$8) }
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }

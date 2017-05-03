@@ -2,6 +2,9 @@ module L = Llvm
 module A = Ast
 
 module StringMap = Map.Make(String)
+module S = String
+
+let internal_if_flag = ref 0
 
 let translate (globals, functions, structs) =
   let context = L.global_context () in
@@ -14,12 +17,15 @@ let translate (globals, functions, structs) =
   and array_t   = L.array_type in
   let str_t = L.pointer_type i8_t in
 
-  
+  let new_global_builder = ref (L.builder context) in
   (*add all struct names to a hashtable*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
+  (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
+  let struct_names:(L.lltype,string) Hashtbl.t = Hashtbl.create 50 in
   let add_empty_named_struct_types sdecl =
     let struct_t = L.named_struct_type context sdecl.A.sname in
-    Hashtbl.add struct_types sdecl.A.sname struct_t
+    let _ = Hashtbl.add struct_types sdecl.A.sname struct_t in
+    Hashtbl.add struct_names struct_t sdecl.A.sname 
   in
 
   let _  =  List.map add_empty_named_struct_types structs in
@@ -38,8 +44,9 @@ let translate (globals, functions, structs) =
   in
   let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
-    let type_list = Array.of_list(List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals) in (*construct list of all datatypes of formals in struct*)
-    L.struct_set_body struct_t type_list true (*finally build struct body in llvm*)
+    let type_list = List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals in (*construct list of all datatypes of formals in struct*)
+    let type_list_with_loc = Array.of_list((ltype_of_typ A.CoordinateType)::type_list) in
+    L.struct_set_body struct_t type_list_with_loc true (*finally build struct body in llvm*)
   in 
     ignore(List.map populate_struct_type structs); (*apply populate_struct func on all the structs to build them all*)
 
@@ -57,10 +64,11 @@ let translate (globals, functions, structs) =
   let struct_field_index_list =
     let handle_list m individual_struct = 
       let struct_field_name_list = List.map snd individual_struct.A.sformals in (*list of all fieldnames of a struct*)
+      let struct_field_name_with_loc_list = "location"::struct_field_name_list in
       let increment n = n + 1 in
       (*add each field and index to second map called struct_field_map*)
       let add_field_and_index (m, i) field_name = (StringMap.add field_name (increment i) m, increment i) in 
-      let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_list in
+      let struct_field_map =   List.fold_left add_field_and_index (StringMap.empty, -1) struct_field_name_with_loc_list in
       (*add struct_field_map to the main map*)
       StringMap.add individual_struct.A.sname (fst struct_field_map) m  
     in
@@ -71,11 +79,30 @@ let translate (globals, functions, structs) =
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
 
-  (* Declare built-in input() function *)
-  let input_t = L.function_type str_t [||] in
-  let input_func = L.declare_function "input" input_t the_module in
+  (* Declare built-in prompt() function *)
+  let prompt_t = L.function_type str_t [||] in
+  let prompt_func = L.declare_function "prompt" prompt_t the_module in
+
+  let print_endline_t = L.function_type i32_t [||] in
+  let print_endline_func = L.declare_function "print_endline" print_endline_t the_module in
+
+  let print_sameline_t = L.function_type i32_t [| str_t |] in
+  let print_sameline_func = L.declare_function "print_sameline" print_sameline_t the_module in
+
+  let diceThrow_num_gen_t = L.function_type i32_t [||] in
+  let diceThrow_num_gen_func = L.declare_function "diceThrow" diceThrow_num_gen_t the_module in
 
   let main_func_map = StringMap.add "initialSetup" "main" StringMap.empty in
+
+  (* Define each struct function (arguments and return type) so we can call it *)
+  let struct_function_decls =
+    let function_decl m sdecl =
+      let fdecl = sdecl.A.sfunc in
+        let name = sdecl.A.sname ^ fdecl.A.fname and
+        formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.A.formals) in 
+      let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
+      StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+    List.fold_left function_decl StringMap.empty structs in
 
   (* Define each function (arguments and return type) so we can call it *)
   let function_decls =
@@ -92,42 +119,46 @@ let translate (globals, functions, structs) =
                  and formal_types = Array.of_list (List.map get_formal_types fdecl.A.formals) in 
       let ftype = L.function_type (ltype_of_typ fdecl.A.typ) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
-    List.fold_left function_decl StringMap.empty functions in
-  
+    List.fold_left function_decl StringMap.empty functions in  
+
   (* Fill in the body of the given function *)
-  let build_function_body fdecl =
-    let (the_function, _) = try StringMap.find fdecl.A.fname function_decls with Not_found -> StringMap.find "main" function_decls in
+  let build_function_body the_function fdecl =
+
+
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
     let str_format_str = L.build_global_stringptr "%s\n" "mmt" builder in
-    
+
+    let vars_local:(string, L.llvalue) Hashtbl.t = Hashtbl.create 1000 in
+
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
-      let add_formal m (t, n) p = L.set_value_name n p;
+      let add_formal (t, n) p = L.set_value_name n p;
         match t with
-          A.Array1DType (typ, size) -> StringMap.add n p m
-          | A.Array2DType (typ, size1, size2) -> StringMap.add n p m
-          | A.StructType s -> StringMap.add n p m
+          A.Array1DType (typ, size) -> Hashtbl.add vars_local n p
+          | A.Array2DType (typ, size1, size2) -> Hashtbl.add vars_local n p
+          | A.StructType s -> Hashtbl.add vars_local n p
           | _ -> let local = L.build_alloca (ltype_of_typ t) n builder in
-          ignore (L.build_store p local builder);StringMap.add n local m
+          ignore (L.build_store p local builder);Hashtbl.add vars_local n local
       in
 
-      let add_local m (t, n) =
+      let add_local (t, n) =
         let local_var = L.build_alloca (ltype_of_typ t) n builder
       in 
-      StringMap.add n local_var m 
+      Hashtbl.add vars_local n local_var 
     in
 
-    let formals = List.fold_left2 add_formal StringMap.empty fdecl.A.formals
-        (Array.to_list (L.params the_function)) in
-        List.fold_left add_local formals fdecl.A.locals 
+    let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
+        List.map add_local fdecl.A.locals 
     in
+    let local = L.build_alloca i32_t "repeat" builder in
+    let _ = Hashtbl.add vars_local "repeat" local in 
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = StringMap.find n local_vars in
+    let lookup n = Hashtbl.find vars_local n in
 
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
@@ -140,7 +171,13 @@ let translate (globals, functions, structs) =
         then L.build_gep (lookup array_name) [| i1;index|] array_name builder
       else
         L.build_load (L.build_gep (lookup array_name) [|i1;index|] array_name builder) array_name builder
-    in   
+    in 
+        (* Invoke "f builder" if the current block doesn't already
+       have a terminal (e.g., a branch). *)
+    let add_terminal builder f =
+      match L.block_terminator (L.insertion_block builder) with
+      Some _ -> ()
+      | None -> ignore (f builder) in  
 
     (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
     (*structs in GRIDLang, we would remove this.*)
@@ -190,10 +227,43 @@ let translate (globals, functions, structs) =
 
   and expr builder = function
     A.Literal i -> L.const_int i32_t i
+    | A.Null t -> L.const_pointer_null (ltype_of_typ(A.PointerType(A.StructType(t))))
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
     (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
+    | A.GridCreate (rows, cols) ->  let str_typ = A.StructType("listNode") in
+                              let arr_type = A.Array2DType (str_typ, rows, cols) in
+                              let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
+                              let _ = Hashtbl.add vars_local "Grid" grid_val in
+                              (*First do a simple assign for the struct at index 0, 0)*)
+                              ignore(
+                              for x = 0 to rows do
+                              for y = 0 to cols do
+                                let cur_struct_ptr = A.Arr2DIndexLiteral("Grid",A.Literal(x),A.Literal(y)) in (*grid[0][0]*)
+                                expr builder (A.Assign(A.Dotop(cur_struct_ptr,"next"), A.Null("listNode")))
+                              done
+                              done);grid_val
+
+    | A.GridAssign (e1, e2, s) ->
+                            
+                            let struct_llvalue = expr builder (A.Id(s)) in 
+                            let struct_type = L.type_of struct_llvalue in
+                            let struct_name = Hashtbl.find struct_names struct_type in
+                            let rule_func_name = struct_name ^ "rule" in
+                            let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
+                            let _ = Hashtbl.add vars_local "rule" rule_val in 
+                            let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
+                            ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
+                            let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
+                            let then_body = A.Expr (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s);])) in
+                            let else_body = A.Block[] in
+                            let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
+                            ignore(internal_if_flag:=1);
+                            new_global_builder := current_builder; struct_llvalue
+
+    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
+    
     | A.Dotop(e1, field) -> let e' = expr builder e1 in
       (match e1 with
         A.Id s -> let etype = fst( 
@@ -247,10 +317,12 @@ let translate (globals, functions, structs) =
         | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
+        (*Check type of v and then use that to call that "type name" ^ "rule"*)
         | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
+        
         |A.Dotop (e1, field) -> let e' = expr builder e1 in
           (match e1 with
             A.Id s -> let e1typ = fst(
@@ -309,6 +381,12 @@ let translate (globals, functions, structs) =
                                                 ignore(L.build_store value addr builder); value
     | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
+                                                (*All of the below assumes struct type*)
+                                                let loc = expr builder (A.Dotop(v, "location")) in (*Need to do something with this*)
+                                                let type_of_value = L.type_of value in
+                                                let struct_name = Hashtbl.find struct_names type_of_value in
+                                                let rule_func_name = struct_name ^ "rule" in
+                                                let _ = expr builder (A.Call(rule_func_name, [])) in
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
     | A.Binop (e1, op, e2) ->
@@ -391,42 +469,51 @@ let translate (globals, functions, structs) =
             "printf" builder
       )
 
-    | A.Call ("input", []) ->
-        L.build_call input_func [||] "input" builder
+    | A.Call ("prompt", []) ->
+        L.build_call prompt_func [||] "prompt" builder
+    
+    | A.Call ("print_endline", []) ->
+        L.build_call print_endline_func [||] "print_endline" builder
+    
+    | A.Call ("print_sameline", [e]) ->
+        L.build_call print_sameline_func [| expr builder e |] "print_sameline" builder
+    
+    | A.Call ("diceThrow", []) ->
+        L.build_call diceThrow_num_gen_func [||] "diceThrow" builder
     
     | A.Call (f, act) ->
-      let (fdef, fdecl_called) = StringMap.find f function_decls in
-      let map_arguments actual =
-        match actual with
-        A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals with
-          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
-          in
-          (match etype with
-            A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
-            | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
-            | A.StructType s -> llvalue_expr_getter builder (actual)
-            | _ -> expr builder actual)
-        | _ -> expr builder actual
-        in 
-      let actuals = List.rev (List.map map_arguments (List.rev act)) in
-      let result = (match fdecl_called.A.typ with A.Void -> ""
-                                          | _ -> f ^ "_result") 
-      in L.build_call fdef (Array.of_list actuals) result builder
-    in
-
-    (* Invoke "f builder" if the current block doesn't already
-       have a terminal (e.g., a branch). *)
-    let add_terminal builder f =
-      match L.block_terminator (L.insertion_block builder) with
-      Some _ -> ()
-      | None -> ignore (f builder) in
+        let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
+        let map_arguments actual =
+          match actual with
+          A.Id s -> let etype = fst( 
+            try List.find (fun t->snd(t)=s) fdecl.A.locals with
+            |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+            |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+            in
+            (match etype with
+              A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
+              | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
+              | A.StructType s -> llvalue_expr_getter builder (actual)
+              | _ -> expr builder actual)
+          | _ -> expr builder actual
+          in 
+        let actuals = List.rev (List.map map_arguments (List.rev act)) in
+        let result = (match fdecl_called.A.typ with A.Void -> ""
+                                            | _ -> f ^ "_result") 
+        in L.build_call fdef (Array.of_list actuals) result builder
+    | _ -> raise(Failure("Expr builder failed"))
   
     (* Build the code for the given statement; return the builder for
        the statement's successor *)
-    let rec stmt builder = function
-    A.Block sl -> List.fold_left stmt builder sl
+    and stmt builder arg_to_match =
+    let builder =
+    if !internal_if_flag = 1 then
+      !new_global_builder
+    else builder
+    in
+    ignore(internal_if_flag := 0);
+    match arg_to_match with
+      A.Block sl -> List.fold_left stmt builder sl
     | A.Expr e -> ignore (expr builder e); builder
     | A.If (predicate, then_stmt, else_stmt) ->
       let bool_val = expr builder predicate in
@@ -434,33 +521,39 @@ let translate (globals, functions, structs) =
       let then_bb = L.append_block context "then" the_function in
       add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
       (L.build_br merge_bb);
+       let else_bb = L.append_block context "else" the_function in
+       add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+       (L.build_br merge_bb);
+       ignore (L.build_cond_br bool_val then_bb else_bb builder);       
+       L.builder_at_end context merge_bb
 
-   let else_bb = L.append_block context "else" the_function in
-   add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
-   (L.build_br merge_bb);
-   ignore (L.build_cond_br bool_val then_bb else_bb builder);
-   
-   L.builder_at_end context merge_bb
-      | A.While (predicate, body) ->
-        let pred_bb = L.append_block context "while" the_function in
-        ignore (L.build_br pred_bb builder);
-        let body_bb = L.append_block context "while_body" the_function in
-        add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
-        let pred_builder = L.builder_at_end context pred_bb in
-        let bool_val = expr pred_builder predicate in
-        let merge_bb = L.append_block context "merge" the_function in
-        ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
-        L.builder_at_end context merge_bb
-      | A.For (e1, e2, e3, body) -> stmt builder
-        ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
-      | A.Return e -> ignore (match fdecl.A.typ with
-                                A.Void -> L.build_ret_void builder
-                                | _ -> L.build_ret (expr builder e) builder
-                             ); builder
+    | A.While (predicate, body) ->
+      let pred_bb = L.append_block context "while" the_function in
+      ignore (L.build_br pred_bb builder);
+      let body_bb = L.append_block context "while_body" the_function in
+      add_terminal (stmt (L.builder_at_end context body_bb) body) (L.build_br pred_bb);
+      let pred_builder = L.builder_at_end context pred_bb in
+      let bool_val = expr pred_builder predicate in
+      let merge_bb = L.append_block context "merge" the_function in
+      ignore (L.build_cond_br bool_val body_bb merge_bb pred_builder);
+      L.builder_at_end context merge_bb
+    | A.For (e1, e2, e3, body) -> stmt builder
+      ( A.Block [A.Expr e1 ; A.While (e2, A.Block [body ; A.Expr e3]) ] )
+    | A.Return e -> if (fdecl.A.fname = "gameloop") then (*Assign value of checkGameEnd to "repeat"*)
+                    ignore(expr builder (A.Assign(A.Id("repeat"),A.Call ("checkGameEnd", []))))
+                    else
+                    ignore (match fdecl.A.typ with
+                      A.Void -> L.build_ret_void builder
+                      | _ -> L.build_ret (expr builder e) builder); builder
     in
 
+
     (* Build the code for each statement in the function *)
-    let builder = stmt builder (A.Block fdecl.A.body) in
+    let builder = if (fdecl.A.fname = "gameloop") then
+                  let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
+                  stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block fdecl.A.body))
+                  else stmt builder (A.Block fdecl.A.body) 
+                in
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.typ with
@@ -468,5 +561,26 @@ let translate (globals, functions, structs) =
                             | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
-List.iter build_function_body functions;
+
+(*Build the function bodies for struct functions*)
+let the_struct_function_list =
+  let get_struct_func_decls sdecl =
+    let fdecl = sdecl.A.sfunc in
+      let (the_function, _) = StringMap.find (sdecl.A.sname ^ fdecl.A.fname) struct_function_decls
+    in the_function
+  in List.map get_struct_func_decls structs
+in
+List.iter2 build_function_body the_struct_function_list (List.map (fun (sdecl) -> sdecl.A.sfunc) structs);
+(*Build the function bodies*)
+let the_function_list = 
+  let get_func_decls fdecl =
+    let (the_function, _) = 
+      try StringMap.find fdecl.A.fname function_decls with Not_found -> StringMap.find "main" function_decls
+    in the_function
+  in
+  List.map get_func_decls functions
+in
+List.iter2 build_function_body the_function_list functions;
+
+ 
 the_module

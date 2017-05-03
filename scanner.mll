@@ -20,9 +20,11 @@ rule token = parse
 | '='      { ASSIGN }
 | '&'      { REF }
 | '.'      { DOT }
+| '<'      { LT }
+| "<--"    { INARROW }
+| "-->"    { OUTARROW }
 | "=="     { EQ }
 | "!="     { NEQ }
-| '<'      { LT }
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
@@ -37,10 +39,13 @@ rule token = parse
 | "int"    { INT }
 | "string" { STRING }
 | "bool"   { BOOL }
-| "coordinate" {COORDINATE}
+| "None"   { NULL }
+| "coordinate" { COORDINATE }
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "Grid_Init"   { GRIDINIT }
+| "Grid"   { GRID }
 | "Player" { PLAYER }
 | "Item"   { PLAYER } (*Hacky. Since both Player and Item are just structs, we can avoid code duplication by having PLAYER as token for both*)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }

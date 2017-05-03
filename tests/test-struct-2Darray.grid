@@ -18,3 +18,8 @@ print(parray[0][0].y);
 print(parray[0][0].s);
 return 0; 
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

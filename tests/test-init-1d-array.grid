@@ -4,3 +4,8 @@ int gameloop(){
     print("Success.1d array intialized.");
     return 0;
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

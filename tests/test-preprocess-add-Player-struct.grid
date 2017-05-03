@@ -9,3 +9,8 @@ print(p2.displayString);
 return 0; 
 
 }
+
+int checkGameEnd()
+{
+  return 1;
+}

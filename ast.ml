@@ -28,6 +28,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
+  | Null of string
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
   | Arr2DIndexLiteral of string * expr * expr
@@ -37,7 +38,10 @@ type expr =
   | Binop of expr * op * expr
   | Dotop of expr * string
   | Unop of uop * expr
+  | GridAssign of expr * expr * string
+  | DeletePlayer of expr * expr * string
   | Assign of expr * expr
+  | GridCreate of int * int
   | Array1DAccess of string * expr * expr (* assigning some value to an array *)
   | Array2DAccess of string * expr * expr * expr (* assigning some value to a 2D array *)
   | String_Lit of string
@@ -67,6 +71,7 @@ type func_decl = {
 type struct_decl = {   (* for adding player datatype *)
     sname: string;
     sformals: bind list;
+    sfunc: func_decl;
 }
 
 type program = bind list * func_decl list * struct_decl list

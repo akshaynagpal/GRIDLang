@@ -20,6 +20,8 @@ CC="cc"
 GRID_NATIVE="./grid.native"
 #GRID_NATIVE="_build/grid.native"
 
+DEFAULT_PATH="."
+
 # Set time limit for all operations
 ulimit -t 30
 
@@ -91,7 +93,7 @@ Check() {
 
     generatedfiles=""
 
-    Run "$GRID_NATIVE" "<" $1 ">" "${basename}.ll" &&
+    Run "$GRID_NATIVE " "-c " "${DEFAULT_PATH}/${1}" " > " "${DEFAULT_PATH}/${basename}.ll" &&
     Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
     Run "$CC" "-o" "${basename}.exe" "${basename}.s" "bindings.o" &&
     Run "./${basename}.exe" ">" "${basename}.out" &&
@@ -126,7 +128,7 @@ CheckFail() {
 
     generatedfiles=""
 
-    RunFail "$GRID_NATIVE" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
+    RunFail "$GRID_NATIVE " "-c " $1 "2>" "${basename}.err" ">>" $globallog &&
     Compare ${basename}.err ${reffile}.err ${basename}.diff &&
     generatedfiles="$generatedfiles ${basename}.err ${basename}.diff ${basename}.s ${basename}.exe"
 
