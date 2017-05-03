@@ -2,7 +2,7 @@ Item King
 {
   int rule(coordinate source, coordinate destination)
   {
-
+  	
   }
 }
 
@@ -10,7 +10,22 @@ Item Knight
 {
    int rule(coordinate source, coordinate destination)
   {
-  
+    Item dest;
+    Item src;
+    if(destination.y == source.y - 1 && destination.x == source.x + 3 || destination.x == source.x - 1 && destination.y == source.y + 3) /* check if pawn moves diagonally left 1 or right 1 */
+    {
+      src = Grid<source>.item;
+      dest = Grid<destination>.item;
+      dest_color = dest.getProperty("color");      /*Gets the actual Player/Item that is filled in*/
+      src_color = src.getProperty("color");
+      if(dest_color == src_color)
+      {
+        return 0;
+      }
+      return 1;
+    }
+    return 0;
+
   } 
 }
 
@@ -35,18 +50,21 @@ Item Pawn
   int rule(coordinate source, coordinate destination)
   {
     int direction;
-    Item i;
-    string owner;
+    Item dest;
+    Item src;
     direction = getDirectionFromIndex();
-    if(destination.y != source.y + direction) 
+    if(destination.x != source.x + direction)  /* check if pawn moves >1 step vertically*/ 
     {
       return 0;
     }
-    else if(destination.x == source.x - 1 || destination.x == source.x + 1)
+    
+    if(destination.y == source.y - 1 || destination.y == source.y + 1) /* check if pawn moves diagonally left 1 or right 1 */
     {
-      i = Grid<destination>.item;
-      item_color = i.owner; /*Gets the actual Player/Item that is filled in*/
-      if(item_color == )
+      src = Grid<source>.item;
+      dest = Grid<destination>.item;
+      dest_color = dest.getProperty("color");      /*Gets the actual Player/Item that is filled in*/
+      src_color = src.getProperty("color");
+      if(dest_color == src_color)
       {
         return 0;
       }
@@ -63,7 +81,6 @@ Player player
   Item Rook rook;
   Item Bishop bishop;
   Item Pawn pawn;
-
 }
 
 int getDirectionFromIndex()
@@ -111,12 +128,13 @@ int checkGameEnd()
 
 int gameloop()
 {
-  printGrid();
+  printGrid(); /* shouldn't it be printGrid(4,5,Grid)? */
   coordinate c1;
   coordinate c2;
   print(currentPlayer.displayString);
   c1 = prompt("Enter start coordinate: ");
   Item i = Grid<c1>.item;
+  /* check if there's any item at c1? Do we need to? */
   c2 = prompt("Enter end coordinate: ");
   Grid<c2> = i; /*Triggers the rule for i, adds the item i to cell c2, and also triggers any coLocations() if rule succeeds*/
 }
