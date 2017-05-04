@@ -67,13 +67,14 @@ let process_files filename1 =
 		  				read_recursive ( (line ^ "\n") :: lines);
 		  			end
 		  		
-		  		else if (!doBraceCount && contains line "{") then
+		  		else if ((!doBraceCount = true) && (contains line "{")) then
 		  			begin
 		  				braceCounter := !braceCounter + 1;
 		  				read_recursive ( (line ^ "\n") :: lines);
 		  			end
 		  		else if (contains line "return" && !doBraceCount && !braceCounter = 1) then
 		  			begin
+		  				doBraceCount := false;
 		  				read_recursive ( ( "gameloop();\n" ^ line ^ "\n" ) :: lines);
 		  			end
 		  		else if (!doBraceCount && contains line "}") then

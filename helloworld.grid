@@ -1,40 +1,17 @@
-import gridBasics.grid;
+import gridBasics.grid;	
 
-Player good { 
-	int x; 
-	int y; 
-	string s; 
-	*Player good next;
-} 
-
-
-Item horse {
-	int x;
-	string s;
-	*Item horse next;
-	int rule(coordinate c1, coordinate c2) {
-		return 1;
-	}
+int checkGameEnd()
+{
+	return 1;
 }
 
-Player grid {
-	Player listNode node_head;
-}
-
-int initialSetup() {
-	print("hi");
+int initialSetup(){ 
 	return 0;
-}
-
-int checkGameEnd() {
-  return 1;
 }
 
 int gameloop(){ 
 	int x;
-	int y;
-	Player good p1; 
-	printGrid("hello");
-	return 0; 
+	x = 1;
+	print(x);
+	return 0;
 }
-

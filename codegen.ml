@@ -92,7 +92,7 @@ let translate (globals, functions, structs) =
   let diceThrow_num_gen_t = L.function_type i32_t [||] in
   let diceThrow_num_gen_func = L.declare_function "diceThrow" diceThrow_num_gen_t the_module in
 
-  let main_func_map = StringMap.add "initialSetup" "main" StringMap.empty in
+  let main_func_map = StringMap.add "gameloop" "main" StringMap.empty in
 
   (* Define each struct function (arguments and return type) so we can call it *)
   let struct_function_decls =
