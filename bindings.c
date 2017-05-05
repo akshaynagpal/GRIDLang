@@ -25,3 +25,7 @@ int diceThrow()
    srand((unsigned) time(&t));
    return((rand() % 6)+1);
 }
+
+int absl(int x){
+	return abs(x);
+}
