@@ -26,13 +26,13 @@ let third (_,_,c) = c;;
 %right ASSIGN
 %right INARROW
 %right OUTARROW
+%right NOT NEG DEREF REF
 %left OR
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
-%right NOT NEG DEREF REF
 %left DOT
 
 %start program
@@ -73,14 +73,14 @@ typ:
   | array1d_type { $1 }   /* int[4] */
   | array2d_type { $1 }   /* int[4][3] */
   | PLAYER ID { StructType ($2) } 
-  | TIMES %prec POINTER typ { PointerType ($2) }  
+  | typ %prec POINTER TIMES { PointerType ($1) }  
   | COORDINATE { CoordinateType }
 
 array1d_type:
     typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
 
 array2d_type:
-    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) } /* int[4][3] */
+    typ LARRAY LITERAL COMMA LITERAL RARRAY { Array2DType($1,$3,$5) } /* int[4][3] */
 
 arr_literal:
   expr   {[$1]}
@@ -131,10 +131,10 @@ expr:
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
   | LT expr COMMA expr GT   { Coordinate_Lit($2,$4)}
-  | ID LARRAY expr RARRAY LARRAY expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$6,$9)}  /* x(3,4) = something */
+  | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
-  | ID LARRAY expr RARRAY LARRAY expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$6) } /* x(3,4) */
-  | ID LARRAY expr RARRAY %prec NOLARRAY{ArrIndexLiteral($1,$3)} /* x[4] */
+  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */
+  | ID LARRAY expr RARRAY %prec NOASSIGN{ArrIndexLiteral($1,$3)} /* x[4] */
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }
