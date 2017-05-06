@@ -18,6 +18,7 @@ let third (_,_,c) = c;;
 %token <string> STRING_LIT
 %token EOF
 
+%nonassoc NOASSIGN
 %nonassoc NOELSE
 %nonassoc ELSE
 %nonassoc NOLARRAY
@@ -132,7 +133,7 @@ expr:
   | LT expr COMMA expr GT   { Coordinate_Lit($2,$4)}
   | ID LARRAY expr RARRAY LARRAY expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$6,$9)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
-  | ID LARRAY expr RARRAY LARRAY expr RARRAY { Arr2DIndexLiteral($1,$3,$6) } /* x(3,4) */
+  | ID LARRAY expr RARRAY LARRAY expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$6) } /* x(3,4) */
   | ID LARRAY expr RARRAY %prec NOLARRAY{ArrIndexLiteral($1,$3)} /* x[4] */
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
