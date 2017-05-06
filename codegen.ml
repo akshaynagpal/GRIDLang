@@ -320,7 +320,7 @@ let translate (globals, functions, structs) =
                             ignore(internal_if_flag:=1);
                             new_global_builder := current_builder; struct_llvalue
 
-    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
+    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [e1; e2; A.String_Lit("p3")]));
     
     | A.Dotop(e1, field) -> 
     let e' = expr builder e1 in

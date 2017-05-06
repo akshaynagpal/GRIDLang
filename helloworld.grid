@@ -24,22 +24,23 @@ Item horse{
 	}
 }
 
-Player grid{
-	Player listNode node_head;
-}
-
-Player something{
-  *Player good good_node;  
-}
-
 Grid_Init<2,2> grid; 
 
 int gameloop(){ 
-	Player good p1;
-  Player listNode somenode; 
-  Player something abc;
+  Player good p1;
+  Player good p2;
+  Player good p3;
+  p1.x = 99;
+  p1.s = "P1";
+  p2.x = 999;
+  p2.s = "P2";
+  p3.x = 999;
+  p3.s = "P3";
+
   Grid <0,0> <-- p1;
-  Grid <0,0> <-- p1;
+  Grid <0,0> <-- p2;
+  Grid <0,0> <-- p3;
+  Grid <0,0> --> p3;
 	return 0; 
 
 

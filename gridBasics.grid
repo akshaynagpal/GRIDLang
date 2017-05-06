@@ -1,13 +1,52 @@
 void addToGrid(int x, int y, Player listNode p_n){
-		*Player listNode iterator;
-		if (GridNew[x][y] == None)
-		{
-			print("Hi");
-			GridNew[x][y] = &p_n;
-			/*Not working*/
-/*			GridNew[x][y].next = None;*/
-			return;
-		}
 
+	*Player listNode iterator;
+    *Player good printer;
+    Player listNode p_deref;
+    Player good get_gnode;
+    
+    if(GridNew[x][y] == None){
+		GridNew[x][y] = &p_n;
+		iterator = GridNew[x][y];	
+		iterator.next = None;
+		return;
+	}
+	else{
+	iterator = GridNew[x][y];
+    while(iterator.next != None){
+		iterator = iterator.next;
+		if(iterator == &p_n){
+			print("Player already on grid coordinate");
+			return;
+	}
+	
+	}
+	iterator.next = &p_n;
+	iterator = iterator.next;
+    printer = iterator.good_node;
+	print(printer.s);
+	iterator.next = None;
+
+	}
+	
 }
 
+void deleteFromGrid(int x, int y, string tag){
+/*	
+	*Player listNode iterator;
+	iterator = GridNew[x][y];
+
+	while(iterator.next != None && iterator.next != &p_n){
+		iterator = iterator.next;
+	}
+
+	if(iterator.next == None){
+		print("Not found on given coordinate");
+		return;
+	}
+
+	iterator.next = p_n.next;
+	p_n.next = None;
+
+*/
+}
