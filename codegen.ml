@@ -154,11 +154,14 @@ let translate (globals, functions, structs) =
     let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
         List.map add_local fdecl.A.locals 
     in
+    let my_local_var = L.build_alloca i32_t "currentPlayerIndex" builder in
+    let _ = Hashtbl.add vars_local "currentPlayerIndex" my_local_var in
     let local = L.build_alloca i32_t "repeat" builder in
     let _ = Hashtbl.add vars_local "repeat" local in 
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = Hashtbl.find vars_local n in
+    let lookup n = try Hashtbl.find vars_local n 
+    with Not_found -> raise(Failure("failed becasue of ..."^n)) in
 
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
@@ -550,10 +553,13 @@ let translate (globals, functions, structs) =
 
     (* Build the code for each statement in the function *)
     let builder = if (fdecl.A.fname = "gameloop") then
-                  let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
-                  stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block fdecl.A.body))
-                  else stmt builder (A.Block fdecl.A.body) 
-                in
+      let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
+      (* let bodyIndex =  fdecl.A.body @ [ A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) ) ] in *)
+      let _ = ignore (expr builder ( A.Assign(A.Id("currentPlayerIndex"), A.Literal(0)))) in
+      let bodyWithIndex =  fdecl.A.body @ [ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) )) ] in
+      stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block bodyWithIndex))
+      else stmt builder (A.Block fdecl.A.body) 
+    in
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.typ with

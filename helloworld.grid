@@ -15,7 +15,11 @@ int initialSetup(){
 
 int gameloop(){ 
 	int x;
+	int[4] y;
+	int z;
 	x = 1;
-	print(x);
+	y = [1,2,3,4];
+    z = y[currentPlayerIndex];
+	print(z);
 	return 0;
 }
