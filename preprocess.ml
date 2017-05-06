@@ -19,10 +19,13 @@ let process_files filename1 =
 	    with Not_found -> false
 	in
 	
+	let ruleFunc = "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n"
+	in
+
 	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
 	in
 
-	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ "}\n"
+	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ ruleFunc ^ "}\n"
 	in
 
 	let read_all_lines file_name =
@@ -54,19 +57,25 @@ let process_files filename1 =
 			  							end
 			  					end
 			  			end
+			  			(* if ( (contains line "{") && (contains line ";" = false) && (contains line ")" = false) ) then
+			  				begin
+			  				
+			  				end *)
 			  		in
+
+
 		  		if (contains line "import") then 
 		  			begin
 		  				tempImportFile := "gridBasics.grid";
 		  				read_recursive ("" :: lines);
 		  			end
+		  		(* adding gameloop to initialSetup, start *)
 		  		else if (contains line "initialSetup()") then
 		  			begin
 		  				doBraceCount := true;
 		  				braceCounter := if (contains line "{") then	(!braceCounter) + 1 else !braceCounter;
 		  				read_recursive ( (line ^ "\n") :: lines);
 		  			end
-		  		
 		  		else if ((!doBraceCount = true) && (contains line "{")) then
 		  			begin
 		  				braceCounter := !braceCounter + 1;
@@ -82,6 +91,35 @@ let process_files filename1 =
 		  				braceCounter := !braceCounter - 1;
 		  				read_recursive ( (line ^ "\n") :: lines);
 		  			end
+		  		(* adding gameloop to initialSetup, end *)
+
+		  		(* adding rule to player struct, start *)
+		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "rule") ) then 
+		  			begin
+		  				ruleInPlayerFound := true;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "}") ) then 
+		  			begin
+		  				playerStructBraceCounter := !playerStructBraceCounter - 1;
+		  				if(!playerStructBraceCounter = 0) then 
+		  					begin
+		  						insidePlayerStruct := false;
+		  						if (!ruleInPlayerFound = false) then
+		  							begin
+		  								read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+		  							end
+		  						else
+		  							begin
+		  								read_recursive ( (line ^ "\n") :: lines);
+		  							end
+		  					end
+		  				else
+		  					begin
+		  						read_recursive ( (line ^ "\n") :: lines);
+		  					end
+		  			end
+		  		(* adding rule to player struct, end *)
 		  		else if (!playerStuctFound = true && !braceNotFound = true && !insidePlayerStruct = true && (contains line "{") ) then
 		  			begin
 		  				braceNotFound := false;
@@ -131,7 +169,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "string type;\n*Player listNode next;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+		let temp = !listNode ^ "string type;\n*Player listNode next;\n" ^ ruleFunc ^ "}\n" ^ concat (read_all_lines filename1) in
 			if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then

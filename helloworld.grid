@@ -1,5 +1,3 @@
-import gridBasics.grid;	
-
 int checkGameEnd()
 {
 	return 1;
