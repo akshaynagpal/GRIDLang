@@ -35,10 +35,11 @@ Player something{
 Grid_Init<2,2> grid; 
 
 int gameloop(){ 
-	Player good p1; 
+	Player good p1;
+  Player listNode somenode; 
   Player something abc;
-  GridNew[0][0].next = None;
-
+  Grid <0,0> <-- p1;
+  Grid <0,0> <-- p1;
 	return 0; 
 
 

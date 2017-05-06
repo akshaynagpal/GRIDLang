@@ -48,8 +48,8 @@ let translate (globals, functions, structs) =
   let vars_global:(string, L.llvalue) Hashtbl.t = Hashtbl.create 1000 in
 
   let createThisGrid rows cols =
-    let str_typ = ltype_of_typ (A.StructType("listNode")) in
-    let cell_init = L.const_null str_typ in
+    let str_typ = ltype_of_typ (A.PointerType(A.StructType("listNode"))) in
+    let cell_init = L.const_pointer_null str_typ in
     let each_col_init = L.const_array str_typ (Array.of_list [cell_init;cell_init]) in
     let ty_each_col = array_t str_typ 2 in
     let init = L.const_array ty_each_col (Array.of_list [each_col_init;each_col_init]) in
@@ -307,22 +307,23 @@ let translate (globals, functions, structs) =
                             let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,A.Id(s)))) in
                             (*Next thing is to assign the tagtype "good"*)
                             let dotoperator = A.Dotop(A.Id("newNode"), "tagtype") in 
-                            expr builder (A.Assign(dotoperator, A.String_Lit(var_name)))
-(*                             let rule_func_name = struct_name ^ "rule" in
+                            let _ = expr builder (A.Assign(dotoperator, A.String_Lit(var_name))) in
+                            let rule_func_name = struct_name ^ "rule" in
                             let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
                             let _ = Hashtbl.add vars_local "rule" rule_val in 
                             let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
                             ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
                             let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
-                            let then_body = A.Expr (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s);])) in
+                            let then_body =  A.Expr (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));])) in
                             let else_body = A.Block[] in
                             let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
                             ignore(internal_if_flag:=1);
-                            new_global_builder := current_builder; struct_llvalue*)
+                            new_global_builder := current_builder; struct_llvalue
 
     | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
     
-    | A.Dotop(e1, field) -> let e' = expr builder e1 in
+    | A.Dotop(e1, field) -> 
+    let e' = expr builder e1 in
       (match e1 with
         A.Id s -> let etype = fst( 
           try List.find (fun t->snd(t)=s) fdecl.A.locals with
@@ -349,7 +350,8 @@ let translate (globals, functions, structs) =
             | _ -> raise (Failure("No structype."))
             with Not_found -> raise (Failure("unable to find" ^ s)) 
           )
-        | _ as e1_expr ->  let e1'_llvalue = llvalue_expr_getter builder e1_expr in
+        | _ as e1_expr -> let _ = raise (Failure("inside dotop with "^field)) in  
+        let e1'_llvalue = llvalue_expr_getter builder e1_expr in
         let loaded_e1' = expr builder e1_expr in
         let e1'_lltype = L.type_of loaded_e1' in
         let e1'_struct_name_string_option = L.struct_name e1'_lltype in
@@ -370,24 +372,27 @@ let translate (globals, functions, structs) =
         | A.Ref -> let e_llvalue = (llvalue_expr_getter builder e) in
           e_llvalue
       )
-    | A.Assign (lhs, e2) -> let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
+    | A.Assign (lhs, e2) -> 
+    let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
       (match lhs with
         | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         (*Check type of v and then use that to call that "type name" ^ "rule"*)
-        | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
+        | A.Array2DAccess(array_name, i,j,v) -> 
+                                                let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
         
-        |A.Dotop (e1, field) -> let e' = expr builder e1 in
+        |A.Dotop (e1, field) ->  
+        let e' = expr builder e1 in
           (match e1 with
             A.Id s ->
               let e1typ =  
               (match s with
               "newNode" ->  A.StructType ("listNode")
-              | _ -> 
+            | _ -> 
               fst(
                 try List.find (fun t -> snd(t) = s) fdecl.A.locals
                 with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
@@ -437,19 +442,13 @@ let translate (globals, functions, structs) =
               e2' 
             |_ -> raise (Failure("nooo"))
           )
-          |_ -> raise (Failure("can't match in assign"))
+        |_ -> raise (Failure("can't match in assign"))
       )
     | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
     | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
-                                                (*All of the below assumes struct type*)
-                                                let loc = expr builder (A.Dotop(v, "location")) in (*Need to do something with this*)
-                                                let type_of_value = L.type_of value in
-                                                let struct_name = Hashtbl.find struct_names type_of_value in
-                                                let rule_func_name = struct_name ^ "rule" in
-                                                let _ = expr builder (A.Call(rule_func_name, [])) in
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
     | A.Binop (e1, op, e2) ->
@@ -548,16 +547,21 @@ let translate (globals, functions, structs) =
         let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
         let map_arguments actual =
           match actual with
-          A.Id s -> let etype = fst( 
-            try List.find (fun t->snd(t)=s) fdecl.A.locals with
-            |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-            |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
-            in
-            (match etype with
-              A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
-              | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
-              | A.StructType s -> llvalue_expr_getter builder (actual)
-              | _ -> expr builder actual)
+          A.Id s ->  
+            (match s with
+              "newNode" -> expr builder actual
+              |_ -> 
+                let etype = 
+                  fst( 
+                  try List.find (fun t->snd(t)=s) fdecl.A.locals with
+                  |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
+                  |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+                  in
+                  (match etype with
+                    A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
+                    | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
+                    | A.StructType s -> llvalue_expr_getter builder (actual)
+                    | _ -> expr builder actual))
           | _ -> expr builder actual
           in 
         let actuals = List.rev (List.map map_arguments (List.rev act)) in
