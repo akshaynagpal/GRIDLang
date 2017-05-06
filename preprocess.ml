@@ -6,8 +6,12 @@ let playerStuctFound = ref false
 let braceNotFound = ref false
 let doBraceCount = ref false
 let braceCounter = ref 0
+let itemBraceCounter = ref 0
 let ruleInPlayerFound = ref false
 let insidePlayerStruct = ref false
+let ruleInItemFound = ref false
+let insideItemStruct = ref false
+let exitingItemStruct = ref false
 let playerStructBraceCounter = ref 0
 let listNode = ref "Player listNode\n{\n"
 
@@ -38,6 +42,7 @@ let process_files filename1 =
 			  			begin
 			  				if (contains line ";" = false && (contains line ")" = false)) then
 			  					begin
+			  						insideItemStruct := true;
 			  						if (contains line "{") then
 			  							begin
 			  								let lis = Str.split (Str.regexp "{") line in
@@ -57,18 +62,30 @@ let process_files filename1 =
 			  							end
 			  					end
 			  			end
-			  			(* if ( (contains line "{") && (contains line ";" = false) && (contains line ")" = false) ) then
-			  				begin
-			  				
-			  				end *)
 			  		in
-
-
 		  		if (contains line "import") then 
 		  			begin
 		  				tempImportFile := "gridBasics.grid";
 		  				read_recursive ("" :: lines);
 		  			end
+		  		(* adding rule to item struct, start *)
+		  		else if (!insideItemStruct = true && (contains line "{")) then
+		  			begin
+		  				itemBraceCounter := !itemBraceCounter + 1;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		else if (!insideItemStruct = true && (contains line "}")) then
+		  			begin
+		  				itemBraceCounter := !itemBraceCounter - 1;
+		  				if(!itemBraceCounter = 0) then 
+		  					begin
+		  						insideItemStruct := false;
+		  						read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+		  					end
+		  				else
+		  					read_recursive ( (line ^ "\n") :: lines);
+		  			end
+		  		(* adding rule to item struct, end *)
 		  		(* adding gameloop to initialSetup, start *)
 		  		else if (contains line "initialSetup()") then
 		  			begin
@@ -92,7 +109,6 @@ let process_files filename1 =
 		  				read_recursive ( (line ^ "\n") :: lines);
 		  			end
 		  		(* adding gameloop to initialSetup, end *)
-
 		  		(* adding rule to player struct, start *)
 		  		else if (!playerStuctFound = true && !insidePlayerStruct = true && (contains line "rule") ) then 
 		  			begin

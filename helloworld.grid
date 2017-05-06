@@ -1,3 +1,9 @@
+Item horse {
+	int x;
+	string s;
+	*Item horse next;
+}
+
 int checkGameEnd()
 {
 	return 1;
