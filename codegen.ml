@@ -41,7 +41,30 @@ let translate (globals, functions, structs) =
     | A.PointerType t -> L.pointer_type (ltype_of_typ t) 
     | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 
     | A.CoordinateType -> array_t i32_t 2 (*Declare struct of type coordinate_t here*)
+    | A.GridType (rows, cols) -> ltype_of_typ (A.Array2DType ((A.StructType("listNode")), rows, cols))
   in
+
+
+  let vars_global:(string, L.llvalue) Hashtbl.t = Hashtbl.create 1000 in
+
+  let createThisGrid rows cols =
+    let str_typ = ltype_of_typ (A.StructType("listNode")) in
+    let cell_init = L.const_null str_typ in
+    let each_col_init = L.const_array str_typ (Array.of_list [cell_init;cell_init]) in
+    let ty_each_col = array_t str_typ 2 in
+    let init = L.const_array ty_each_col (Array.of_list [each_col_init;each_col_init]) in
+    let grid_val = L.define_global "GridNew" init the_module in 
+    let _ = Hashtbl.add vars_global "GridNew" grid_val in
+    grid_val 
+  in
+  let global_var_func (t, n) =
+      (match t with 
+        A.GridType (rows, cols) -> createThisGrid rows cols
+        | _ -> raise (Failure ("Couldn't find global")))
+  in
+  List.map global_var_func globals;
+
+
   let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
     let type_list = List.map (fun(t, _) -> ltype_of_typ t) sdecl.A.sformals in (*construct list of all datatypes of formals in struct*)
@@ -158,7 +181,9 @@ let translate (globals, functions, structs) =
     let _ = Hashtbl.add vars_local "repeat" local in 
 
     (* Return the value for a variable or formal argument *)
-    let lookup n = Hashtbl.find vars_local n in
+    let lookup n = try Hashtbl.find vars_local n
+                    with Not_found -> try Hashtbl.find vars_global n 
+                  with Not_found -> raise(Failure("Could not find in locals or globals")) in
 
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in

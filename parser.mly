@@ -74,6 +74,7 @@ typ:
   | PLAYER ID { StructType ($2) } 
   | TIMES %prec POINTER typ { PointerType ($2) }  
   | COORDINATE { CoordinateType }
+  | GRIDINIT LT LITERAL COMMA LITERAL GT { GridType ($3, $5) }
 
 array1d_type:
     typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
@@ -123,7 +124,6 @@ expr:
   | NULL             { Null("listNode") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
-  | GRIDINIT LT LITERAL COMMA LITERAL GT  { GridCreate($3,$5)}
   | GRID LT expr COMMA expr GT INARROW ID { GridAssign($3,$5,$8) }
   | GRID LT expr COMMA expr GT OUTARROW ID { DeletePlayer($3,$5,$8) }
   | expr ASSIGN expr { Assign($1,$3) }

@@ -8,6 +8,7 @@ type typ =
         | Array2DType of typ * int * int  (* int[m][n] *)
         | StructType of string 
         | PointerType of typ
+        | GridType of int * int
 
 type op = Add 
           | Sub 

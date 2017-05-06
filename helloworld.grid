@@ -32,12 +32,13 @@ Player something{
   *Player good good_node;  
 }
 
+Grid_Init<2,2> grid; 
+
 int gameloop(){ 
 	Player good p1; 
   Player something abc;
-	Grid_Init <8,8>; 
-/*  abc.good_node = &p1;*/
-	Grid<0,0> <-- p1;
+  GridNew[0][0].next = None;
+
 	return 0; 
 
 
