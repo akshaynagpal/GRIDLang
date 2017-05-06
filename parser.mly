@@ -48,6 +48,7 @@ decls:
  | decls fdecl { first $1, ($2 :: second $1), third $1 }
  | decls sdecl { first $1, second $1, ($2 :: third $1) }
 
+
 fdecl:
    typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
      { { typ = $1;
@@ -154,6 +155,7 @@ expr:
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
   | LARRAY arr_literal RARRAY {ArrayLiteral(List.rev $2)}       /* [1,2,3,4] */
+  | typ ID ASSIGN expr { DeclDefine($1,$2,$4) }  /* int x = 1; */
 
 actuals_opt:
     /* nothing */ { [] }

@@ -50,6 +50,7 @@ type expr =
   | ArrayLiteral of expr list   (* list inside array *)
   | Repeat                (* added repeat keyword in expr*)
   | Noexpr
+  | DeclDefine of typ * string * expr
   
   
 type stmt =

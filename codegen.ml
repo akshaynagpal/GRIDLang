@@ -410,6 +410,9 @@ let translate (globals, functions, structs) =
     | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
                                  and value = expr builder e2 in
                                  ignore(L.build_store value addr builder); value
+    | A.DeclDefine (t,n,e) -> let lv = L.build_alloca (ltype_of_typ t) n builder
+                              in let _ = Hashtbl.add vars_local n lv
+                              in expr builder (A.Assign((A.Id(n)),e))
     | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
     | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
     | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
