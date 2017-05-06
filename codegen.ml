@@ -47,20 +47,42 @@ let translate (globals, functions, structs) =
 
   let vars_global:(string, L.llvalue) Hashtbl.t = Hashtbl.create 1000 in
 
+  let rec create_rep_list this_list llvm_val count =
+    (match count with
+      0 -> this_list
+      |_ -> create_rep_list (llvm_val::this_list) llvm_val (count-1))
+    in
   let createThisGrid rows cols =
     let str_typ = ltype_of_typ (A.PointerType(A.StructType("listNode"))) in
     let cell_init = L.const_pointer_null str_typ in
-    let each_col_init = L.const_array str_typ (Array.of_list [cell_init;cell_init]) in
-    let ty_each_col = array_t str_typ 2 in
-    let init = L.const_array ty_each_col (Array.of_list [each_col_init;each_col_init]) in
+    let each_col_init = L.const_array str_typ (Array.of_list (create_rep_list [] cell_init cols)) in
+    let ty_each_col = array_t str_typ cols in
+    let init = L.const_array ty_each_col (Array.of_list (create_rep_list [] each_col_init rows)) in
     let grid_val = L.define_global "GridNew" init the_module in 
     let _ = Hashtbl.add vars_global "GridNew" grid_val in
     grid_val 
   in
+
+  let other_global_vars (t,n) =
+    let global_val = 
+    (match t with
+     A.Int -> L.define_global n (L.const_int (ltype_of_typ (A.Int)) 0) the_module
+    | A.Bool -> L.define_global n (L.const_int (ltype_of_typ (A.Bool)) 0) the_module
+    | A.String -> L.define_global n (L.const_string context "") the_module
+    | _ -> raise(Failure("Error declaring global")))
+    in Hashtbl.add vars_global n global_val;global_val 
+  in
+
   let global_var_func (t, n) =
-      (match t with 
-        A.GridType (rows, cols) -> createThisGrid rows cols
-        | _ -> raise (Failure ("Couldn't find global")))
+      match t with 
+        A.GridType (rows, cols) ->
+          (*Allocate int rows and int cols in global context*) 
+          let row_val = L.define_global "rows" (L.const_int (ltype_of_typ (A.Int)) rows) the_module in
+          let _ = Hashtbl.add vars_global "rows" row_val in
+          let col_val = L.define_global "cols" (L.const_int (ltype_of_typ (A.Int)) cols) the_module in 
+          let _ = Hashtbl.add vars_global "cols" col_val in
+          createThisGrid rows cols
+        | _ -> other_global_vars (t,n)
   in
   List.map global_var_func globals;
 
