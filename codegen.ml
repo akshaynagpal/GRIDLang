@@ -306,8 +306,8 @@ let translate (globals, functions, structs) =
                             let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
                             let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,A.Id(s)))) in
                             (*Next thing is to assign the tagtype "good"*)
-                            let dotoperator = A.Dotop(A.Id("newNode"), "tagtype") in 
-                            let _ = expr builder (A.Assign(dotoperator, A.String_Lit(var_name))) in
+                            let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
+                            let _ = expr builder (A.Assign(dotoperator, A.String_Lit(s))) in
                             let rule_func_name = struct_name ^ "rule" in
                             let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
                             let _ = Hashtbl.add vars_local "rule" rule_val in 
@@ -320,7 +320,7 @@ let translate (globals, functions, structs) =
                             ignore(internal_if_flag:=1);
                             new_global_builder := current_builder; struct_llvalue
 
-    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [e1; e2; A.String_Lit("p3")]));
+    | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [e1; e2; A.String_Lit(s)]));
     
     | A.Dotop(e1, field) -> 
     let e' = expr builder e1 in
