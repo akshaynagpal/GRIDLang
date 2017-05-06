@@ -246,11 +246,44 @@ let translate (globals, functions, structs) =
                               done);grid_val
 
     | A.GridAssign (e1, e2, s) ->
-                            
                             let struct_llvalue = expr builder (A.Id(s)) in 
                             let struct_type = L.type_of struct_llvalue in
                             let struct_name = Hashtbl.find struct_names struct_type in
-                            let rule_func_name = struct_name ^ "rule" in
+                            (*Create a list node*)
+                            let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
+                            let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in 
+                            let _ = Hashtbl.add vars_local "newNode" struct_val in
+                            (*Assign the field in newNode that corresponds to the type on the right side to 
+                            have the struct_llvalue*)
+                            let good_struct = 
+                              let get_good_struct sdecl= 
+                                sdecl.A.sname = "listNode"
+                              in
+                              List.filter get_good_struct structs
+                            in
+                            let actual_listnode_struct = List.hd good_struct in
+
+                            let name_type_pair_list = 
+                              let is_correct_name struct_pair = 
+                                let current_type = fst(struct_pair) in 
+                                match current_type with
+                                  | A.PointerType t -> 
+                                      (match t with
+                                        A.StructType s -> s = struct_name
+                                        | _ -> false)
+                                  | _ -> false          
+                              in 
+                            List.filter is_correct_name actual_listnode_struct.sformals in 
+                                                       
+                            let name_type_pair = List.hd name_type_pair_list in 
+                            let var_name = (snd(name_type_pair)) in
+
+                            let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
+                            let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,A.Id(s)))) in
+                            (*Next thing is to assign the tagtype "good"*)
+                            let dotoperator = A.Dotop(A.Id("newNode"), "tagtype") in 
+                            expr builder (A.Assign(dotoperator, A.String_Lit(var_name)))
+(*                             let rule_func_name = struct_name ^ "rule" in
                             let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
                             let _ = Hashtbl.add vars_local "rule" rule_val in 
                             let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
@@ -260,7 +293,7 @@ let translate (globals, functions, structs) =
                             let else_body = A.Block[] in
                             let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
                             ignore(internal_if_flag:=1);
-                            new_global_builder := current_builder; struct_llvalue
+                            new_global_builder := current_builder; struct_llvalue*)
 
     | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [A.Id("parray"); e1; e2; A.Id(s)]));
     
@@ -325,11 +358,16 @@ let translate (globals, functions, structs) =
         
         |A.Dotop (e1, field) -> let e' = expr builder e1 in
           (match e1 with
-            A.Id s -> let e1typ = fst(
-              try List.find (fun t -> snd(t) = s) fdecl.A.locals
-              with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
-              with Not_found ->raise(Failure("unable to find" ^ s ^ "in Sassign"))
-            )
+            A.Id s ->
+              let e1typ =  
+              (match s with
+              "newNode" ->  A.StructType ("listNode")
+              | _ -> 
+              fst(
+                try List.find (fun t -> snd(t) = s) fdecl.A.locals
+                with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+                with Not_found ->raise(Failure("unable to find" ^ s ^ "in Sassign"))
+              ))
             in
             (match e1typ with
               A.StructType t -> (try 
