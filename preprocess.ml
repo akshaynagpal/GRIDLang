@@ -69,6 +69,11 @@ let process_files filename1 =
 		  				read_recursive ("" :: lines);
 		  			end
 		  		(* adding rule to item struct, start *)
+		  		else if (!insideItemStruct = true && (contains line "rule") && (contains line "(")) then
+		  			begin
+		  				ruleInItemFound := true;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
 		  		else if (!insideItemStruct = true && (contains line "{")) then
 		  			begin
 		  				itemBraceCounter := !itemBraceCounter + 1;
@@ -77,10 +82,15 @@ let process_files filename1 =
 		  		else if (!insideItemStruct = true && (contains line "}")) then
 		  			begin
 		  				itemBraceCounter := !itemBraceCounter - 1;
-		  				if(!itemBraceCounter = 0) then 
+		  				if(!itemBraceCounter = 0) then
 		  					begin
 		  						insideItemStruct := false;
-		  						read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+			  					if (!ruleInItemFound = false) then 
+			  						begin
+			  							read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+			  						end
+			  					else
+			  						read_recursive ( (line ^ "\n") :: lines);	
 		  					end
 		  				else
 		  					read_recursive ( (line ^ "\n") :: lines);
