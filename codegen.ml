@@ -260,7 +260,8 @@ let translate (globals, functions, structs) =
                             ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
                             let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
                             let then_body = A.Expr (A.Call("addToGrid", [A.Id("parray"); e1; e2; A.Id(s);])) in
-                            let else_body = A.Block[] in
+                            let else_body = A.Block[ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), 
+                              ( A.Binop(A.Id("currentPlayerIndex"),A.Sub,A.Literal(1)) ) )) ] in
                             let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
                             ignore(internal_if_flag:=1);
                             new_global_builder := current_builder; struct_llvalue
