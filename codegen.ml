@@ -5,6 +5,7 @@ module StringMap = Map.Make(String)
 module S = String
 
 let internal_if_flag = ref 0
+let else_bb_flag = ref 0
 
 let translate (globals, functions, structs) =
   let context = L.global_context () in
@@ -18,6 +19,7 @@ let translate (globals, functions, structs) =
   let str_t = L.pointer_type i8_t in
 
   let new_global_builder = ref (L.builder context) in
+  let game_loop_builder = ref (L.builder context) in
   (*add all struct names to a hashtable*)
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
   (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
@@ -658,10 +660,13 @@ let translate (globals, functions, structs) =
     and stmt builder arg_to_match =
     let builder =
     if !internal_if_flag = 1 then
-      !new_global_builder
+      begin
+        ignore(else_bb_flag := 1);
+        !new_global_builder
+      end
     else builder
-    in
-    ignore(internal_if_flag := 0);
+    in ignore(internal_if_flag := 0);
+
     match arg_to_match with
       A.Block sl -> List.fold_left stmt builder sl
     | A.Expr e -> ignore (expr builder e); builder
@@ -671,10 +676,17 @@ let translate (globals, functions, structs) =
       let then_bb = L.append_block context "then" the_function in
       add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
       (L.build_br merge_bb);
+       let else_merge_bb =     
+        if !else_bb_flag = 0 then
+          let _ = raise(Failure("In if block")) in merge_bb
+          (* L.insertion_block !game_loop_builder *)
+        else merge_bb 
+       in
        let else_bb = L.append_block context "else" the_function in
        add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
        (L.build_br merge_bb);
-       ignore (L.build_cond_br bool_val then_bb else_bb builder);       
+       ignore (L.build_cond_br bool_val then_bb else_bb builder);  
+     
        L.builder_at_end context merge_bb
 
     | A.While (predicate, body) ->
@@ -701,6 +713,7 @@ let translate (globals, functions, structs) =
     (* Build the code for each statement in the function *)
     let builder = if (fdecl.A.fname = "gameloop") then
                   let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
+                  ignore(game_loop_builder := builder);
                   stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block fdecl.A.body))
                   else stmt builder (A.Block fdecl.A.body) 
                 in

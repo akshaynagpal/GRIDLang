@@ -47,13 +47,8 @@ int gameloop(){
   Item horse h4;
   Item bishop b4;
   p2.x = 79;
-  print(p1.x);
-  Grid <1,0> <-- p2.hor;
+  Grid <0,0> <-- p2.hor;
   printGrid();
-
-  headnode = getHead(1,0);
-  myown = *(headnode.owner);
-  print(myown.x);
 	return 0; 
 
 
