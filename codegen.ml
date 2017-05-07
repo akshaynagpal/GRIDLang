@@ -199,6 +199,8 @@ let translate (globals, functions, structs) =
     let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
         List.map add_local fdecl.A.locals 
     in
+    let my_local_var = L.build_alloca i32_t "currentPlayerIndex" builder in
+    let _ = Hashtbl.add vars_local "currentPlayerIndex" my_local_var in
     let local = L.build_alloca i32_t "repeat" builder in
     let _ = Hashtbl.add vars_local "repeat" local in 
 
@@ -367,7 +369,8 @@ let translate (globals, functions, structs) =
                         ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
                         let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
                         let then_body =  A.Expr (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));])) in
-                        let else_body = A.Block[] in
+                        let else_body = A.Block[ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), 
+                              ( A.Binop(A.Id("currentPlayerIndex"),A.Sub,A.Literal(1)) ) )) ] in
                         let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
                         ignore(internal_if_flag:=1);
                         new_global_builder := current_builder; struct_llvalue
@@ -421,7 +424,7 @@ let translate (globals, functions, structs) =
             | _ -> raise (Failure("No structype."))
             with Not_found -> raise (Failure("unable to find" ^ s)) 
           )
-        | _ as e1_expr -> let _ = raise (Failure("inside dotop with "^field)) in  
+        | _ as e1_expr -> 
         let e1'_llvalue = llvalue_expr_getter builder e1_expr in
         let loaded_e1' = expr builder e1_expr in
         let e1'_lltype = L.type_of loaded_e1' in
@@ -557,7 +560,9 @@ let translate (globals, functions, structs) =
                                  ignore(L.build_store value addr builder); value
     | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
     | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
-    | A.ArrayLiteral (s) -> L.const_array (ltype_of_typ(A.Int)) (Array.of_list (List.map (expr builder) s))
+    | A.ArrayLiteral (params) -> let val_zero = expr builder (List.hd params) in 
+                                 let val_type = L.type_of val_zero in
+                          L.const_array val_type (Array.of_list (List.map (expr builder) params))
     | A.Binop (e1, op, e2) ->
       (* Construct code for an expression; return its value *)
         let e1' = expr builder e1
@@ -627,9 +632,8 @@ let translate (globals, functions, structs) =
         L.build_call diceThrow_num_gen_func [||] "diceThrow" builder
     
     | A.Call (f, act) ->
-        let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
         let map_arguments actual =
-          match actual with
+          (match actual with
           A.Id s ->  
             (match s with
               "newNode" -> expr builder actual
@@ -645,12 +649,28 @@ let translate (globals, functions, structs) =
                     | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
                     | A.StructType s -> llvalue_expr_getter builder (actual)
                     | _ -> expr builder actual))
-          | _ -> expr builder actual
+          | _ -> expr builder actual)
           in 
-        let actuals = List.rev (List.map map_arguments (List.rev act)) in
-        let result = (match fdecl_called.A.typ with A.Void -> ""
-                                            | _ -> f ^ "_result") 
-        in L.build_call fdef (Array.of_list actuals) result builder
+          (match f with
+          | "moveOnGrid" -> (* let actuals = List.rev (List.map map_arguments (List.rev act)) in *) 
+                            let actuals_arr = Array.of_list act in
+                            let x = Array.get actuals_arr 0 in
+                            let y = Array.get actuals_arr 1 in
+                            let listnode = Array.get actuals_arr 2 in 
+                            let source_x = A.Dotop(A.Dotop(listnode,"loc"),"x") in
+                            let source_y = A.Dotop(A.Dotop(listnode,"loc"),"y") in
+                            let nametag = A.Dotop(listnode,"nametag") in
+                            let make_call = A.Call ("deleteFromGrid",[source_x; source_y; nametag]) in
+                            let _ = expr builder make_call in
+                            let make_call = A.Call ("addToGrid",[x; y; listnode]) in
+                            expr builder make_call
+                            (*Make call to addToGrid with (x,y,listnode)*)
+                            (*Make call to deleteFromGrid(listnode.loc.x,listnode.loc.y, listnode.nametag) *)
+          |_ -> let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
+                let actuals = List.rev (List.map map_arguments (List.rev act)) in
+                let result = (match fdecl_called.A.typ with A.Void -> ""
+                                              | _ -> f ^ "_result") 
+                in L.build_call fdef (Array.of_list actuals) result builder)
     | _ -> raise(Failure("Expr builder failed"))
   
     (* Build the code for the given statement; return the builder for
@@ -700,10 +720,13 @@ let translate (globals, functions, structs) =
 
     (* Build the code for each statement in the function *)
     let builder = if (fdecl.A.fname = "gameloop") then
-                  let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
-                  stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block fdecl.A.body))
-                  else stmt builder (A.Block fdecl.A.body) 
-                in
+      let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
+      (* let bodyIndex =  fdecl.A.body @ [ A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) ) ] in *)
+      let _ = ignore (expr builder ( A.Assign(A.Id("currentPlayerIndex"), A.Literal(0)))) in
+      let bodyWithIndex =  fdecl.A.body @ [ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) )) ] in
+      stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block bodyWithIndex))
+      else stmt builder (A.Block fdecl.A.body) 
+    in
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.A.typ with
