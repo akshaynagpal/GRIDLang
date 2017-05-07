@@ -323,6 +323,16 @@ let translate (globals, functions, structs) =
                         let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
                         let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in 
                         let _ = Hashtbl.add vars_local "newNode" struct_val in
+                        (*Assign newNode.owner as the left side of e3*)
+                        let owner_val_expr = 
+                        (match e3 with
+                          A.Dotop(e1, field) -> (*Do a lookup of e1*)
+                                                  A.Unop(A.Ref,e1)
+                          | A.Id (s) -> A.Null("Player")
+                          | _ -> raise(Failure("Unknown type for GridAssign")))
+                        in
+                        let dotoperator = A.Dotop(A.Id("newNode"), "owner") in 
+                        let _ = expr builder (A.Assign(dotoperator, owner_val_expr)) in
                         (*Assign the field in newNode that corresponds to the type on the right side to 
                         have the struct_llvalue*)
                         let good_struct = 
@@ -344,10 +354,8 @@ let translate (globals, functions, structs) =
                               | _ -> false          
                           in 
                         List.filter is_correct_name actual_listnode_struct.sformals in 
-                                                   
                         let name_type_pair = List.hd name_type_pair_list in 
                         let var_name = (snd(name_type_pair)) in
-
                         let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
                         let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,e3))) in
                         (*Next thing is to assign the tagtype "good"*)
