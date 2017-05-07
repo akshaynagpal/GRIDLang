@@ -112,3 +112,10 @@ int printGrid(){
 	return 0;
 	
 }
+
+Item listNode getHead(int x, int y){
+	Item listNode head;
+	head = *GridNew[x][y];
+	return head;
+
+}

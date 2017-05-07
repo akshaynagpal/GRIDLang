@@ -38,23 +38,24 @@ Grid_Init<2,2> grid;
 
 int gameloop(){ 
   Player p1;
+  Player p2;
+  Player myown;
+  Item listNode headnode;
   Item horse h1;
   Item horse h2;
   Item horse h3;
   Item horse h4;
   Item bishop b4;
-  p1.x = 99;
+  p2.x = 79;
   print(p1.x);
-  Grid <0,0> <-- h1;
-  Grid <0,1> <-- h2;
-  Grid <0,1> <-- b4;
-  Grid <1,0> <-- h3;
-  Grid <1,1> <-- h4;
-  Grid <1,0> <-- p1.hor;
-  Grid <0,1> --> h2;
-  Grid <1,0> --> p1.hor;
+  Grid <1,0> <-- p2.hor;
   printGrid();
+
+  headnode = getHead(1,0);
+  myown = *(headnode.owner);
+  print(myown.x);
 	return 0; 
+
 
 
 }
