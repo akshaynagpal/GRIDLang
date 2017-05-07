@@ -16,7 +16,7 @@ let process_files filename1 =
 	    try ignore (Str.search_forward re s1 0); true
 	    with Not_found -> false
 	in
-	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
+	let defaultPlayerStructFormals = "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
 	in
 
 	let playerStruct = "Player {\n" ^ defaultPlayerStructFormals ^ "}\n"
@@ -122,7 +122,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "string type;\n*Item listNode next;\nstring nametag;\nstring tagname;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+		let temp = !listNode ^ "Item location loc;\nstring type;\n*Item listNode next;\nstring nametag;\nstring tagname;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 			if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then

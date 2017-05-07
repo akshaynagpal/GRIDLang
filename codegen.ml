@@ -459,7 +459,7 @@ let translate (globals, functions, structs) =
         |A.Dotop (e1, field) ->  
         let e' = expr builder e1 in
           (match e1 with
-            A.Id s ->
+            A.Id s -> 
               let e1typ =  
               (match s with
               "newNode" ->  A.StructType ("listNode")
@@ -504,7 +504,8 @@ let translate (globals, functions, structs) =
 
               | _ -> raise (Failure("StructType not found."))
             )
-            |_ as e1_expr -> let e1'_llvalue = llvalue_expr_getter builder e1_expr in 
+            |_ as e1_expr -> 
+            let e1'_llvalue = llvalue_expr_getter builder e1_expr in 
             let loaded_e1' = expr builder e1_expr in
             let e1'_lltype = L.type_of loaded_e1' in
             let e1'_struct_name_string_option = L.struct_name e1'_lltype in

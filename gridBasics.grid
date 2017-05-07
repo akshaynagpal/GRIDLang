@@ -2,6 +2,8 @@ void addToGrid(int x, int y, Item listNode p_n){
 
 	*Item listNode iterator;
     Item listNode p_deref;
+	p_n.loc.x = x;
+	p_n.loc.y = y;
     
     if(GridNew[x][y] == None){
 		GridNew[x][y] = &p_n;
@@ -11,13 +13,10 @@ void addToGrid(int x, int y, Item listNode p_n){
 	}
 	else{
 	iterator = GridNew[x][y];
+	  colocation(x,y,p_n, iterator);
     while(iterator.next != None){
 		iterator = iterator.next;
-		if(iterator == &p_n){
-			print("Item already on grid coordinate");
-			return;
-	}
-	
+		colocation(x,y,p_n, iterator);	
 	}
 	iterator.next = &p_n;
 	iterator = iterator.next;

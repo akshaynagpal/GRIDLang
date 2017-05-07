@@ -5,7 +5,6 @@ int checkGameEnd()
   return 1;
  }
 
-
 Player
 { 
 	int x; 
@@ -14,10 +13,19 @@ Player
   Item horse hor;
 } 
 
+Item location
+{
+  int x;
+  int y;  
+  int rule(coordinate c1, coordinate c2) {
+    return 1;
+  }  
+}
 
 Item horse{
 	int x;
 	string s;
+  Item location loc;
 	*Item horse next;
 	int rule(coordinate c1, coordinate c2) {
 		return 1;
@@ -33,29 +41,25 @@ Item bishop{
   }
 }
 
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  print("Inside colocation");
+  print(i2.nametag);
+  deleteFromGrid(x,y,i2.nametag);
+}
 
 Grid_Init<2,2> grid; 
 
 int gameloop(){ 
   Player p1;
   Player p2;
-  Player myown;
+  Player p3;
   Item listNode headnode;
   Item horse h1;
-  Item horse h2;
-  Item horse h3;
-  Item horse h4;
-  Item bishop b4;
-  p2.x = 79;
-  print(p1.x);
+  h1.loc.x = 1;
+  p1.x = 79;
+  Grid <1,0> <-- p1.hor;
   Grid <1,0> <-- p2.hor;
   printGrid();
-
-  headnode = getHead(1,0);
-  myown = *(headnode.owner);
-  print(myown.x);
 	return 0; 
-
-
-
 }
