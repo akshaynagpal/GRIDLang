@@ -74,6 +74,9 @@ let translate (globals, functions, structs) =
                       L.define_global n init the_module
     | A.StructType (s)-> let init = L.const_null (ltype_of_typ (A.StructType(s))) in
                       L.define_global n init the_module
+    | A.Array1DType (typ,size) -> let each_cell = L.const_null (ltype_of_typ typ) in
+                                  let init = L.const_array (ltype_of_typ typ) (Array.of_list (create_rep_list [] each_cell size)) in 
+                                  L.define_global n init the_module
     | _ -> raise(Failure("Error declaring global")))
     in Hashtbl.add vars_global n global_val;global_val 
   in
@@ -203,8 +206,8 @@ let translate (globals, functions, structs) =
     let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
         List.map add_local fdecl.A.locals 
     in
-    let my_local_var = L.build_alloca i32_t "currentPlayerIndex" builder in
-    let _ = Hashtbl.add vars_local "currentPlayerIndex" my_local_var in
+    let cur_player_val = L.build_alloca i32_t "currentPlayerIndex" builder in
+    let _ = Hashtbl.add vars_global "currentPlayerIndex" cur_player_val in
     let local = L.build_alloca i32_t "repeat" builder in
     let _ = Hashtbl.add vars_local "repeat" local in 
 
@@ -602,7 +605,8 @@ let translate (globals, functions, structs) =
           | A.Div     -> L.build_sdiv
           | A.And     -> L.build_and
           | A.Or      -> L.build_or
-          | A.Equal   -> L.build_icmp L.Icmp.Eq
+ (*          | A.Modulo  -> L.build_urem
+ *)          | A.Equal   -> L.build_icmp L.Icmp.Eq
           | A.Neq     -> L.build_icmp L.Icmp.Ne
           | A.Less    -> L.build_icmp L.Icmp.Slt
           | A.Leq     -> L.build_icmp L.Icmp.Sle
@@ -616,28 +620,6 @@ let translate (globals, functions, structs) =
           | A.Not     -> L.build_not
         ) e' "tmp" builder     
     | A.Call ("print", [e]) -> 
-      (match e with 
-        A.Id s-> let etype = fst( 
-                  try List.find (fun t->snd(t)=s) fdecl.A.locals with 
-                  |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-                  |Not_found -> raise (Failure("Unable to find" ^ s ^ "in expr A.ID"))
-                 )
-                 in
-                (match etype with
-                  A.CoordinateType -> let x = L.build_load (lookup_at_index s (expr builder (A.Literal(0))) builder) "name" builder
-                                      and y = L.build_load (lookup_at_index s (expr builder (A.Literal(1))) builder) "name" builder
-                                      in let _ = L.build_call printf_func [| int_format_str ; x|] "printf" builder in
-                                      L.build_call printf_func [| int_format_str ; y|] "printf" builder
-                  | _ ->
-                  let e' = expr builder e in
-                  if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
-                    L.build_call printf_func [| int_format_str ; (expr builder e) |]
-                    "printf" builder
-                  else
-                    L.build_call printf_func [| str_format_str ; (expr builder e) |]
-                    "printf" builder
-                )
-        | _ ->
           let e' = expr builder e in
             if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
               L.build_call printf_func [| int_format_str ; (expr builder e) |]
@@ -645,7 +627,6 @@ let translate (globals, functions, structs) =
           else
             L.build_call printf_func [| str_format_str ; (expr builder e) |]
             "printf" builder
-      )
 
     | A.Call ("prompt", []) ->
         L.build_call prompt_func [||] "prompt" builder

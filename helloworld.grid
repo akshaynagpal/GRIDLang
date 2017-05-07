@@ -35,7 +35,6 @@ Item bishop{
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
   print("Inside colocation");
-  print(i2.nametag);
 /*  deleteFromGrid(x,y,i2.nametag);*/
 }
 
@@ -43,27 +42,23 @@ Grid_Init<2,2> grid;
 Player p1;
 Player p2;
 Player p3;
+Player[3] playerOrder;
 
 int initialSetup(){ 
+  playerOrder[0] = p1;
+  playerOrder[1] = p2;
+  playerOrder[2] = p3;
+  Grid <1,0> <-- p1.hor;
+  Grid <1,0> <-- p2.hor;
+  printGrid();
   return 0;
 }
 
 int gameloop(){ 
-  int x1;
-  int y1;
-  int x2;
-  int y2;
   Item listNode headnode;
-  Item horse h1;
-  x1 = 5;
-  h1.loc.x = 1;
   p1.x = 79;
-  print(p1.x);
-  Grid <1,0> <-- p1.hor;
-  Grid <1,0> <-- p2.hor;
-  headnode = getHead(1,0);
-  printGrid();
-  moveOnGrid(0,0,headnode);
-  printGrid();
+  print(currentPlayerIndex);
+/*  headnode = getHead(1,0);
+  moveOnGrid(0,0,headnode);*/
   return 0; 
 }

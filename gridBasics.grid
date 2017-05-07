@@ -101,8 +101,6 @@ int printGrid(){
 
 	}
 
-	print(max_len);
-
 	for(x = 0; x < rows; x = x+1){
 		for(y = 0; y < cols; y = y+1){
 		
