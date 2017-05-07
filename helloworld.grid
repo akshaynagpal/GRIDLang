@@ -7,6 +7,13 @@ Item horse {
 	}
 }
 
+Player good
+{ 
+  int x; 
+  int y; 
+  string s; 
+}
+
 int checkGameEnd()
 {
 	return 1;
@@ -17,12 +24,11 @@ int initialSetup(){
 }
 
 int gameloop(){ 
-	int x;
-	int[4] y;
-	int z;
-	x = 1;
-	y = [1,2,3,4];
-    z = y[currentPlayerIndex];
+  Player good p1;
+  Player good p2;
+  Player good[2] playerOrder;
+	playerOrder = [p1,p2];
+  /*z = y[currentPlayerIndex];*/
 	print(x);
 	return 0;
 }
