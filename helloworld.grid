@@ -52,7 +52,7 @@ int gameloop(){
   Grid <1,1> <-- h4;
   Grid <1,0> <-- p1.hor;
   Grid <0,1> --> h2;
-  /*Grid <1,0> --> p1.hor;   Failed operation*/
+  Grid <1,0> --> p1.hor;
   printGrid();
 	return 0; 
 
