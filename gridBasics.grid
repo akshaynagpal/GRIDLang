@@ -1,8 +1,7 @@
-void addToGrid(int x, int y, Player listNode p_n){
+void addToGrid(int x, int y, Item listNode p_n){
 
-	*Player listNode iterator;
-    Player listNode p_deref;
-    Player good get_gnode;
+	*Item listNode iterator;
+    Item listNode p_deref;
     
     if(GridNew[x][y] == None){
 		GridNew[x][y] = &p_n;
@@ -15,7 +14,7 @@ void addToGrid(int x, int y, Player listNode p_n){
     while(iterator.next != None){
 		iterator = iterator.next;
 		if(iterator == &p_n){
-			print("Player already on grid coordinate");
+			print("Item already on grid coordinate");
 			return;
 	}
 	
@@ -28,10 +27,11 @@ void addToGrid(int x, int y, Player listNode p_n){
 	
 }
 
+
 void deleteFromGrid(int x, int y, string tag){
 
-	*Player listNode iterator;
-	*Player listNode next_iterator;
+	*Item listNode iterator;
+	*Item listNode next_iterator;
 	iterator = GridNew[x][y];
 	next_iterator = iterator.next;
 
@@ -67,7 +67,7 @@ int printGrid(){
 	int len;
 	int max_len;
 	string printer;
-	*Player listNode iterator;
+	*Item listNode iterator;
 	len = 0;
 	max_len = 0;
 	

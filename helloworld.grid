@@ -1,3 +1,4 @@
+import gridBasics.grid
 
 int checkGameEnd()
  {
@@ -28,8 +29,14 @@ Grid_Init<2,2> grid;
 int gameloop(){ 
   Player p1;
   Item horse h1;
+  Item horse h2;
   p1.x = 99;
   print(p1.x);
+  Grid <0,0> <-- h1;
+  Grid <0,0> <-- h2;
+  Grid <0,0> <-- p1.hor;
+  Grid <0,0> --> h2;
+  printGrid();
 	return 0; 
 
 
