@@ -36,6 +36,7 @@ let translate (globals, functions, structs) =
     | A.Bool -> i1_t
     | A.Void -> void_t 
     | A.StructType s ->  Hashtbl.find struct_types s
+    | A.PlayerType -> ltype_of_typ((A.StructType "Player"))
     | A.String -> str_t 
     | A.Array1DType (typ,size) -> array_t (ltype_of_typ typ) size 
     | A.PointerType t -> L.pointer_type (ltype_of_typ t) 
@@ -242,14 +243,20 @@ let translate (globals, functions, structs) =
         )
         in
         (*above three lines we have found the type of b, which is book*)
-        (try match etype with
+        (match etype with
             A.StructType t->
               let index_number_list = StringMap.find t struct_field_index_list in
               let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
               let struct_llvalue = lookup s in (*return the value of x*)
               let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
               access_llvalue (*not sure what this last step is for*)
-            | _ -> raise (Failure("No structype.")) with Not_found -> raise (Failure("unable to find" ^ s)) 
+            | A.PlayerType -> let t = "Player" in
+                          let index_number_list = StringMap.find t struct_field_index_list in
+              let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
+              let struct_llvalue = lookup s in (*return the value of x*)
+              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
+              access_llvalue
+            | _ -> raise (Failure("No structype.")) 
         )
         | _ as e1_expr ->  
           let e1'_llvalue = llvalue_expr_getter builder e1_expr in (*This is also for handling nested structs*)
@@ -292,55 +299,71 @@ let translate (globals, functions, structs) =
                               done
                               done);grid_val
 
-    | A.GridAssign (e1, e2, s) ->
-                            let struct_llvalue = expr builder (A.Id(s)) in 
-                            let struct_type = L.type_of struct_llvalue in
-                            let struct_name = Hashtbl.find struct_names struct_type in
-                            (*Create a list node*)
-                            let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
-                            let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in 
-                            let _ = Hashtbl.add vars_local "newNode" struct_val in
-                            (*Assign the field in newNode that corresponds to the type on the right side to 
-                            have the struct_llvalue*)
-                            let good_struct = 
-                              let get_good_struct sdecl= 
-                                sdecl.A.sname = "listNode"
-                              in
-                              List.filter get_good_struct structs
-                            in
-                            let actual_listnode_struct = List.hd good_struct in
+    | A.GridAssign (e1, e2, e3) -> 
+                        let full_name_tag = 
+                        (match e3 with 
+                        A.Dotop(e1, field) ->
+                            (*Over here, extract the left side as a string, concatenate with '.' and left side. 
+                            Then, when we try to delete, check if it's a dotop. If so, extract left and right side similarly, 
+                            then compare left side *)
+                            let left_of_dot = 
+                            (match e1 with
+                              A.Id(s) -> s
+                              | _ -> raise(Failure("Invalid left-of-dot"))) in
+                            left_of_dot ^ "." ^ field 
+                            (*Do this if the right hand side is just an ID*)
+                            (*Currently assuming anything that is not a dotop is an id*)
+                        | A.Id (s) -> s
+                        | _ -> raise(Failure("Unknown type for GridAssign")))
+                        in
+                        let struct_llvalue = expr builder e3 in
+                        let struct_type = L.type_of struct_llvalue in
+                        let struct_name = Hashtbl.find struct_names struct_type in
+                        (*Create a list node*)
+                        let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
+                        let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in 
+                        let _ = Hashtbl.add vars_local "newNode" struct_val in
+                        (*Assign the field in newNode that corresponds to the type on the right side to 
+                        have the struct_llvalue*)
+                        let good_struct = 
+                          let get_good_struct sdecl= 
+                            sdecl.A.sname = "listNode"
+                          in
+                          List.filter get_good_struct structs
+                        in
+                        let actual_listnode_struct = List.hd good_struct in
 
-                            let name_type_pair_list = 
-                              let is_correct_name struct_pair = 
-                                let current_type = fst(struct_pair) in 
-                                match current_type with
-                                  | A.PointerType t -> 
-                                      (match t with
-                                        A.StructType s -> s = struct_name
-                                        | _ -> false)
-                                  | _ -> false          
-                              in 
-                            List.filter is_correct_name actual_listnode_struct.sformals in 
-                                                       
-                            let name_type_pair = List.hd name_type_pair_list in 
-                            let var_name = (snd(name_type_pair)) in
+                        let name_type_pair_list = 
+                          let is_correct_name struct_pair = 
+                            let current_type = fst(struct_pair) in 
+                            match current_type with
+                              | A.PointerType t -> 
+                                  (match t with
+                                    A.StructType s -> s = struct_name
+                                    | _ -> false)
+                              | _ -> false          
+                          in 
+                        List.filter is_correct_name actual_listnode_struct.sformals in 
+                                                   
+                        let name_type_pair = List.hd name_type_pair_list in 
+                        let var_name = (snd(name_type_pair)) in
 
-                            let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
-                            let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,A.Id(s)))) in
-                            (*Next thing is to assign the tagtype "good"*)
-                            let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
-                            let _ = expr builder (A.Assign(dotoperator, A.String_Lit(s))) in
-                            let rule_func_name = struct_name ^ "rule" in
-                            let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
-                            let _ = Hashtbl.add vars_local "rule" rule_val in 
-                            let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
-                            ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
-                            let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
-                            let then_body =  A.Expr (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));])) in
-                            let else_body = A.Block[] in
-                            let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
-                            ignore(internal_if_flag:=1);
-                            new_global_builder := current_builder; struct_llvalue
+                        let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
+                        let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,e3))) in
+                        (*Next thing is to assign the tagtype "good"*)
+                        let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
+                        let _ = expr builder (A.Assign(dotoperator, A.String_Lit(full_name_tag))) in
+                        let rule_func_name = struct_name ^ "rule" in
+                        let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
+                        let _ = Hashtbl.add vars_local "rule" rule_val in 
+                        let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
+                        ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
+                        let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
+                        let then_body =  A.Expr (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));])) in
+                        let else_body = A.Block[] in
+                        let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
+                        ignore(internal_if_flag:=1);
+                        new_global_builder := current_builder; struct_llvalue
 
     | A.DeletePlayer (e1, e2, s) -> expr builder (A.Call("deleteFromGrid", [e1; e2; A.String_Lit(s)]));
     
@@ -367,6 +390,13 @@ let translate (globals, functions, structs) =
               let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
               let index_number = StringMap.find field index_number_list in
               let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
+              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+              loaded_access
+            | A.PlayerType -> let t = "Player" in
+                          let index_number_list = StringMap.find t struct_field_index_list in
+              let index_number = StringMap.find field index_number_list in
+              let struct_llvalue = lookup s in
+              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
               let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
               loaded_access
             | _ -> raise (Failure("No structype."))
@@ -442,6 +472,17 @@ let translate (globals, functions, structs) =
               (try (ignore(L.build_store e2' access_llvalue builder);e2')
                 with Not_found -> raise (Failure("unable to store error" ))
               )
+              | A.PlayerType -> let t = "Player" in 
+                                (try 
+                let index_number_list = StringMap.find t struct_field_index_list in
+                let index_number = StringMap.find field index_number_list in
+                let struct_llvalue = lookup s in
+                let access_llvalue = L.build_struct_gep struct_llvalue index_number field builder in
+                (try (ignore(L.build_store e2' access_llvalue builder);e2')
+                  with Not_found -> raise (Failure("unable to store " ^ t )) 
+                )
+                with Not_found -> raise (Failure("unable to find" ^ s)) )
+
               | _ -> raise (Failure("StructType not found."))
             )
             |_ as e1_expr -> let e1'_llvalue = llvalue_expr_getter builder e1_expr in 

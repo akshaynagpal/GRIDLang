@@ -71,8 +71,8 @@ int printGrid(){
 	len = 0;
 	max_len = 0;
 	
-	for(x = 0; x < 2; x = x+1){
-		for(y = 0; y < 2; y = y+1){
+	for(x = 0; x < rows; x = x+1){
+		for(y = 0; y < cols; y = y+1){
 			iterator = GridNew[x][y];
 	
 			while(iterator != None && iterator.next != None){
@@ -89,8 +89,8 @@ int printGrid(){
 
 	print(max_len);
 
-	for(x = 0; x < 2; x = x+1){
-		for(y = 0; y < 2; y = y+1){
+	for(x = 0; x < rows; x = x+1){
+		for(y = 0; y < cols; y = y+1){
 		
 			iterator = GridNew[x][y];
 			

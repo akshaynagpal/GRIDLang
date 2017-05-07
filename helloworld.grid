@@ -1,4 +1,3 @@
-import gridBasics.grid;
 
 int checkGameEnd()
  {
@@ -6,19 +5,12 @@ int checkGameEnd()
  }
 
 
-Player good
+Player
 { 
 	int x; 
 	int y; 
 	string s; 
-	*Player good next;
-} 
-
-Player evil
-{ 
-	int zz; 
-	string s; 
-	*Player evil next;
+  Item horse hor;
 } 
 
 
@@ -34,33 +26,10 @@ Item horse{
 Grid_Init<2,2> grid; 
 
 int gameloop(){ 
-  Player good p1;
-  Player good p2;
-  Player good p3;
-  Player good p4;
-  Player good p5;
-  Player evil p10;
+  Player p1;
   Item horse h1;
   p1.x = 99;
-  p1.s = "P1";
-  p2.x = 999;
-  p2.s = "P2";
-  p3.x = 999;
-  p3.s = "P3";
-  p4.s = "P4";
-  p5.s = "P5";
-  p10.s = "P10";
-  h1.s = "H1";
-
-  Grid <0,0> <-- p1;
-  Grid <0,0> <-- p2;
-  Grid <0,0> <-- p3;
-  Grid <0,0> <-- p4;
-  Grid <0,0> <-- p10;
-  Grid <0,0> <-- p5;
-  Grid <0,0> <-- h1;
-  Grid <0,0> --> p3;
-  printGrid();
+  print(p1.x);
 	return 0; 
 
 

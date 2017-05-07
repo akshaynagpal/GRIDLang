@@ -7,7 +7,7 @@ let braceNotFound = ref false
 let ruleInPlayerFound = ref false
 let insidePlayerStruct = ref false
 let playerStructBraceCounter = ref 0
-let listNode = ref "Player listNode\n{\n"
+let listNode = ref "Item listNode\n{\n"
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -16,11 +16,10 @@ let process_files filename1 =
 	    try ignore (Str.search_forward re s1 0); true
 	    with Not_found -> false
 	in
-	
 	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
 	in
 
-	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ "}\n"
+	let playerStruct = "Player {\n" ^ defaultPlayerStructFormals ^ "}\n"
 	in
 
 	let read_all_lines file_name =
@@ -94,9 +93,8 @@ let process_files filename1 =
 		  						let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in
 		  						let wordArr = Array.of_list(wordlis) in
 		  						let structType = wordArr.(0) in
-		  						let structName = wordArr.(1) in
-		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
-		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
+(* 		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structType ^ "_node;\n";
+ *)		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  					end
 		  				else if (contains line ";" = false && (contains line ")" = false)) then
 		  					begin
@@ -106,8 +104,7 @@ let process_files filename1 =
 		  						(* let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in *)
 		  						let wordArr = Array.of_list(wordlis) in
 		  						let structType = wordArr.(0) in
-		  						let structName = wordArr.(1) in
-		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
+(* 		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structType ^ "_node;\n"; *)
 		  						braceNotFound := true;
 		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
@@ -125,7 +122,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "string type;\n*Player listNode next;\nstring nametag;\nstring tagname\n;int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+		let temp = !listNode ^ "string type;\n*Item listNode next;\nstring nametag;\nstring tagname;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 			if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then
