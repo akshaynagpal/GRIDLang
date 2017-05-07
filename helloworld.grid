@@ -40,15 +40,15 @@ int colocation(int x, int y, Item listNode i1, Item listNode i2)
 }
 
 Grid_Init<2,2> grid; 
+Player p1;
+Player p2;
+Player p3;
 
 int initialSetup(){ 
   return 0;
 }
 
 int gameloop(){ 
-  Player p1;
-  Player p2;
-  Player p3;
   int x1;
   int y1;
   int x2;
@@ -58,6 +58,7 @@ int gameloop(){
   x1 = 5;
   h1.loc.x = 1;
   p1.x = 79;
+  print(p1.x);
   Grid <1,0> <-- p1.hor;
   Grid <1,0> <-- p2.hor;
   headnode = getHead(1,0);

@@ -70,6 +70,10 @@ let translate (globals, functions, structs) =
      A.Int -> L.define_global n (L.const_int (ltype_of_typ (A.Int)) 0) the_module
     | A.Bool -> L.define_global n (L.const_int (ltype_of_typ (A.Bool)) 0) the_module
     | A.String -> L.define_global n (L.const_string context "") the_module
+    | A.PlayerType -> let init = L.const_null (ltype_of_typ (A.PlayerType)) in
+                      L.define_global n init the_module
+    | A.StructType (s)-> let init = L.const_null (ltype_of_typ (A.StructType(s))) in
+                      L.define_global n init the_module
     | _ -> raise(Failure("Error declaring global")))
     in Hashtbl.add vars_global n global_val;global_val 
   in
@@ -237,11 +241,18 @@ let translate (globals, functions, structs) =
 
     | A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
       (match e1 with
-        A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals with 
-          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop"))
-        )
+        A.Id s -> let etype = fst(
+                try List.find (fun t -> snd(t) = s) fdecl.A.locals
+                with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+                with Not_found -> try let sval = lookup s in  (*Check in globals*)
+                                  let llvm_type = L.type_of sval in 
+                                  let player_type = ltype_of_typ (A.StructType "Player") in
+                                  (match llvm_type with
+                                    player_type -> (A.PlayerType,s)
+                                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
+                                            (A.StructType(struct_name),s))
+                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
+              )
         in
         (*above three lines we have found the type of b, which is book*)
         (match etype with
@@ -327,7 +338,8 @@ let translate (globals, functions, structs) =
                         (*Assign newNode.owner as the left side of e3*)
                         let owner_val_expr = 
                         (match e3 with
-                          A.Dotop(e1, field) -> (*Do a lookup of e1*)
+                          A.Dotop(e1, field) -> 
+                                                (*Do a lookup of e1*)
                                                   A.Unop(A.Ref,e1)
                           | A.Id (s) -> A.Null("Player")
                           | _ -> raise(Failure("Unknown type for GridAssign")))
@@ -392,10 +404,18 @@ let translate (globals, functions, structs) =
     | A.Dotop(e1, field) -> 
     let e' = expr builder e1 in
       (match e1 with
-        A.Id s -> let etype = fst( 
-          try List.find (fun t->snd(t)=s) fdecl.A.locals with
-          |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-          |Not_found -> raise (Failure("Unable to find" ^ s ^ "in dotop")))
+        A.Id s -> let etype =               fst(
+                try List.find (fun t -> snd(t) = s) fdecl.A.locals
+                with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+                with Not_found -> try let sval = lookup s in  (*Check in globals*)
+                                  let llvm_type = L.type_of sval in 
+                                  let player_type = ltype_of_typ (A.StructType "Player") in
+                                  (match llvm_type with
+                                    player_type -> (A.PlayerType,s)
+                                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
+                                            (A.StructType(struct_name),s))
+                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
+              )
           in
           (try match etype with
             A.StructType t->
@@ -470,9 +490,16 @@ let translate (globals, functions, structs) =
               fst(
                 try List.find (fun t -> snd(t) = s) fdecl.A.locals
                 with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
-                with Not_found ->raise(Failure("unable to find" ^ s ^ "in Sassign"))
+                with Not_found -> try let sval = lookup s in  (*Check in globals*)
+                                  let llvm_type = L.type_of sval in 
+                                  let player_type = ltype_of_typ (A.StructType "Player") in
+                                  (match llvm_type with
+                                    player_type -> (A.PlayerType,s)
+                                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
+                                            (A.StructType(struct_name),s))
+                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
               ))
-            in
+            in  
             (match e1typ with
               A.StructType t -> (try 
                 let index_number_list = StringMap.find t struct_field_index_list in
@@ -494,7 +521,8 @@ let translate (globals, functions, structs) =
               (try (ignore(L.build_store e2' access_llvalue builder);e2')
                 with Not_found -> raise (Failure("unable to store error" ))
               )
-              | A.PlayerType -> let t = "Player" in 
+              | A.PlayerType -> 
+              let t = "Player" in 
                                 (try 
                 let index_number_list = StringMap.find t struct_field_index_list in
                 let index_number = StringMap.find field index_number_list in
