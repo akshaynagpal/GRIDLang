@@ -23,6 +23,7 @@ type op = Add
           | Geq 
           | And 
           | Or
+          | Modulo
 
 type uop = Neg | Not | Deref | Ref
 

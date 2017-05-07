@@ -43,11 +43,13 @@ Player p1;
 Player p2;
 Player p3;
 Player[3] playerOrder;
+int playerOrderSize;
 
 int initialSetup(){ 
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrder[2] = p3;
+  playerOrderSize = 3;
   Grid <1,0> <-- p1.hor;
   Grid <1,0> <-- p2.hor;
   printGrid();

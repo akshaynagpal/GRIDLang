@@ -31,6 +31,7 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
+| "%"      { MODULO }
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }

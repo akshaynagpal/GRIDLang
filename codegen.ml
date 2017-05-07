@@ -568,23 +568,6 @@ let translate (globals, functions, structs) =
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
-    | A.Binop (e1, op, e2) ->
-      let e1' = expr builder e1
-      and e2' = expr builder e2 in
-      (match op with
-        A.Add     -> L.build_add
-        | A.Sub     -> L.build_sub
-        | A.Mult    -> L.build_mul
-        | A.Div     -> L.build_sdiv
-	      | A.And     -> L.build_and
-	      | A.Or      -> L.build_or
-	      | A.Equal   -> L.build_icmp L.Icmp.Eq
-	      | A.Neq     -> L.build_icmp L.Icmp.Ne
-    	  | A.Less    -> L.build_icmp L.Icmp.Slt
-    	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-    	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-    	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-      ) e1' e2' "tmp" builder
       
     | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
                                  and value = expr builder e2 in
@@ -605,8 +588,8 @@ let translate (globals, functions, structs) =
           | A.Div     -> L.build_sdiv
           | A.And     -> L.build_and
           | A.Or      -> L.build_or
- (*          | A.Modulo  -> L.build_urem
- *)          | A.Equal   -> L.build_icmp L.Icmp.Eq
+          | A.Modulo  -> L.build_urem
+          | A.Equal   -> L.build_icmp L.Icmp.Eq
           | A.Neq     -> L.build_icmp L.Icmp.Ne
           | A.Less    -> L.build_icmp L.Icmp.Slt
           | A.Leq     -> L.build_icmp L.Icmp.Sle
@@ -732,7 +715,9 @@ let translate (globals, functions, structs) =
       let _ = ignore(expr builder (A.Assign(A.Id("repeat"),A.Literal(0)))) in 
       (* let bodyIndex =  fdecl.A.body @ [ A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) ) ] in *)
       let _ = ignore (expr builder ( A.Assign(A.Id("currentPlayerIndex"), A.Literal(0)))) in
-      let bodyWithIndex =  fdecl.A.body @ [ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), ( A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) ) )) ] in
+      let add_op = A.Binop(A.Id("currentPlayerIndex"),A.Add,A.Literal(1)) in 
+      let assign_this = A.Binop(add_op, A.Modulo, A.Id("playerOrderSize")) in 
+      let bodyWithIndex =  fdecl.A.body @ [ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), assign_this)) ] in
       stmt builder (A.While(A.Binop(A.Id("repeat"),A.Equal,A.Literal(0)), A.Block bodyWithIndex))
       else stmt builder (A.Block fdecl.A.body) 
     in

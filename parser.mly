@@ -11,7 +11,7 @@ let third (_,_,c) = c;;
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL MODULO
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER ITEM COORDINATE
 %token <int> LITERAL
 %token <string> ID
@@ -153,6 +153,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3) }
   | expr AND    expr { Binop($1, And,   $3) }
   | expr OR     expr { Binop($1, Or,    $3) }
+  | expr MODULO expr { Binop($1, Modulo, $3) }
   | expr DOT    ID   { Dotop($1, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | TIMES expr %prec DEREF { Unop(Deref, $2) }
