@@ -10,6 +10,68 @@ int checkGameEnd()
   return 1;
 }
 
+Item King
+{
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    Player oppPlayer;
+    int xdiff;
+    int ydiff;
+    int opposingIndex;
+    Item King oppking;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      print("Not your piece!");
+      return 0;
+    }
+
+    xdiff = abs(dst_x - src_x);
+    ydiff = abs(dst_y - src_y);
+    if (xdiff > 1 || ydiff > 1)
+    {
+      print("Invalid move for king");
+      return 0;
+    }
+
+    if (dst != None)
+    {
+      owner2 = dst.owner;
+      if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+      {
+        print("Can't kill your own piece");
+        return 0;
+      }
+    }
+
+    if (currentPlayerIndex == 1)
+    {
+      opposingIndex = 0;
+    }
+    else
+    {
+      opposingIndex = 1;
+    }
+
+    oppPlayer = playerOrder[opposingIndex];
+
+/*    oppking = oppPlayer.king;
+    print(oppking.x);*/
+
+    return 1;
+  }
+}
+
 Item Pawn
 {
   int something;
@@ -103,6 +165,7 @@ Item Bishop
         owner2 = dst.owner;
         if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
         {
+          print("Can't kill your own piece");
           return 0;
         }
       }
@@ -160,9 +223,42 @@ Item Knight
 Item Rook
 {
   int something;
-  int rule(int x1, int y1, int x2, int y2)
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    return 1;
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    int xdiff;
+    int ydiff;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      print("Not your piece!");
+      return 0;
+    }
+
+    if(dst_x == src_x || dst_y == src_y)  /* moves either vertically or horizontally */
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          print("Cannot kill your own piece");
+          return 0;
+        }
+      }
+      return 1;
+    }
+    print("Invalid move for rook");
+    return 0;
   }
 }
 
@@ -171,6 +267,8 @@ Player
   Item Pawn pawn;
   Item Bishop bishop;
   Item Knight knight;
+  Item Rook rook;
+  Item King king;
   string color;
 }
 
@@ -210,12 +308,18 @@ int initialSetup(){
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrderSize = 2;
+
+  Grid <4,3> <-- p1.king;
   Grid <3,3> <-- p1.pawn;
   Grid <4,1> <-- p1.bishop;
   Grid <4,2> <-- p1.knight;
+  Grid <4,0> <-- p1.rook;
+
+  Grid <0,0> <-- p2.king;
   Grid <1,0> <-- p2.pawn;
   Grid <0,2> <-- p2.bishop;
   Grid <0,1> <-- p2.knight;
+  Grid <0,3> <-- p2.rook;
   return 0;
 }
 
