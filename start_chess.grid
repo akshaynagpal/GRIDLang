@@ -20,15 +20,20 @@ Item Pawn
     *Item listNode dst;
     *Player owner1;
     *Player owner2;
+    Player cur;
     src = getHead(src_x, src_y);
     if (src == None)
     {
       print("No item present here");
       return 0;
     }
+    cur = playerOrder[currentPlayerIndex];
     owner1 = src.owner;
-    print("Color is");
-    print(owner1.color);
+    if (cur.color != owner1.color)
+    {
+      print("Not your piece!");
+      return 0;
+    }
 
     direction = getDirectionFromIndex();
     print("Direction is: ");
@@ -54,6 +59,14 @@ Item Pawn
           print("Can't kill your own piece");
           return 0;
         }
+        else
+        {
+          return 1;
+        }
+      }
+      else
+      {
+        return 0;
       }
     }
     if (dst!=None)
@@ -117,6 +130,7 @@ int getDirectionFromIndex()
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
   print("Inside colocation");
+  deleteFromGrid(x,y,i2.nametag);
   return 0;
 }
 
@@ -133,8 +147,8 @@ int initialSetup(){
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrderSize = 2;
-  Grid <1,2> <-- p1.pawn;
-  Grid <3,2> <-- p2.pawn;
+  Grid <3,1> <-- p1.pawn;
+  Grid <1,2> <-- p2.pawn;
   return 0;
 }
 
@@ -154,14 +168,6 @@ int gameloop(){
   src_y = prompt();
   dst_x = prompt();
   dst_y = prompt();
-  headnode = getHead(src_x, src_y);
-  if (headnode != None)
-  {
-    moveOnGrid(dst_x,dst_y,headnode);
-  }
-  else
-  {
-    print("No item present");
-  }
+  moveOnGrid(src_x, src_y, dst_x,dst_y);
   return 0; 
 }

@@ -14,7 +14,7 @@ let insideItemStruct = ref false
 let exitingItemStruct = ref false
 let playerStructBraceCounter = ref 0
 let listNode = ref "Item listNode\n{\n"
-let triggerRule = ref "int triggerRule(int src_x, int src_y, int dst_x, int dst_y, *Item listNode l)\n{\nint x;\n"
+let triggerRule = ref "int triggerRule(int src_x, int src_y, int dst_x, int dst_y, *Item listNode l)\n{\nint x;	if (l == None)\n{\n		print(\"No source item\");\nreturn 0;\n}"
 
 let append_to_string structName = 
 	triggerRule := !triggerRule ^ "if (l.typetag == \"" ^ structName ^"\")\n{\nx = "^structName^"rule(src_x, src_y, dst_x, dst_y);\nreturn x;\n}\n"
