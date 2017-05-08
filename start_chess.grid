@@ -116,9 +116,44 @@ Item Bishop
 Item Knight
 {
   int something;
-  int rule(int x1, int y1, int x2, int y2)
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    return 1;
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    int xdiff;
+    int ydiff;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      print("Not your piece!");
+      return 0;
+    }
+
+    xdiff = abs(dst_x - src_x);
+    ydiff = abs(dst_y - src_y);
+    if(xdiff == 2 && ydiff == 1 || xdiff == 1 && ydiff == 2) 
+    {
+      if (dst!= None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          print("Cannot kill your own piece");
+          return 0;
+        }
+      }
+      return 1;
+    }
+    print("Invalid move for knight");
+    return 0;
   }
 }
 
@@ -135,6 +170,7 @@ Player
 { 
   Item Pawn pawn;
   Item Bishop bishop;
+  Item Knight knight;
   string color;
 }
 
@@ -176,8 +212,10 @@ int initialSetup(){
   playerOrderSize = 2;
   Grid <3,3> <-- p1.pawn;
   Grid <4,1> <-- p1.bishop;
+  Grid <4,2> <-- p1.knight;
   Grid <1,0> <-- p2.pawn;
   Grid <0,2> <-- p2.bishop;
+  Grid <0,1> <-- p2.knight;
   return 0;
 }
 
