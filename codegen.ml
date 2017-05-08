@@ -388,6 +388,8 @@ let translate (globals, functions, structs) =
                         (*Next thing is to assign the tagtype "good"*)
                         let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
                         let _ = expr builder (A.Assign(dotoperator, A.String_Lit(full_name_tag))) in
+                        let dotoperator = A.Dotop(A.Id("newNode"), "typetag") in 
+                        let _ = expr builder (A.Assign(dotoperator, A.String_Lit(struct_name))) in
                         expr builder (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));]))
 
     | A.DeletePlayer (e1, e2, e3) -> 
