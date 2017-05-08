@@ -149,6 +149,10 @@ void moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 			deleteFromGrid(src_x, src_y, p_n.nametag);
 			addToGrid(dst_x, dst_y, p_n);
 		}
+		else
+		{
+			currentPlayerIndex = currentPlayerIndex - 1;			
+		}
 	}
 	else
 	{

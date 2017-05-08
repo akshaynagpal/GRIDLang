@@ -22,8 +22,10 @@ Item Pawn
     *Player owner2;
     Player cur;
     src = getHead(src_x, src_y);
-    cur = playerOrder[currentPlayerIndex];
+    dst = getHead(dst_x, dst_y);
 
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
@@ -32,8 +34,7 @@ Item Pawn
     }
 
     direction = getDirectionFromIndex();
-    print("Direction is: ");
-    print(direction);
+
     if(dst_x != src_x + direction)  /* check if pawn moves >1 step vertically, or in the wrong direction*/ 
     {
       print("Moving in the wrong direction");
@@ -44,7 +45,6 @@ Item Pawn
       print("Can't move more than one square horizontally with a pawn");
       return 0;
     }
-    dst = getHead(dst_x, dst_y);
     if(dst_y == src_y - 1 || dst_y == src_y + 1) /* if pawn moves diagonally left 1 or right 1, check if item on destination square is the same color */
     {
       if (dst != None)
@@ -77,9 +77,39 @@ Item Pawn
 Item Bishop
 {
   int something;
-  int rule(int x1, int y1, int x2, int y2)
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    return 1;
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      print("Not your piece!");
+      return 0;
+    }
+
+    if(abs(dst_x - src_x) == abs(dst_y - src_y))  /* moves diagonally only*/
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          return 0;
+        }
+      }
+      return 1;
+    }
+    print("Non-diagonal move attempt with bishop");
+    return 0;
   }
 }
 
@@ -144,10 +174,10 @@ int initialSetup(){
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrderSize = 2;
-  Grid <3,1> <-- p1.pawn;
-  Grid <3,2> <-- p1.bishop;
-  Grid <1,2> <-- p2.pawn;
-  Grid <1,3> <-- p2.bishop;
+  Grid <3,3> <-- p1.pawn;
+  Grid <4,1> <-- p1.bishop;
+  Grid <1,0> <-- p2.pawn;
+  Grid <0,2> <-- p2.bishop;
   return 0;
 }
 
