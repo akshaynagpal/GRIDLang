@@ -10,8 +10,6 @@ int checkGameEnd()
   return 1;
 }
 
-/*Shouldn't have to write this explicitly*/
-
 Item Pawn
 {
   int something;
@@ -93,6 +91,6 @@ int gameloop(){
   dst_x = prompt();
   dst_y = prompt();
   headnode = getHead(src_x, src_y);
-/*  moveOnGrid(dst_x,dst_y,headnode);*/
+  moveOnGrid(dst_x,dst_y,headnode);
   return 0; 
 }

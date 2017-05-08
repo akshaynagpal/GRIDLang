@@ -130,6 +130,24 @@ int printGrid(){
 	
 }
 
+void moveOnGrid(int dst_x, int dst_y, *Item listNode p_n)
+{
+	Item listNode temp;
+	int src_x;
+	int src_y;
+	int result;
+	src_x = p_n.x;
+	src_y = p_n.y;
+	print(src_x);
+	print(src_y);
+	result = triggerRule(src_x, src_y, dst_x, dst_y, p_n);
+	if (result == 1)
+	{
+		deleteFromGrid(src_x, src_y, p_n.nametag);
+		addToGrid(dst_x, dst_y, p_n);
+	}
+}
+
 *Item listNode getHead(int x, int y){
 	*Item listNode head;
 	head = GridNew[x][y];

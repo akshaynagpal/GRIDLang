@@ -647,28 +647,7 @@ let translate (globals, functions, structs) =
           | _ -> expr builder actual)
           in 
           (match f with
-          | "moveOnGrid" ->  
-                            let actuals_arr = Array.of_list act in
-                            let x = Array.get actuals_arr 0 in
-                            let y = Array.get actuals_arr 1 in
-                            let listnode = Array.get actuals_arr 2 in                            
-                            let source_x = A.Dotop(listnode,"x") in
-                            let source_y = A.Dotop(listnode,"y") in
-                            let nametag = A.Dotop(listnode,"nametag") in
-                            let make_call_1 = A.Expr (A.Call ("deleteFromGrid",[source_x; source_y; nametag])) in
-                            let make_call_2 = A.Expr (A.Call ("addToGrid",[x; y; listnode])) in
-                            let then_body = A.Block [make_call_1; make_call_2] in
-(*                             let rule_func_name = "good" ^ "rule" in (*change hard-coded good to actual struct type*)
-                            let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
-                            let _ = Hashtbl.add vars_local "rule" rule_val in 
-                            let func_call = A.Call(rule_func_name, [source_x;source_y;x;y]) in 
-                            ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
-                            let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
-                            let else_body = A.Block[ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), 
-                              ( A.Binop(A.Id("currentPlayerIndex"),A.Sub,A.Literal(1)) ) )) ] in
-                            let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
-                            ignore(internal_if_flag:=1);
-                            new_global_builder := current_builder; *) expr builder nametag
+
           |_ -> let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
                 let actuals = List.rev (List.map map_arguments (List.rev act)) in
                 let result = (match fdecl_called.A.typ with A.Void -> ""

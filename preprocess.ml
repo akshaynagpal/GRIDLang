@@ -14,6 +14,10 @@ let insideItemStruct = ref false
 let exitingItemStruct = ref false
 let playerStructBraceCounter = ref 0
 let listNode = ref "Item listNode\n{\n"
+let triggerRule = ref "int triggerRule(int src_x, int src_y, int dst_x, int dst_y, *Item listNode l)\n{\nint x;\n"
+
+let append_to_string structName = 
+	triggerRule := !triggerRule ^ "if (l.typetag == \"" ^ structName ^"\")\n{\nx = "^structName^"rule(src_x, src_y, dst_x, dst_y);\nreturn x;\n}\n"
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -50,6 +54,7 @@ let process_files filename1 =
 					  						let wordArr = Array.of_list(wordlis) in
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
+					  						let _ = append_to_string structName in
 					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";	
 			  							end
 			  						else
@@ -58,6 +63,7 @@ let process_files filename1 =
 					  						let wordArr = Array.of_list(wordlis) in
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
+					  						let _ = append_to_string structName in
 					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
 			  							end
 			  					end
@@ -193,8 +199,9 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
-			if (!tempImportFile = "") then
+	let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+	let temp2 = 
+		if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then
 						let res = playerStruct ^ "" ^ temp in
@@ -212,3 +219,6 @@ let process_files filename1 =
 					let importFile = concat (read_all_lines !tempImportFile) in
 					let res = temp ^ "" ^ importFile in
 						res
+	in
+  let temp2 = temp2 ^ !triggerRule ^ "}" in
+  temp2
