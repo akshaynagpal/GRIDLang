@@ -1,0 +1,71 @@
+import gridBasics.grid
+
+int checkGameEnd()
+{
+  
+  return 1;
+}
+
+/*Shouldn't have to write this explicitly*/
+Item location
+{
+  int x;
+  int y;
+}
+
+Item Pawn
+{
+  int something;  
+}
+
+Player
+{ 
+  Item Pawn pawn;
+  string color;
+}
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  print("Inside colocation");
+  return 0;
+}
+
+Grid_Init<5,4> grid;
+Player p1;
+Player p2;
+Player[2] playerOrder;
+int playerOrderSize;
+int count;
+
+int initialSetup(){
+  p1.color = "White";
+  p2.color = "Black"; 
+  playerOrder[0] = p1;
+  playerOrder[1] = p2;
+  playerOrderSize = 2;
+  Grid <1,2> <-- p1.pawn;
+  Grid <3,2> <-- p2.pawn;
+  return 0;
+}
+
+int gameloop(){ 
+  int src_x;
+  int src_y;
+  int dst_x;
+  int dst_y;
+  *Item listNode headnode;
+  Player cur;
+  printGrid();
+  cur = playerOrder[currentPlayerIndex];
+  print(cur.color);
+  src_x = 1;
+  src_y = 2;
+  dst_x = 2;
+  dst_y = 2;
+  headnode = getHead(src_x, src_y);
+  deleteFromGrid(src_x, src_y, headnode.nametag);
+  addToGrid(dst_x, dst_y, headnode);
+  /*moveOnGrid(dst_x,dst_y,headnode);*/
+  printGrid();
+  return 0; 
+}
