@@ -13,8 +13,54 @@ int checkGameEnd()
 Item Pawn
 {
   int something;
-  int rule(int x1, int y1, int x2, int y2)
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
+    int direction;
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    src = getHead(src_x, src_y);
+    if (src == None)
+    {
+      print("No item present here");
+      return 0;
+    }
+    owner1 = src.owner;
+    print("Color is");
+    print(owner1.color);
+
+    direction = getDirectionFromIndex();
+    print("Direction is: ");
+    print(direction);
+    if(dst_x != src_x + direction)  /* check if pawn moves >1 step vertically, or in the wrong direction*/ 
+    {
+      print("Moving in the wrong direction");
+      return 0;
+    }
+    if (dst_y - src_y > 1 || dst_y - src_y < -1) /* check if pawn moves more than one square horizontally*/
+    {
+      print("Can't move more than one square horizontally with a pawn");
+      return 0;
+    }
+    dst = getHead(dst_x, dst_y);
+    if(dst_y == src_y - 1 || dst_y == src_y + 1) /* if pawn moves diagonally left 1 or right 1, check if item on destination square is the same color */
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if (owner1.color == owner2.color)
+        {
+          print("Can't kill your own piece");
+          return 0;
+        }
+      }
+    }
+    if (dst!=None)
+    {
+      print("Can only kill diagonally with a pawn");
+      return 0;
+    }
     return 1;
   }
 }
@@ -52,6 +98,22 @@ Player
   string color;
 }
 
+int getDirectionFromIndex()
+{
+  int direction;
+  print("Current Player Index: ");
+  print(currentPlayerIndex);
+  if(currentPlayerIndex == 0)
+  {
+    direction = -1;
+  }
+  else
+  {
+    direction = 1;
+  }
+  return direction;
+}
+
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
   print("Inside colocation");
@@ -84,6 +146,8 @@ int gameloop(){
   *Item listNode headnode;
   Player cur;
   printGrid();
+  print("Current player index in main: ");
+  print(currentPlayerIndex);
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);
   src_x = prompt();
@@ -91,6 +155,13 @@ int gameloop(){
   dst_x = prompt();
   dst_y = prompt();
   headnode = getHead(src_x, src_y);
-  moveOnGrid(dst_x,dst_y,headnode);
+  if (headnode != None)
+  {
+    moveOnGrid(dst_x,dst_y,headnode);
+  }
+  else
+  {
+    print("No item present");
+  }
   return 0; 
 }

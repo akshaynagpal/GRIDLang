@@ -95,6 +95,8 @@ let translate (globals, functions, structs) =
   in
   List.map global_var_func globals;
 
+  let global_val = L.define_global "currentPlayerIndex" (L.const_int (ltype_of_typ (A.Int)) 0) the_module in
+  Hashtbl.add vars_global "currentPlayerIndex" global_val;
 
   let populate_struct_type sdecl = 
     let struct_t = Hashtbl.find struct_types sdecl.A.sname in (* get struct by sname*)
@@ -174,6 +176,8 @@ let translate (globals, functions, structs) =
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in  
 
+
+
   (* Fill in the body of the given function *)
   let build_function_body the_function fdecl =
 
@@ -207,8 +211,6 @@ let translate (globals, functions, structs) =
     let _ = List.iter2 add_formal fdecl.A.formals (Array.to_list (L.params the_function)) in
         List.map add_local fdecl.A.locals 
     in
-    let cur_player_val = L.build_alloca i32_t "currentPlayerIndex" builder in
-    let _ = Hashtbl.add vars_global "currentPlayerIndex" cur_player_val in
     let local = L.build_alloca i32_t "repeat" builder in
     let _ = Hashtbl.add vars_local "repeat" local in 
 

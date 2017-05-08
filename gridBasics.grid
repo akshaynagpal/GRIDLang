@@ -151,7 +151,6 @@ void moveOnGrid(int dst_x, int dst_y, *Item listNode p_n)
 *Item listNode getHead(int x, int y){
 	*Item listNode head;
 	head = GridNew[x][y];
-	print(head.nametag);
 	return head;
 
 }
