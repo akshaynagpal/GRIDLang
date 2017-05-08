@@ -141,14 +141,18 @@ void moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 	*Item listNode p_n;
 	int result;
 	p_n = getHead(src_x, src_y);
-	result = triggerRule(src_x, src_y, dst_x, dst_y, p_n);
-	if (result == 1)
+	if (p_n != None)
 	{
-		deleteFromGrid(src_x, src_y, p_n.nametag);
-		addToGrid(dst_x, dst_y, p_n);
+		result = triggerRule(src_x, src_y, dst_x, dst_y, p_n.typetag);
+		if (result == 1)
+		{
+			deleteFromGrid(src_x, src_y, p_n.nametag);
+			addToGrid(dst_x, dst_y, p_n);
+		}
 	}
 	else
 	{
+		print("No piece on cell");
 		currentPlayerIndex = currentPlayerIndex - 1;
 	}
 }
