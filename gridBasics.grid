@@ -81,56 +81,82 @@ void deleteFromGrid(int x, int y, string tag){
 int printGrid(){
 	int x;
 	int y;
-	int len;
+	int i;
+	int k;
+	int width;
+	int tempLen;
+	string dim;
 	int flag;
-	int max_len;
+	int max_width;
+	int border_len;
 	string printer;
 	*Item listNode iterator;
-	len = 0;
-	max_len = 0;
+	width = 0;
+	max_width = 0;
+	border_len = 0;
 	
 	for(x = 0; x < rows; x = x+1){
 		for(y = 0; y < cols; y = y+1){
 			iterator = GridNew[x][y];
-	
-			while(iterator != None ){
+			width = 0;
+			if(iterator!=None){
+				width = width + getLen(iterator.nametag);
 				iterator = iterator.next;
-				len = len + 1 ;
 			}
-			if(max_len < len){
-				max_len = len;
+			while(iterator != None ){
+				width = width + 2;
+				width = width + getLen(iterator.nametag);
+				iterator = iterator.next;
 			}
-
+			if(width>max_width){
+				max_width = width;
+			}
 		}
-
 	}
+
+	border_len = max_width * cols + (cols+1);
+
+	for (i = 0; i < border_len; i=i+1)
+	{
+		print_sameline("_");
+	}
+
+	print_endline();
 
 	for(x = 0; x < rows; x = x+1)
 	{
 		for(y = 0; y < cols; y = y+1)
 		{
-			iterator = GridNew[x][y];	
+			tempLen = 0;
 			print_sameline("|");
-			flag = 0;
-			while(iterator !=None)
-			{
-				if (flag != 1)
-				{
-					flag = 1;
-				}
-				else
-				{
-					print_sameline(", ");
-				}
+			iterator = GridNew[x][y];
+			if(iterator!=None){
 				printer = iterator.nametag;
+				tempLen = tempLen + getLen(printer);
 				print_sameline(printer);
 				iterator = iterator.next;
 			}
+			while(iterator !=None)
+			{	
+				print_sameline(", ");
+				printer = iterator.nametag;
+				tempLen = tempLen + getLen(printer);
+				tempLen = tempLen +2;
+				print_sameline(printer);
+				iterator = iterator.next;
+			}
+			for(k=0;k<max_width-tempLen;k=k+1){
+				print_sameline(" ");
+			}
 		}
-		print_sameline("|");				
+		print_sameline("|");		
 		print_endline();
 	}
-	print("----------------");
+
+	for (i = 0; i < border_len; i=i+1)
+	{
+		print_sameline("-");
+	}
 	return 0;
 	
 }
