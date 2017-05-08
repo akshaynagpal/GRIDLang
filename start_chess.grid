@@ -10,6 +10,40 @@ int checkGameEnd()
   return 1;
 }
 
+int checkIfCheck(int dst_x, int dst_y)
+{
+  *Player p;
+  int x;
+  int y;
+  *Item listNode l;
+
+  if (currentPlayerIndex == 0)
+  {
+    p = &p1;
+  }
+  else
+  {
+    p = &p2;
+  }
+
+  for(x = 0; x < rows; x = x+1)
+  {
+    for(y = 0; y < cols; y = y+1)
+    {
+      l = getHead(x,y);
+      if (l != None)
+      {
+        if (l.owner == p)
+        {
+          if (triggerRule(x, y, dst_x, dst_y, l.typetag) == 1)
+            return 1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 Item King
 {
   int rule(int src_x, int src_y, int dst_x, int dst_y)
@@ -32,7 +66,7 @@ Item King
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      print("Not your piece!");
+      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -40,7 +74,7 @@ Item King
     ydiff = abs(dst_y - src_y);
     if (xdiff > 1 || ydiff > 1)
     {
-      print("Invalid move for king");
+      /*print("Invalid move for king");*/
       return 0;
     }
 
@@ -49,25 +83,20 @@ Item King
       owner2 = dst.owner;
       if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
       {
-        print("Can't kill your own piece");
+        /*print("Can't kill your own piece");*/
         return 0;
       }
     }
 
-    if (currentPlayerIndex == 1)
+    /*Temporarily change current player index*/
+    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+    if (checkIfCheck(dst_x, dst_y) == 1)
     {
-      opposingIndex = 0;
+      /*print("Can't move into check");*/
+      currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+      return 0;
     }
-    else
-    {
-      opposingIndex = 1;
-    }
-
-    oppPlayer = playerOrder[opposingIndex];
-
-/*    oppking = oppPlayer.king;
-    print(oppking.x);*/
-
+    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
     return 1;
   }
 }
@@ -99,12 +128,12 @@ Item Pawn
 
     if(dst_x != src_x + direction)  /* check if pawn moves >1 step vertically, or in the wrong direction*/ 
     {
-      print("Moving in the wrong direction");
+      /*print("Moving in the wrong direction");*/
       return 0;
     }
     if (dst_y - src_y > 1 || dst_y - src_y < -1) /* check if pawn moves more than one square horizontally*/
     {
-      print("Can't move more than one square horizontally with a pawn");
+      /*print("Can't move more than one square horizontally with a pawn");*/
       return 0;
     }
     if(dst_y == src_y - 1 || dst_y == src_y + 1) /* if pawn moves diagonally left 1 or right 1, check if item on destination square is the same color */
@@ -114,7 +143,7 @@ Item Pawn
         owner2 = dst.owner;
         if (owner1.color == owner2.color)
         {
-          print("Can't kill your own piece");
+          /*print("Can't kill your own piece");*/
           return 0;
         }
         else
@@ -129,7 +158,7 @@ Item Pawn
     }
     if (dst!=None)
     {
-      print("Can only kill diagonally with a pawn");
+      /*print("Can only kill diagonally with a pawn");*/
       return 0;
     }
     return 1;
@@ -154,7 +183,7 @@ Item Bishop
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      print("Not your piece!");
+      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -165,13 +194,13 @@ Item Bishop
         owner2 = dst.owner;
         if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
         {
-          print("Can't kill your own piece");
+          /*print("Can't kill your own piece");*/
           return 0;
         }
       }
       return 1;
     }
-    print("Non-diagonal move attempt with bishop");
+    /*print("Non-diagonal move attempt with bishop");*/
     return 0;
   }
 }
@@ -196,7 +225,7 @@ Item Knight
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      print("Not your piece!");
+      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -209,13 +238,13 @@ Item Knight
         owner2 = dst.owner;
         if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
         {
-          print("Cannot kill your own piece");
+          /*print("Cannot kill your own piece");*/
           return 0;
         }
       }
       return 1;
     }
-    print("Invalid move for knight");
+    /*print("Invalid move for knight");*/
     return 0;
   }
 }
@@ -240,7 +269,7 @@ Item Rook
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      print("Not your piece!");
+      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -251,13 +280,13 @@ Item Rook
         owner2 = dst.owner;
         if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
         {
-          print("Cannot kill your own piece");
+          /*print("Cannot kill your own piece");*/
           return 0;
         }
       }
       return 1;
     }
-    print("Invalid move for rook");
+    /*print("Invalid move for rook");*/
     return 0;
   }
 }
@@ -339,6 +368,9 @@ int gameloop(){
   src_y = prompt();
   dst_x = prompt();
   dst_y = prompt();
-  moveOnGrid(src_x, src_y, dst_x,dst_y);
+  if (moveOnGrid(src_x, src_y, dst_x,dst_y) != 1)
+  {
+    print("Invalid move");
+  }
   return 0; 
 }
