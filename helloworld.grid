@@ -56,9 +56,12 @@ int initialSetup(){
 }
 
 int gameloop(){ 
-  Item listNode headnode;
+  Player p1;
+  p1.hor.x = 3;
+  print(p1.hor.x);
+/*  Item listNode headnode;
   p1.x = 79;
-  print(currentPlayerIndex);
+  print(currentPlayerIndex);*/
 /*  headnode = getHead(1,0);
   moveOnGrid(0,0,headnode);*/
   return 0; 

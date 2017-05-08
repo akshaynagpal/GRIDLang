@@ -524,7 +524,8 @@ let translate (globals, functions, structs) =
                 )
                 with Not_found -> raise (Failure("unable to find" ^ s)) )
 
-              | A.PointerType t -> let e_loaded = L.build_load e' "loaded_deref" builder in
+              | A.PointerType t -> 
+              let e_loaded = L.build_load e' "loaded_deref" builder in
               let e1'_lltype = L.type_of e_loaded in
               let e1'_struct_name_string_option = L.struct_name e1'_lltype in
               let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
@@ -655,19 +656,23 @@ let translate (globals, functions, structs) =
           in 
           (match f with
           | "moveOnGrid" -> (* let actuals = List.rev (List.map map_arguments (List.rev act)) in *) 
-                            let actuals_arr = Array.of_list act in
-                            let x = Array.get actuals_arr 0 in
-                            let y = Array.get actuals_arr 1 in
-                            let listnode = Array.get actuals_arr 2 in
-                            (*let listnode = A.Unop(A.Deref, listnode) in*)
-                            let source_x = A.Dotop(A.Dotop(listnode,"loc"),"x") in
+                            let (fdef, fdecl_called) = try StringMap.find f function_decls 
+                          with Not_found -> StringMap.find f struct_function_decls in
+                          let actuals = List.rev (List.map map_arguments (List.rev act)) in
+                        let result = (match fdecl_called.A.typ with A.Void -> ""
+                                              | _ -> f ^ "_result") 
+                          in L.build_call fdef (Array.of_list actuals) result builder
+
+                            (*Have trouble sending .loc.x and .loc.y through a pointer in this call*)
+                            (*So instead will have to make an explicit moveOnGrid in gridBasics*)
+(*                             let source_x = A.Dotop(A.Dotop(listnode,"loc"),"x") in
                             let source_y = A.Dotop(A.Dotop(listnode,"loc"),"y") in
                             let nametag = A.Dotop(listnode,"nametag") in
                             let make_call = A.Call ("deleteFromGrid",[source_x; source_y; nametag]) in
                             let _ = expr builder make_call in
                             let make_call = A.Call ("addToGrid",[x; y; listnode]) in
                             expr builder make_call
-                            (*Make call to addToGrid with (x,y,listnode)*)
+ *)                            (*Make call to addToGrid with (x,y,listnode)*)
                             (*Make call to deleteFromGrid(listnode.loc.x,listnode.loc.y, listnode.nametag) *)
           |_ -> let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
                 let actuals = List.rev (List.map map_arguments (List.rev act)) in

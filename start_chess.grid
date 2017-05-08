@@ -11,15 +11,10 @@ int checkGameEnd()
 }
 
 /*Shouldn't have to write this explicitly*/
-Item location
-{
-  int x;
-  int y;
-}
 
 Item Pawn
 {
-  int something;  
+  int something;
 }
 
 Player
@@ -67,8 +62,6 @@ int gameloop(){
   dst_x = prompt();
   dst_y = prompt();
   headnode = getHead(src_x, src_y);
-  deleteFromGrid(src_x, src_y, headnode.nametag);
-  addToGrid(dst_x, dst_y, headnode);
-  /*moveOnGrid(dst_x,dst_y,headnode);*/
+  moveOnGrid(dst_x,dst_y,headnode);
   return 0; 
 }
