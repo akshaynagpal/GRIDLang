@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+// get length of a string
+int getLen(char* x){
+   return strlen(x);
+}
 
 // get user input
 int prompt()
@@ -15,6 +21,13 @@ int prompt()
 int print_endline(){
    printf("\n");
    return 0;
+}
+
+// get string value of integer
+char* to_string(int x){
+   char snum[20];
+   // itoa(x, snum, 10);
+   return snum[0];
 }
 
 // print to console without a newline
