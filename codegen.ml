@@ -393,7 +393,8 @@ let translate (globals, functions, structs) =
                         let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,e3))) in
                         (*Next thing is to assign the tagtype "good"*)
                         let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
-                        let _ = expr builder (A.Assign(dotoperator, A.String_Lit(full_name_tag))) in
+                        let displayString = A.Dotop(e3, "displayString") in 
+                        let _ = expr builder (A.Assign(dotoperator, displayString)) in
                         let dotoperator = A.Dotop(A.Id("newNode"), "typetag") in 
                         let _ = expr builder (A.Assign(dotoperator, A.String_Lit(struct_name))) in
                         expr builder (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));]))

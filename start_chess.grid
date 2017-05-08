@@ -2,12 +2,38 @@ import gridBasics.grid
 
 int checkGameEnd()
 {
-  if (count < 10)
+  /*First trigger checkIfCheck for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
+  */
+  *Player p;
+  *Item listNode king_item;
+  int dst_x;
+  int dst_y;
+  if (currentPlayerIndex == 0)
   {
-    count = count +1;
-    return 0;
+    p = &p2;
   }
-  return 1;
+  else
+  {
+    p = &p1;
+  }
+  king_item = getListNodeFromItem(p1.king.displayString);
+  if (checkIfCheck(king_item.x, king_item.y) == 1)
+  {
+    for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
+    {
+      for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
+      {
+        if (triggerRule(king_item.x, king_item.y, dst_x, dst_y, king_item.typetag) == 1)
+        {
+          print("Can move to this");
+          return 0;
+        }
+      }
+    }
+    print("Can't move anywhere");
+    return 1;
+  }
+  return 0;
 }
 
 int checkIfCheck(int dst_x, int dst_y)
@@ -46,6 +72,7 @@ int checkIfCheck(int dst_x, int dst_y)
 
 Item King
 {
+  string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     *Item listNode src;
@@ -103,7 +130,7 @@ Item King
 
 Item Pawn
 {
-  int something;
+  string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     int direction;
@@ -120,7 +147,7 @@ Item Pawn
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      print("Not your piece!");
+/*      print("Not your piece!");*/
       return 0;
     }
 
@@ -167,7 +194,7 @@ Item Pawn
 
 Item Bishop
 {
-  int something;
+  string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     *Item listNode src;
@@ -207,7 +234,7 @@ Item Bishop
 
 Item Knight
 {
-  int something;
+  string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     *Item listNode src;
@@ -251,7 +278,7 @@ Item Knight
 
 Item Rook
 {
-  int something;
+  string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     *Item listNode src;
@@ -304,8 +331,6 @@ Player
 int getDirectionFromIndex()
 {
   int direction;
-  print("Current Player Index: ");
-  print(currentPlayerIndex);
   if(currentPlayerIndex == 0)
   {
     direction = -1;
@@ -321,6 +346,7 @@ int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
   print("Inside colocation");
   deleteFromGrid(x,y,i2.nametag);
+  printGrid();
   return 0;
 }
 
@@ -337,6 +363,18 @@ int initialSetup(){
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrderSize = 2;
+
+  p1.king.displayString = "W-King";
+  p1.rook.displayString = "W-Rook";
+  p1.knight.displayString = "W-Knight";
+  p1.bishop.displayString = "W-Bishop";
+  p1.pawn.displayString = "W-Pawn";
+
+  p2.king.displayString = "B-King";
+  p2.rook.displayString = "B-Rook";
+  p2.knight.displayString = "B-Knight";
+  p2.bishop.displayString = "B-Bishop";
+  p2.pawn.displayString = "B-Pawn";
 
   Grid <4,3> <-- p1.king;
   Grid <3,3> <-- p1.pawn;
@@ -360,7 +398,6 @@ int gameloop(){
   *Item listNode headnode;
   Player cur;
   printGrid();
-  print("Current player index in main: ");
   print(currentPlayerIndex);
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);
