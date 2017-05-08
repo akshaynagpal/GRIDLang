@@ -3,11 +3,12 @@
 #include <time.h>
 
 // get user input
-char *prompt()
+int prompt()
 {
-   static char str[50];
-   scanf("%s", str);
-   return str;
+   // static char str[50];
+   static int x;
+   scanf("%d", &x);
+   return x;
 }
 
 // print to console with a newline

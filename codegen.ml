@@ -132,7 +132,7 @@ let translate (globals, functions, structs) =
   let printf_func = L.declare_function "printf" printf_t the_module in
 
   (* Declare built-in prompt() function *)
-  let prompt_t = L.function_type str_t [||] in
+  let prompt_t = L.function_type i32_t [||] in
   let prompt_func = L.declare_function "prompt" prompt_t the_module in
 
   let print_endline_t = L.function_type i32_t [||] in
@@ -265,6 +265,16 @@ let translate (globals, functions, structs) =
               let struct_llvalue = lookup s in (*return the value of x*)
               let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
               access_llvalue (*not sure what this last step is for*)
+            | A.PointerType t-> let e' = expr builder e1 in
+              let e_loaded = L.build_load e' "loaded_deref" builder in
+              let e1'_lltype = L.type_of e_loaded in
+              let e1'_struct_name_string_option = L.struct_name e1'_lltype in
+              let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
+              let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
+              let index_number = StringMap.find field index_number_list in
+              let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
+              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+              loaded_access
             | A.PlayerType -> let t = "Player" in
                           let index_number_list = StringMap.find t struct_field_index_list in
               let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
@@ -648,7 +658,8 @@ let translate (globals, functions, structs) =
                             let actuals_arr = Array.of_list act in
                             let x = Array.get actuals_arr 0 in
                             let y = Array.get actuals_arr 1 in
-                            let listnode = Array.get actuals_arr 2 in 
+                            let listnode = Array.get actuals_arr 2 in
+                            (*let listnode = A.Unop(A.Deref, listnode) in*)
                             let source_x = A.Dotop(A.Dotop(listnode,"loc"),"x") in
                             let source_y = A.Dotop(A.Dotop(listnode,"loc"),"y") in
                             let nametag = A.Dotop(listnode,"nametag") in

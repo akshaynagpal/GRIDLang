@@ -52,7 +52,6 @@ int initialSetup(){
   playerOrderSize = 3;
   Grid <1,0> <-- p1.hor;
   Grid <1,0> <-- p2.hor;
-  printGrid();
   return 0;
 }
 

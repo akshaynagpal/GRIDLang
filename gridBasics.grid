@@ -1,13 +1,9 @@
-void addToGrid(int x, int y, Item listNode p_n){
-
+void addToGrid(int x, int y, *Item listNode p_n){
+	/*Set location of item p_n somewhere here*/
 	*Item listNode iterator;
-   Item listNode p_deref;
-	p_n.loc.x = x;
-	p_n.loc.y = y;
- 
   if(GridNew[x][y] == None)
   {
-		GridNew[x][y] = &p_n;
+		GridNew[x][y] = p_n;
 		iterator = GridNew[x][y];	
 		iterator.next = None;
 		return;
@@ -19,7 +15,7 @@ void addToGrid(int x, int y, Item listNode p_n){
 	  {
 			iterator = iterator.next;
 		}
-		iterator.next = &p_n;
+		iterator.next = p_n;
 		iterator = iterator.next;
 		iterator.next = None;
 
@@ -29,12 +25,12 @@ void addToGrid(int x, int y, Item listNode p_n){
 	  while(iterator.next != None)
 	  {
 			iterator = iterator.next;
-			if (iterator != &p_n)
+			if (iterator != p_n)
 			{
 				colocation(x, y, p_n, iterator);
 			}
 		}
-		iterator.next = &p_n;
+		iterator.next = p_n;
 		iterator = iterator.next;
 		iterator.next = None;	
 	}
@@ -50,7 +46,7 @@ void deleteFromGrid(int x, int y, string tag){
 	next_iterator = iterator.next;
 
 	if(iterator.nametag == tag){
-		GridNew[x][y] = next_iterator;
+		GridNew[x][y] = None;
 		iterator.next = None;
 		iterator = None;
 		return;
@@ -79,6 +75,7 @@ int printGrid(){
 	int x;
 	int y;
 	int len;
+	int flag;
 	int max_len;
 	string printer;
 	*Item listNode iterator;
@@ -101,33 +98,40 @@ int printGrid(){
 
 	}
 
-	for(x = 0; x < rows; x = x+1){
-		for(y = 0; y < cols; y = y+1){
-		
-			iterator = GridNew[x][y];
-			
+	for(x = 0; x < rows; x = x+1)
+	{
+		for(y = 0; y < cols; y = y+1)
+		{
+			iterator = GridNew[x][y];	
 			print_sameline("|");
-			while(iterator !=None){
+			flag = 0;
+			while(iterator !=None)
+			{
+				if (flag != 1)
+				{
+					flag = 1;
+				}
+				else
+				{
+					print_sameline(", ");
+				}
 				printer = iterator.nametag;
 				print_sameline(printer);
-				print_sameline(", ");
 				iterator = iterator.next;
-				
-				
 			}
-			print_sameline("|");	
-			
 		}
+		print_sameline("|");				
 		print_endline();
-
 	}
+	print("----------------");
 	return 0;
 	
 }
 
-Item listNode getHead(int x, int y){
-	Item listNode head;
-	head = *GridNew[x][y];
+*Item listNode getHead(int x, int y){
+	*Item listNode head;
+	head = GridNew[x][y];
+	print(head.nametag);
 	return head;
 
 }
