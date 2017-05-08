@@ -15,6 +15,37 @@ int checkGameEnd()
 Item Pawn
 {
   int something;
+  int rule(int x1, int y1, int x2, int y2)
+  {
+    return 1;
+  }
+}
+
+Item Bishop
+{
+  int something;
+  int rule(int x1, int y1, int x2, int y2)
+  {
+    return 1;
+  }
+}
+
+Item Knight
+{
+  int something;
+  int rule(int x1, int y1, int x2, int y2)
+  {
+    return 1;
+  }
+}
+
+Item Rook
+{
+  int something;
+  int rule(int x1, int y1, int x2, int y2)
+  {
+    return 1;
+  }
 }
 
 Player
@@ -62,6 +93,6 @@ int gameloop(){
   dst_x = prompt();
   dst_y = prompt();
   headnode = getHead(src_x, src_y);
-  moveOnGrid(dst_x,dst_y,headnode);
+/*  moveOnGrid(dst_x,dst_y,headnode);*/
   return 0; 
 }

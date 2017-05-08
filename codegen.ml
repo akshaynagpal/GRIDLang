@@ -22,6 +22,7 @@ let translate (globals, functions, structs) =
   let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
   (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
   let struct_names:(L.lltype,string) Hashtbl.t = Hashtbl.create 50 in
+  
   let add_empty_named_struct_types sdecl =
     let struct_t = L.named_struct_type context sdecl.A.sname in
     let _ = Hashtbl.add struct_types sdecl.A.sname struct_t in
@@ -346,7 +347,7 @@ let translate (globals, functions, structs) =
                         let struct_name = Hashtbl.find struct_names struct_type in
                         (*Create a list node*)
                         let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
-                        let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in 
+                        let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in
                         let _ = Hashtbl.add vars_local "newNode" struct_val in
                         (*Assign newNode.owner as the left side of e3*)
                         let owner_val_expr = 
@@ -387,18 +388,7 @@ let translate (globals, functions, structs) =
                         (*Next thing is to assign the tagtype "good"*)
                         let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
                         let _ = expr builder (A.Assign(dotoperator, A.String_Lit(full_name_tag))) in
-                        let rule_func_name = struct_name ^ "rule" in
-                        let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
-                        let _ = Hashtbl.add vars_local "rule" rule_val in 
-                        let func_call = A.Call(rule_func_name, [A.Coordinate_Lit(A.Literal(-1),A.Literal(-1));A.Coordinate_Lit(e1,e2)]) in 
-                        ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
-                        let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
-                        let then_body =  A.Expr (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));])) in
-                        let else_body = A.Block[ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), 
-                              ( A.Binop(A.Id("currentPlayerIndex"),A.Sub,A.Literal(1)) ) )) ] in
-                        let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
-                        ignore(internal_if_flag:=1);
-                        new_global_builder := current_builder; struct_llvalue
+                        expr builder (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));]))
 
     | A.DeletePlayer (e1, e2, e3) -> 
             let tag_to_send = 
@@ -655,25 +645,28 @@ let translate (globals, functions, structs) =
           | _ -> expr builder actual)
           in 
           (match f with
-          | "moveOnGrid" -> (* let actuals = List.rev (List.map map_arguments (List.rev act)) in *) 
-                            let (fdef, fdecl_called) = try StringMap.find f function_decls 
-                          with Not_found -> StringMap.find f struct_function_decls in
-                          let actuals = List.rev (List.map map_arguments (List.rev act)) in
-                        let result = (match fdecl_called.A.typ with A.Void -> ""
-                                              | _ -> f ^ "_result") 
-                          in L.build_call fdef (Array.of_list actuals) result builder
-
-                            (*Have trouble sending .loc.x and .loc.y through a pointer in this call*)
-                            (*So instead will have to make an explicit moveOnGrid in gridBasics*)
-(*                             let source_x = A.Dotop(A.Dotop(listnode,"loc"),"x") in
-                            let source_y = A.Dotop(A.Dotop(listnode,"loc"),"y") in
+          | "moveOnGrid" ->  
+                            let actuals_arr = Array.of_list act in
+                            let x = Array.get actuals_arr 0 in
+                            let y = Array.get actuals_arr 1 in
+                            let listnode = Array.get actuals_arr 2 in                            
+                            let source_x = A.Dotop(listnode,"x") in
+                            let source_y = A.Dotop(listnode,"y") in
                             let nametag = A.Dotop(listnode,"nametag") in
-                            let make_call = A.Call ("deleteFromGrid",[source_x; source_y; nametag]) in
-                            let _ = expr builder make_call in
-                            let make_call = A.Call ("addToGrid",[x; y; listnode]) in
-                            expr builder make_call
- *)                            (*Make call to addToGrid with (x,y,listnode)*)
-                            (*Make call to deleteFromGrid(listnode.loc.x,listnode.loc.y, listnode.nametag) *)
+                            let make_call_1 = A.Expr (A.Call ("deleteFromGrid",[source_x; source_y; nametag])) in
+                            let make_call_2 = A.Expr (A.Call ("addToGrid",[x; y; listnode])) in
+                            let then_body = A.Block [make_call_1; make_call_2] in
+(*                             let rule_func_name = "good" ^ "rule" in (*change hard-coded good to actual struct type*)
+                            let rule_val = L.build_alloca (ltype_of_typ A.Int) "rule" builder in
+                            let _ = Hashtbl.add vars_local "rule" rule_val in 
+                            let func_call = A.Call(rule_func_name, [source_x;source_y;x;y]) in 
+                            ignore(expr builder (A.Assign(A.Id("rule"), func_call)));
+                            let predicate = A.Binop(A.Id("rule"),A.Equal,A.Literal(1)) in
+                            let else_body = A.Block[ A.Expr ( A.Assign(A.Id("currentPlayerIndex"), 
+                              ( A.Binop(A.Id("currentPlayerIndex"),A.Sub,A.Literal(1)) ) )) ] in
+                            let current_builder = stmt builder (A.If(predicate,then_body,else_body)) in 
+                            ignore(internal_if_flag:=1);
+                            new_global_builder := current_builder; *) expr builder nametag
           |_ -> let (fdef, fdecl_called) = try StringMap.find f function_decls with Not_found -> StringMap.find f struct_function_decls in
                 let actuals = List.rev (List.map map_arguments (List.rev act)) in
                 let result = (match fdecl_called.A.typ with A.Void -> ""

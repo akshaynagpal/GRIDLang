@@ -73,20 +73,6 @@ void deleteFromGrid(int x, int y, string tag){
 	
 }
 
-void moveOnGrid(int dst_x, int dst_y, *Item listNode p_n)
-{
-	Item listNode temp;
-	int src_x;
-	int src_y;
-	src_x = p_n.x;
-	src_y = p_n.y;
-	print(src_x);
-	print(src_y);
-	deleteFromGrid(src_x, src_y, p_n.nametag);
-	addToGrid(dst_x, dst_y, p_n);
-}
-
-
 int printGrid(){
 	int x;
 	int y;
