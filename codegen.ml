@@ -64,7 +64,7 @@ let translate (globals, functions, structs) =
     grid_val 
   in
 
-  let other_global_vars (t,n) =
+  let rec other_global_vars (t,n) =
     let global_val = 
     (match t with
      A.Int -> L.define_global n (L.const_int (ltype_of_typ (A.Int)) 0) the_module
@@ -72,6 +72,8 @@ let translate (globals, functions, structs) =
     | A.String -> L.define_global n (L.const_string context "") the_module
     | A.PlayerType -> let init = L.const_null (ltype_of_typ (A.PlayerType)) in
                       L.define_global n init the_module
+    | A.PointerType t1 -> let init = L.const_pointer_null (ltype_of_typ (A.PointerType(t1))) in
+                        L.define_global n init the_module
     | A.StructType (s)-> let init = L.const_null (ltype_of_typ (A.StructType(s))) in
                       L.define_global n init the_module
     | A.Array1DType (typ,size) -> let each_cell = L.const_null (ltype_of_typ typ) in
