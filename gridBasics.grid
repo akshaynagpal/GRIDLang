@@ -179,6 +179,13 @@ int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 	Item listNode temp;
 	*Item listNode p_n;
 	int result;
+
+	if (checkBound(src_x, src_y) == 0 || checkBound(dst_x, dst_y) == 0)
+	{
+		print("Out of grid bounds");
+		currentPlayerIndex = currentPlayerIndex - 1;
+		return 0;
+	}
 	p_n = getHead(src_x, src_y);
 	if (p_n != None)
 	{
@@ -234,7 +241,7 @@ int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 }
 
 int checkBound(int x,int y){
-	if(x > -1 && x <= rows && y>-1 && y <= cols){
+	if(x > -1 && x < rows && y>-1 && y < cols){
 		return 1;
 	}
 	else{

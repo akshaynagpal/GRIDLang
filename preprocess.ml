@@ -27,7 +27,7 @@ let process_files filename1 =
 	    with Not_found -> false
 	in
 	
-	let ruleFunc = "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n"
+	let ruleFunc = "int rule(int src_x, int src_y, int dst_x, int dst_y) {\nreturn 1;\n}\n"
 	in
 
 	let defaultPlayerStructFormals = "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
@@ -199,7 +199,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-	let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+	let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(int src_x, int src_y, int dst_x, int dst_y) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 	let temp2 = 
 		if (!tempImportFile = "") then
 				begin

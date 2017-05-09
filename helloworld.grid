@@ -7,62 +7,29 @@ int checkGameEnd()
 
 Player
 { 
-  int x; 
-  int y; 
-  string s; 
-  Item horse hor;
+  string name;
 } 
-
-Item location
-{
-  int x;
-  int y;
-}
-
-Item horse{
-  int x;
-  string s;
-  Item location loc;
-  *Item horse next;
-}
-
-Item bishop{
-  int x;
-  string s;
-  *Item bishop next;
-}
 
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
   print("Inside colocation");
-/*  deleteFromGrid(x,y,i2.nametag);*/
 }
 
 Grid_Init<2,2> grid; 
 Player p1;
 Player p2;
-Player p3;
-Player[3] playerOrder;
+Player[2] playerOrder;
 int playerOrderSize;
 
 int initialSetup(){ 
-  playerOrder[0] = p1;
-  playerOrder[1] = p2;
-  playerOrder[2] = p3;
-  playerOrderSize = 3;
-  Grid <1,0> <-- p1.hor;
-  Grid <1,0> <-- p2.hor;
+  playerOrderSize = 2;
   return 0;
 }
 
 int gameloop(){ 
   Player p1;
-  p1.hor.x = 3;
-  print(p1.hor.x);
-/*  Item listNode headnode;
-  p1.x = 79;
-  print(currentPlayerIndex);*/
-/*  headnode = getHead(1,0);
-  moveOnGrid(0,0,headnode);*/
+  *Player p2;
+  p1.name = "Hello World";
+  print(p1.name);
   return 0; 
 }
