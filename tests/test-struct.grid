@@ -1,23 +1,39 @@
-Player good
+import gridBasics.grid
+
+int checkGameEnd()
+ {
+  return 1;
+ }
+
+Player
 { 
 int x; 
 int y; 
 string s; 
 } 
 
-int gameloop()
-{ 
-Player good p1; 
-p1.x = 10;
-p1.y = 20;
-p1.s = "struct works";
-print(p1.x);
-print(p1.y);
-print(p1.s);
-return 0; 
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  return 0;
 }
 
-int checkGameEnd()
-{
-  return 1;
+Grid_Init<0,0> grid; 
+int playerOrderSize;
+
+int initialSetup(){ 
+  playerOrderSize = 2;
+  return 0;
+}
+
+int gameloop()
+{ 
+  Player p1; 
+  p1.x = 10;
+  p1.y = 20;
+  p1.s = "struct works";
+  print(p1.x);
+  print(p1.y);
+  print(p1.s);
+  return 0; 
 }
