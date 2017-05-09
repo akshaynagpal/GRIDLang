@@ -339,23 +339,7 @@ let translate (globals, functions, structs) =
                               done
                               done);grid_val
 
-    | A.GridAssign (e1, e2, e3) -> 
-                        let full_name_tag = 
-                        (match e3 with 
-                        A.Dotop(e1, field) ->
-                            (*Over here, extract the left side as a string, concatenate with '.' and left side. 
-                            Then, when we try to delete, check if it's a dotop. If so, extract left and right side similarly, 
-                            then compare left side *)
-                            let left_of_dot = 
-                            (match e1 with
-                              A.Id(s) -> s
-                              | _ -> raise(Failure("Invalid left-of-dot"))) in
-                            left_of_dot ^ "." ^ field 
-                            (*Do this if the right hand side is just an ID*)
-                            (*Currently assuming anything that is not a dotop is an id*)
-                        | A.Id (s) -> s
-                        | _ -> raise(Failure("Unknown type for GridAssign")))
-                        in
+    | A.GridAssign (e1, e2, e3) ->
                         let struct_llvalue = expr builder e3 in
                         let struct_type = L.type_of struct_llvalue in
                         let struct_name = Hashtbl.find struct_names struct_type in
@@ -591,7 +575,8 @@ let translate (globals, functions, structs) =
                                  and value = expr builder e2 in
                                  ignore(L.build_store value addr builder); value
     | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
-    | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
+    | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 
+                                      in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
     | A.ArrayLiteral (params) -> let val_zero = expr builder (List.hd params) in 
                                  let val_type = L.type_of val_zero in
                           L.const_array val_type (Array.of_list (List.map (expr builder) params))

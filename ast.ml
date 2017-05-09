@@ -48,7 +48,6 @@ type expr =
   | String_Lit of string
   | ArrAssign of string * expr * expr  (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
-  | Repeat                (* added repeat keyword in expr*)
   | Noexpr
   
   
@@ -103,8 +102,12 @@ let rec string_of_expr = function
     Literal(l) -> string_of_int l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | Null s -> "Null " ^ s
+  | GridAssign(e1, e2, e3) -> "GridAssign"
+  | DeletePlayer(e1, e2, e3) -> "DeletePlayer" 
   | ArrIndexLiteral(s, e) -> s ^ "[" ^ string_of_expr e ^ "]"
   | Arr2DIndexLiteral(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
+  | ArrayLiteral([e]) -> "ArrayLiteral"
   | Id(s) -> s
   | String_Lit(s) -> s
   | Dotop(e, s) -> string_of_expr e ^ "." ^ s
@@ -114,7 +117,6 @@ let rec string_of_expr = function
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
   | Array1DAssign(s, e1, e2) -> s (* assigning some value to an array *)
   | Array2DAssign(s, e1, e2, e3) -> s (* assigning some value to a 2D array *)
-  | Repeat -> "repeat"              (* added repeat keyword in expr*)
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""

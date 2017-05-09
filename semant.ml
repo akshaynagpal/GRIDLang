@@ -29,11 +29,11 @@ let check (globals, functions, structs) =
   (* Raise an exception of the given rvalue type cannot be assigned to
      the given lvalue type *)
   let check_assign lvaluet rvaluet err =
-    if lvaluet == rvaluet then lvaluet else raise err
+    if lvaluet = rvaluet then lvaluet else raise err
   in
 
   let check_assign_func lvaluet rvaluet =
-    if lvaluet == rvaluet then true else false
+    if lvaluet = rvaluet then true else false
   in
   
   (** Methods for structs **)
@@ -47,10 +47,21 @@ let check (globals, functions, structs) =
   let check_access lvaluet rvalues =
      match lvaluet with
        StructType s -> match_struct_to_accessor s rvalues
+       | PointerType(StructType(t)) ->match_struct_to_accessor t rvalues
        | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
   
   in
 
+  (*
+  let add_default_sformals user_struct =
+    if user_struct.sname = "Player" then
+      begin
+        let predefined_formals = [(CoordinateType, "position"); (Bool, "win"); (String, "displayString")] 
+        in
+          let user_struct.modified_sformals = List.append user_struct.sformals predefined_formals
+      end
+  in
+  *)
   (**** Checking Global Variables ****)
 
   List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
@@ -61,7 +72,31 @@ let check (globals, functions, structs) =
  
   report_duplicate (fun n -> "duplicate struct " ^ n)
     (List.map (fun sd -> sd.sname) structs);
-    
+  
+  (* List.iter add_default_sformals structs; *)
+  
+  (*
+  let struct_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
+                         built_in_decls functions
+  in
+
+  let function_decl s = try StringMap.find s function_decls
+       with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
+
+  type func_decl = {
+      typ : typ;
+      fname : string;
+      formals : bind list;
+      locals : bind list;
+      body : stmt list;
+    }
+
+  type struct_decl = {   (* for adding player datatype *)
+      sname: string;
+      sformals: bind list;
+  }
+  *)
+  
   (**** Checking Functions ****)
 
   if List.mem "print" (List.map (fun fd -> fd.fname) functions)
@@ -79,12 +114,25 @@ let check (globals, functions, structs) =
      { typ = Void; fname = "printbig"; formals = [(Int, "x")];
        locals = []; body = [] }))
    in
-     
+
+  let built_in_decls = StringMap.add "print_int_sameline" 
+       { typ = Int; fname = "print_int_sameline"; formals = [(Int, "x")];
+       locals = []; body = [] } (StringMap.add "print_endline" 
+       { typ = Int; fname = "print_endline"; formals = [];
+       locals = []; body = [] } (StringMap.add "print_sameline" 
+       { typ = Int; fname = "print_sameline"; formals = [(String, "x")];
+       locals = []; body = [] } (StringMap.add "getLen" 
+       { typ = Int; fname = "getLen"; formals = [(String, "x")];
+       locals = []; body = [] } built_in_decls)))
+  
+  in
+
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
   in
 
-  let function_decl s = try StringMap.find s function_decls
+  let function_decl s = 
+      try StringMap.find s function_decls
        with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
   in
 
@@ -117,9 +165,14 @@ let check (globals, functions, structs) =
   StringMap.empty (globals @ func.formals @ func.locals )
     in
 
-    let type_of_identifier s =
-      try StringMap.find s symbols
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+    let rec type_of_identifier s =
+      (match s with
+        "GridNew" -> PointerType(StructType("listNode"))
+        | "rows" -> Int
+        | "cols" -> Int
+        | "currentPlayerIndex" -> Int
+        | _ ->  try StringMap.find s symbols
+              with Not_found -> raise (Failure ("undeclared identifier " ^ s)))
     in
 
     (* Return the type of an expression or throw an exception *)
@@ -128,30 +181,40 @@ let check (globals, functions, structs) =
       | BoolLit _ -> Bool
       | String_Lit _ -> String
       | Id s -> type_of_identifier s
+      | Null t -> PointerType(StructType(t))
+      (*Placeholders. Add Actual type checking here*)
+      | GridAssign(e1, e2, e3) -> String
+      | DeletePlayer(e1, e2, e3) -> String
+      | Array2DAssign(e1, e2, e3, e4) -> String
+      | Array1DAssign(e1, e2, e3) -> String
+      | Arr2DIndexLiteral(s, e2, e3) -> type_of_identifier s
+      | ArrIndexLiteral(e1, e2) -> String
+      | ArrayLiteral([e]) -> String
+
       | Dotop(e1, field) -> let lt = expr e1 in
          check_access (lt) (field)
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
-  (match op with
+        (match op with
           Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
-  | Equal | Neq when t1 = t2 -> Bool
-  | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
-  | And | Or when t1 = Bool && t2 = Bool -> Bool
-        | _ -> raise (Failure ("illegal binary operator " ^
+          | Equal | Neq when t1 = t2 -> Bool
+          | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
+          | And | Or when t1 = Bool && t2 = Bool -> Bool
+          | _ -> raise (Failure ("illegal binary operator " ^
               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
               string_of_typ t2 ^ " in " ^ string_of_expr e))
         )
       | Unop(op, e) as ex -> let t = expr e in
-   (match op with
-     Neg when t = Int -> Int
-   | Not when t = Bool -> Bool
-         | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
+         (match op with
+          Neg when t = Int -> Int
+          | Not when t = Bool -> Bool
+          | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
            string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void
       | Assign(var, e) as ex -> let lt = expr var
                                 and rt = expr e in
-        check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
-             " = " ^ string_of_typ rt ^ " in " ^ 
-             string_of_expr ex))
+              check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
+              " = " ^ string_of_typ rt ^ " in " ^ 
+              string_of_expr ex))
       | Call(fname, actuals) as call -> let fd = function_decl fname in
          if List.length actuals != List.length fd.formals then
            raise (Failure ("expecting " ^ string_of_int
@@ -167,9 +230,12 @@ let check (globals, functions, structs) =
               else
                 if check_assign_func ft et = false then 
                   raise (Failure ("illegal actual argument found " ^ string_of_typ et ^
-                  " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e) )  ) 
+                  " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e ^ "in function "
+                  ^ fname) )  ) 
               fd.formals actuals;
             fd.typ
+      | _ -> raise(Failure("Couldn't find expression's type in semant"))
+            (* raise(Failure("Couldn't find " ^ string_of_expr e)) *)
     in
 
     let check_bool_expr e = if expr e != Bool
