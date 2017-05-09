@@ -45,8 +45,8 @@ type expr =
   | DeletePlayer of expr * expr * expr
   | Assign of expr * expr
   | GridCreate of int * int
-  | Array1DAccess of string * expr * expr (* assigning some value to an array *)
-  | Array2DAccess of string * expr * expr * expr (* assigning some value to a 2D array *)
+  | Array1DAssign of string * expr * expr (* assigning some value to an array *)
+  | Array2DAssign of string * expr * expr * expr (* assigning some value to a 2D array *)
   | String_Lit of string
   | CoordinateAssign of string * expr * expr
   | ArrAssign of string * expr * expr  (* assigning some value to an array *)
@@ -115,8 +115,8 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
-  | Array1DAccess(s, e1, e2) -> s (* assigning some value to an array *)
-  | Array2DAccess(s, e1, e2, e3) -> s (* assigning some value to a 2D array *)
+  | Array1DAssign(s, e1, e2) -> s (* assigning some value to an array *)
+  | Array2DAssign(s, e1, e2, e3) -> s (* assigning some value to a 2D array *)
   | CoordinateAssign(s, e1, e2) -> s
   | Repeat -> "repeat"              (* added repeat keyword in expr*)
   | Call(f, el) ->
