@@ -38,8 +38,8 @@ int checkGameEnd()
         }
       }
     }
-    print("Checkmate!");
     printGrid();
+    print("Checkmate!");
     return 1;
   }
   currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;

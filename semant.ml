@@ -48,6 +48,7 @@ let check (globals, functions, structs) =
      match lvaluet with
        StructType s -> match_struct_to_accessor s rvalues
        | PointerType(StructType(t)) ->match_struct_to_accessor t rvalues
+       | PlayerType -> match_struct_to_accessor "Player" rvalues
        | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
   
   in
@@ -115,7 +116,10 @@ let check (globals, functions, structs) =
        locals = []; body = [] }))
    in
 
-  let built_in_decls = StringMap.add "print_int_sameline" 
+  let built_in_decls = StringMap.add "prompt" 
+       { typ = Int; fname = "prompt"; formals = [(String, "x")];
+       locals = []; body = [] }
+       (StringMap.add "print_int_sameline" 
        { typ = Int; fname = "print_int_sameline"; formals = [(Int, "x")];
        locals = []; body = [] } (StringMap.add "print_endline" 
        { typ = Int; fname = "print_endline"; formals = [];
@@ -123,13 +127,22 @@ let check (globals, functions, structs) =
        { typ = Int; fname = "print_sameline"; formals = [(String, "x")];
        locals = []; body = [] } (StringMap.add "getLen" 
        { typ = Int; fname = "getLen"; formals = [(String, "x")];
-       locals = []; body = [] } built_in_decls)))
+       locals = []; body = [] } built_in_decls))))
   
   in
 
   let function_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
                          built_in_decls functions
   in
+
+  (*Add struct functions*)
+  let function_decls = List.fold_left (fun m sdecl -> let fd = sdecl.sfunc in StringMap.add (sdecl.sname ^ fd.fname) fd m) function_decls structs
+  in
+(*Debugging: Print all struct function names*)
+(*  let function_names_string = List.fold_left (fun s sdecl -> let fd = sdecl.sfunc in s ^ " " ^ sdecl.sname ^ fd.fname) "" structs
+  in
+
+  raise(Failure(function_names_string));*)
 
   let function_decl s = 
       try StringMap.find s function_decls
@@ -171,7 +184,11 @@ let check (globals, functions, structs) =
         | "rows" -> Int
         | "cols" -> Int
         | "currentPlayerIndex" -> Int
-        | _ ->  try StringMap.find s symbols
+        | _ ->  try let sym_type = StringMap.find s symbols in
+                    (match sym_type with
+                      Array1DType(t,i) -> t
+                      | _ -> sym_type
+                    )
               with Not_found -> raise (Failure ("undeclared identifier " ^ s)))
     in
 
@@ -188,14 +205,14 @@ let check (globals, functions, structs) =
       | Array2DAssign(e1, e2, e3, e4) -> String
       | Array1DAssign(e1, e2, e3) -> String
       | Arr2DIndexLiteral(s, e2, e3) -> type_of_identifier s
-      | ArrIndexLiteral(e1, e2) -> String
+      | ArrIndexLiteral(s, e2) -> type_of_identifier s
       | ArrayLiteral([e]) -> String
 
       | Dotop(e1, field) -> let lt = expr e1 in
          check_access (lt) (field)
       | Binop(e1, op, e2) as e -> let t1 = expr e1 and t2 = expr e2 in
         (match op with
-          Add | Sub | Mult | Div when t1 = Int && t2 = Int -> Int
+          Add | Sub | Mult | Div | Modulo when t1 = Int && t2 = Int -> Int
           | Equal | Neq when t1 = t2 -> Bool
           | Less | Leq | Greater | Geq when t1 = Int && t2 = Int -> Bool
           | And | Or when t1 = Bool && t2 = Bool -> Bool
@@ -207,6 +224,7 @@ let check (globals, functions, structs) =
          (match op with
           Neg when t = Int -> Int
           | Not when t = Bool -> Bool
+          | Ref when true -> PointerType t
           | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
            string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void
@@ -225,7 +243,7 @@ let check (globals, functions, structs) =
                 begin
                   if check_assign_func ft et = false then
                     if check_assign_func String et = false then
-                      raise (Failure "fuck off")
+                      raise (Failure "Error")
                 end
               else
                 if check_assign_func ft et = false then 

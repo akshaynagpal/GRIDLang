@@ -144,6 +144,8 @@ let rec string_of_typ = function
   | Array2DType(typ, e1, e2) -> string_of_typ typ ^ " array [" ^ string_of_int e1 ^ "][" ^ string_of_int e2 ^ "]"
   | StructType(s) -> "struct " ^ s
   | PointerType(typ) -> string_of_typ typ ^ " pointer"
+  | PlayerType -> "Player"
+  | GridType(i,j) -> "Grid"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
