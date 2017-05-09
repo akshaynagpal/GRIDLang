@@ -82,7 +82,7 @@ array1d_type:
     typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
 
 array2d_type:
-    typ LARRAY LITERAL RARRAY LARRAY LITERAL RARRAY { Array2DType($1,$3,$6) } /* int[4][3] */
+    typ LARRAY LITERAL COMMA LITERAL RARRAY { Array2DType($1,$3,$5) } /* int[4][3] */
 
 arr_literal:
   expr   {[$1]}
@@ -137,9 +137,9 @@ expr:
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
   | LT expr COMMA expr GT   { Coordinate_Lit($2,$4)}
-  | ID LARRAY expr RARRAY LARRAY expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$6,$9)}  /* x(3,4) = something */
+  | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAccess($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAccess($1, $3, $6) }  /* x[4] = something */
-  | ID LARRAY expr RARRAY LARRAY expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$6) } /* x(3,4) */
+  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */
   | ID LARRAY expr RARRAY %prec NOLARRAY{ArrIndexLiteral($1,$3)} /* x[4] */
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
