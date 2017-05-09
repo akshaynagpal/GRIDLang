@@ -15,7 +15,7 @@ int checkGameEnd()
   int tempy;
 
   /*Temporarily change current player*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
 
   if (currentPlayerIndex == 0)
   {
@@ -33,15 +33,15 @@ int checkGameEnd()
     tempx = attx;
     tempy = atty;
     
-    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+    nextPlayer();
     if (checkIfUnderAttack(tempx, tempy) == 1) 
     {
-      currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+      nextPlayer();
       printGrid();
       print("Checkmate!!");
       return 1;
     }
-    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+    nextPlayer();
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
@@ -51,7 +51,7 @@ int checkGameEnd()
           print("Can move to: ");
           print(dst_x);
           print(dst_y);
-          currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+          nextPlayer();
           return 0;
         }
       }
@@ -60,7 +60,7 @@ int checkGameEnd()
     print("Checkmate!");
     return 1;
   }
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
   return 0;
 }
 
@@ -73,7 +73,7 @@ int checkIfUnderAttack(int dst_x, int dst_y)
   int y;
   Item listNode* l;
   /*Switch players to see if any of enemy's items are attacking the king*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
   if (currentPlayerIndex == 0)
   {
     p = &p1;
@@ -96,7 +96,7 @@ int checkIfUnderAttack(int dst_x, int dst_y)
           {
             attx = x;
             atty = y;
-            currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+            nextPlayer();
             return 1;
           }
         }
@@ -104,7 +104,7 @@ int checkIfUnderAttack(int dst_x, int dst_y)
     }
   }
   /*Switch back*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
   return 0;
 }
 

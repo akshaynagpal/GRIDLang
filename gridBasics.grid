@@ -271,3 +271,8 @@ int traverse(int src_x, int src_y, int dst_x, int dst_y)
 	}
 	return 0;
 }
+
+void nextPlayer()
+{
+	currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+}
