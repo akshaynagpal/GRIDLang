@@ -4,8 +4,8 @@ int checkGameEnd()
 {
   /*First trigger checkIfCheck for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
   */
-  *Player p;
-  *Item listNode king_item;
+  Player* p;
+  Item listNode* king_item;
   int dst_x;
   int dst_y;
 
@@ -49,10 +49,10 @@ int checkGameEnd()
 /*Checks if the current player's king is under attack by opposing player's pieces*/
 int checkIfCheck(int dst_x, int dst_y)
 {
-  *Player p;
+  Player* p;
   int x;
   int y;
-  *Item listNode l;
+  Item listNode* l;
   /*Switch players to see if any of enemy's items are attacking the king*/
   currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
   if (currentPlayerIndex == 0)
@@ -92,10 +92,10 @@ Item King
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    *Item listNode src;
-    *Item listNode dst;
-    *Player owner1;
-    *Player owner2;
+    Item listNode* src;
+    Item listNode* dst;
+    Player* owner1;
+    Player* owner2;
     Player cur;
     Player oppPlayer;
     int xdiff;
@@ -145,10 +145,10 @@ Item Pawn
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     int direction;
-    *Item listNode src;
-    *Item listNode dst;
-    *Player owner1;
-    *Player owner2;
+    Item listNode* src;
+    Item listNode* dst;
+    Player* owner1;
+    Player* owner2;
     Player cur;
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
@@ -208,10 +208,10 @@ Item Bishop
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    *Item listNode src;
-    *Item listNode dst;
-    *Player owner1;
-    *Player owner2;
+    Item listNode* src;
+    Item listNode* dst;
+    Player* owner1;
+    Player* owner2;
     Player cur;
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
@@ -248,10 +248,10 @@ Item Knight
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    *Item listNode src;
-    *Item listNode dst;
-    *Player owner1;
-    *Player owner2;
+    Item listNode* src;
+    Item listNode* dst;
+    Player* owner1;
+    Player* owner2;
     Player cur;
     int xdiff;
     int ydiff;
@@ -292,10 +292,10 @@ Item Rook
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    *Item listNode src;
-    *Item listNode dst;
-    *Player owner1;
-    *Player owner2;
+    Item listNode* src;
+    Item listNode* dst;
+    Player* owner1;
+    Player* owner2;
     Player cur;
     int xdiff;
     int ydiff;
@@ -409,7 +409,7 @@ int gameloop(){
   int src_y;
   int dst_x;
   int dst_y;
-  *Item listNode headnode;
+  Item listNode* headnode;
   Player cur;
   printGrid();
   print(currentPlayerIndex);

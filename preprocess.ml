@@ -55,7 +55,7 @@ let process_files filename1 =
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
 					  						let _ = append_to_string structName in
-					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";	
+					  						listNode := !listNode ^ structType  ^ " " ^ structName ^ "*" ^ " " ^ structName ^ "_node;\n";	
 			  							end
 			  						else
 			  							begin
@@ -64,7 +64,7 @@ let process_files filename1 =
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
 					  						let _ = append_to_string structName in
-					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
+					  						listNode := !listNode  ^ structType  ^ " " ^ structName ^ "*" ^ " " ^ structName ^ "_node;\n";
 			  							end
 			  					end
 			  			end
@@ -199,7 +199,7 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-	let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(int src_x, int src_y, int dst_x, int dst_y) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+	let temp = !listNode ^ "int x;\nint y;\nstring type;\nItem listNode* next;\nstring nametag;\nstring typetag;\nPlayer* owner;\nint rule(int src_x, int src_y, int dst_x, int dst_y) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
 	let temp2 = 
 		if (!tempImportFile = "") then
 				begin

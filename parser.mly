@@ -74,7 +74,7 @@ typ:
   | array2d_type { $1 }   /* int[4][3] */
   | ITEM ID { StructType ($2) } 
   | PLAYER { PlayerType }
-  | TIMES %prec POINTER typ { PointerType ($2) }  
+  | typ TIMES %prec POINTER { PointerType ($1) }  
   | COORDINATE { CoordinateType }
   | GRIDINIT LT LITERAL COMMA LITERAL GT { GridType ($3, $5) }
 
