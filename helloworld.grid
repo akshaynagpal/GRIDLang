@@ -15,10 +15,7 @@ int colocation(int x, int y, Item listNode i1, Item listNode i2)
   print("Inside colocation");
 }
 
-Grid_Init<2,2> grid; 
-Player p1;
-Player p2;
-Player[2] playerOrder;
+Grid_Init<0,0> grid; 
 int playerOrderSize;
 
 int initialSetup(){ 
