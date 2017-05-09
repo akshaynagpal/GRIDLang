@@ -232,3 +232,12 @@ int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 	iterator = None;
 	return iterator;
 }
+
+int checkBound(int x,int y){
+	if(x > -1 && x <= rows && y>-1 && y <= cols){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
