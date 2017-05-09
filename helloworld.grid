@@ -28,7 +28,7 @@ int initialSetup(){
 
 int gameloop(){ 
   Player p1;
-  *Player p2;
+  Player* p2;
   p1.name = "Hello World";
   print(p1.name);
   return 0; 
