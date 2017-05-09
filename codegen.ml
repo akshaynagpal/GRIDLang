@@ -245,8 +245,7 @@ let translate (globals, functions, structs) =
       else
         L.build_load (L.build_gep (lookup array_name) [|i1;index|] array_name builder) array_name builder
     in 
-        (* Invoke "f builder" if the current block doesn't already
-       have a terminal (e.g., a branch). *)
+
     let add_terminal builder f =
       match L.block_terminator (L.insertion_block builder) with
       Some _ -> ()
@@ -257,7 +256,7 @@ let translate (globals, functions, structs) =
     | A.Array1DAccess (s, e) ->  let index = expr builder e in lookup_at_index s index builder
     | A.Array2DAccess(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in lookup_at_2d_index s index1 index2 builder
 
-    | A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
+    | A.Dotop(e1, field) ->
       (match e1 with
         A.Id s -> let etype = fst(
                 try List.find (fun t -> snd(t) = s) fdecl.A.locals
