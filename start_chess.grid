@@ -20,7 +20,7 @@ int checkGameEnd()
     king_item = getListNodeFromItem(p2.king.displayString);
   }
 
-  if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+  if (checkIfUnderAttack(king_item.x, king_item.y))
   {
     print("Currently under check");
     /*See if item attacking the king is itself under attack*/
@@ -28,7 +28,7 @@ int checkGameEnd()
     tempy = atty;
     
     nextPlayer();
-    if (checkIfUnderAttack(tempx, tempy) == 1) 
+    if (checkIfUnderAttack(tempx, tempy)) 
     {
       nextPlayer();
       printGrid();
@@ -62,7 +62,7 @@ int checkGameEnd()
 int attx;
 int atty;
 /*Checks if the current player's king is under attack by opposing player's pieces*/
-int checkIfUnderAttack(int dst_x, int dst_y)
+bool checkIfUnderAttack(int dst_x, int dst_y)
 {
   Player* p;
   int x, y;
@@ -93,7 +93,7 @@ int checkIfUnderAttack(int dst_x, int dst_y)
             attx = x;
             atty = y;
             nextPlayer();
-            return 1;
+            return true;
           }
         }
       }
@@ -101,7 +101,7 @@ int checkIfUnderAttack(int dst_x, int dst_y)
   }
   /*Switch back*/
   nextPlayer();
-  return 0;
+  return false;
 }
 
 Item King
@@ -144,7 +144,7 @@ Item King
       }
     }
 
-    if (checkIfUnderAttack(dst_x, dst_y) == 1)
+    if (checkIfUnderAttack(dst_x, dst_y))
     {
       /*print("Can't move into check");*/
       return 0;
@@ -222,7 +222,7 @@ Item Pawn
     {
       king_item = getListNodeFromItem(p2.king.displayString);
     }
-    if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+    if (checkIfUnderAttack(king_item.x, king_item.y))
     {
       return 0;
     }
@@ -271,7 +271,7 @@ Item Bishop
       {
         king_item = getListNodeFromItem(p2.king.displayString);
       }
-      if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+      if (checkIfUnderAttack(king_item.x, king_item.y))
       {
         return 0;
       }
@@ -325,7 +325,7 @@ Item Knight
       {
         king_item = getListNodeFromItem(p2.king.displayString);
       }
-      if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+      if (checkIfUnderAttack(king_item.x, king_item.y))
       {
         return 0;
       }
@@ -382,7 +382,7 @@ Item Rook
       {
         king_item = getListNodeFromItem(p2.king.displayString);
       }
-      if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+      if (checkIfUnderAttack(king_item.x, king_item.y))
       {
         return 0;
       }
