@@ -175,14 +175,14 @@ int printGrid(){
 	return 0;
 }
 
-int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
+int moveOnGrid(Item listNode* p_n, int dst_x, int dst_y)
 {
 	Item listNode temp;
-	Item listNode* p_n;
-	int result;
-	p_n = getHead(src_x, src_y);
+	int result, src_x, src_y;
 	if (p_n != None)
 	{
+		src_x = p_n.x;
+		src_y = p_n.y;
 		result = triggerRule(src_x, src_y, dst_x, dst_y, p_n.typetag);
 		if (result == 1)
 		{

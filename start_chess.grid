@@ -2,8 +2,8 @@ import gridBasics.grid
 
 int checkGameEnd()
 {
-  /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
-  */
+  /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0*/
+
   Player* p;
   Item listNode* king_item;
   int dst_x, dst_y, tempx, tempy;
@@ -464,7 +464,7 @@ int initialSetup(){
 
 int gameloop(){ 
   int src_x, src_y, dst_x, dst_y;
-  Item listNode* headnode;
+  Item listNode* headnode, p_n;
   Player cur;
   cur = playerOrder[currentPlayerIndex];
   printGrid();
@@ -473,7 +473,8 @@ int gameloop(){
   src_y = prompt("Enter source y:");
   dst_x = prompt("Enter destination x:");
   dst_y = prompt("Enter destination y:");
-  if (moveOnGrid(src_x, src_y, dst_x,dst_y) != 1)
+  p_n = getHead(src_x, src_y);
+  if (moveOnGrid(p_n, dst_x,dst_y) != 1)
   {
     print("Invalid move");
   }
