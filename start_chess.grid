@@ -1,13 +1,18 @@
 import gridBasics.grid
 
+int attx;
+int atty;
+
 int checkGameEnd()
 {
-  /*First trigger checkIfCheck for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
+  /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
   */
   Player* p;
   Item listNode* king_item;
   int dst_x;
   int dst_y;
+  int tempx;
+  int tempy;
 
   /*Temporarily change current player*/
   currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
@@ -21,9 +26,22 @@ int checkGameEnd()
     king_item = getListNodeFromItem(p2.king.displayString);
   }
 
-  if (checkIfCheck(king_item.x, king_item.y) == 1)
+  if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
   {
     print("Currently under check");
+    /*See if item attacking the king is itself under attack*/
+    tempx = attx;
+    tempy = atty;
+    
+    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+    if (checkIfUnderAttack(tempx, tempy) == 1) 
+    {
+      currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+      printGrid();
+      print("Checkmate!!");
+      return 1;
+    }
+    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
@@ -46,8 +64,9 @@ int checkGameEnd()
   return 0;
 }
 
+
 /*Checks if the current player's king is under attack by opposing player's pieces*/
-int checkIfCheck(int dst_x, int dst_y)
+int checkIfUnderAttack(int dst_x, int dst_y)
 {
   Player* p;
   int x;
@@ -75,6 +94,8 @@ int checkIfCheck(int dst_x, int dst_y)
         {
           if (triggerRule(x, y, dst_x, dst_y, l.typetag) == 1)
           {
+            attx = x;
+            atty = y;
             currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
             return 1;
           }
@@ -130,7 +151,7 @@ Item King
       }
     }
 
-    if (checkIfCheck(dst_x, dst_y) == 1)
+    if (checkIfUnderAttack(dst_x, dst_y) == 1)
     {
       /*print("Can't move into check");*/
       return 0;
@@ -147,6 +168,7 @@ Item Pawn
     int direction;
     Item listNode* src;
     Item listNode* dst;
+    Item listNode* king_item;
     Player* owner1;
     Player* owner2;
     Player cur;
@@ -199,6 +221,21 @@ Item Pawn
       /*print("Can only kill diagonally with a pawn");*/
       return 0;
     }
+
+
+    if (currentPlayerIndex == 0)
+    {
+      king_item = getListNodeFromItem(p1.king.displayString);
+    }
+    else
+    {
+      king_item = getListNodeFromItem(p2.king.displayString);
+    }
+    if (checkIfUnderAttack(king_item.x, king_item.y) == 1)
+    {
+      return 0;
+    }
+    
     return 1;
   }
 }
