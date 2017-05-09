@@ -208,3 +208,27 @@ int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 	return head;
 
 }
+
+*Item listNode getListNodeFromItem(string displayString)
+{
+	*Item listNode iterator;
+	int x;
+	int y;
+	for(x = 0; x < rows; x = x+1)
+	{
+		for(y = 0; y < cols; y = y+1)
+		{
+			iterator = GridNew[x][y];
+			while(iterator != None )
+			{
+				if (iterator.nametag == displayString)
+				{
+					return iterator;
+				}
+				iterator = iterator.next;
+			}
+		}
+	}
+	iterator = None;
+	return iterator;
+}
