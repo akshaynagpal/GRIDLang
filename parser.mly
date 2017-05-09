@@ -45,7 +45,7 @@ program:
 
 decls:
    /* nothing */ { [], [], [] } 
- | decls vdecl { ($2 :: first $1), second $1, third $1 }
+ | decls vdecl { (List.append $2 (first $1)), second $1, third $1 }
  | decls fdecl { first $1, ($2 :: second $1), third $1 }
  | decls sdecl { first $1, second $1, ($2 :: third $1) }
 
@@ -84,15 +84,19 @@ array2d_type:
     typ LARRAY LITERAL COMMA LITERAL RARRAY { Array2DType($1,$3,$5) } /* int[4][3] */
 
 arr_literal:
-  expr   {[$1]}
- | arr_literal COMMA expr {$3::$1}
+  expr   {[$1]} 
+  | arr_literal COMMA expr {$3::$1}
 
 vdecl_list:
     /* nothing */    { [] }
-  | vdecl_list vdecl { $2 :: $1 }
+  | vdecl_list vdecl { List.append $2 $1 }
+
+multi_vdecl:
+     ID {[$1]}
+   | multi_vdecl COMMA ID {$3::$1}
 
 vdecl:
-   typ ID SEMI { ($1, $2) }
+   typ multi_vdecl SEMI { List.map (fun x -> ($1,x)) $2 }
 
 sdecl:
     ITEM ID LBRACE vdecl_list fdecl RBRACE
