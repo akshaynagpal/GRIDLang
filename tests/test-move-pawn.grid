@@ -2,20 +2,13 @@ import gridBasics.grid
 
 int checkGameEnd()
 {
-  
   return 1;
-}
-
-/*Shouldn't have to write this explicitly*/
-Item location
-{
-  int x;
-  int y;
 }
 
 Item Pawn
 {
-  int something;  
+  int something;
+  string displayString;  
 }
 
 Player
@@ -43,6 +36,8 @@ int initialSetup(){
   playerOrder[0] = p1;
   playerOrder[1] = p2;
   playerOrderSize = 2;
+  p1.pawn.displayString = "pawn1";
+  p2.pawn.displayString = "pawn2";
   Grid <1,2> <-- p1.pawn;
   Grid <3,2> <-- p2.pawn;
   return 0;
@@ -53,7 +48,6 @@ int gameloop(){
   int src_y;
   int dst_x;
   int dst_y;
-  *Item listNode headnode;
   Player cur;
   printGrid();
   cur = playerOrder[currentPlayerIndex];
@@ -62,10 +56,7 @@ int gameloop(){
   src_y = 2;
   dst_x = 2;
   dst_y = 2;
-  headnode = getHead(src_x, src_y);
-  deleteFromGrid(src_x, src_y, headnode.nametag);
-  addToGrid(dst_x, dst_y, headnode);
-  /*moveOnGrid(dst_x,dst_y,headnode);*/
+  moveOnGrid(src_x, src_y, dst_x,dst_y);
   printGrid();
   return 0; 
 }
