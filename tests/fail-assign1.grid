@@ -1,0 +1,33 @@
+import gridBasics.grid
+
+int checkGameEnd()
+{
+  return 1;
+}
+
+Player
+{ 
+  string name;
+} 
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  return 0;
+}
+
+Grid_Init<0,0> grid; 
+int playerOrderSize;
+
+int initialSetup(){ 
+  playerOrderSize = 2;
+  return 0;
+}
+
+int gameloop(){
+  int i;
+  bool b;
+  i = 42;
+  b = true;
+  i = false; /* Fail: assigning a bool to an integer */
+  return 0;
+}

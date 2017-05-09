@@ -9,9 +9,10 @@ int getLen(char* x){
 }
 
 // get user input
-int prompt()
+int prompt(char* msg)
 {
    // static char str[50];
+   printf("%s",msg);
    static int x;
    scanf("%d", &x);
    return x;

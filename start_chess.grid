@@ -415,10 +415,10 @@ int gameloop(){
   print(currentPlayerIndex);
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);
-  src_x = prompt();
-  src_y = prompt();
-  dst_x = prompt();
-  dst_y = prompt();
+  src_x = prompt("Enter source x:");
+  src_y = prompt("Enter source y:");
+  dst_x = prompt("Enter destination x:");
+  dst_y = prompt("Enter destination y:");
   if (moveOnGrid(src_x, src_y, dst_x,dst_y) != 1)
   {
     print("Invalid move");
