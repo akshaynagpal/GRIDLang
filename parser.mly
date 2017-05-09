@@ -137,8 +137,8 @@ expr:
   | STRING_LIT        { String_Lit($1) }
   | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAssign($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAssign($1, $3, $6) }  /* x[4] = something */
-  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */
-  | ID LARRAY expr RARRAY %prec NOLARRAY{ArrIndexLiteral($1,$3)} /* x[4] */
+  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Array2DAccess ($1,$3,$5) } /* x(3,4) */
+  | ID LARRAY expr RARRAY %prec NOLARRAY{Array1DAccess($1,$3)} /* x[4] */
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }

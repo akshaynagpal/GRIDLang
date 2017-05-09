@@ -204,8 +204,8 @@ let check (globals, functions, structs) =
       | DeletePlayer(e1, e2, e3) -> String
       | Array2DAssign(e1, e2, e3, e4) -> String
       | Array1DAssign(e1, e2, e3) -> String
-      | Arr2DIndexLiteral(s, e2, e3) -> type_of_identifier s
-      | ArrIndexLiteral(s, e2) -> type_of_identifier s
+      | Array2DAccess(s, e2, e3) -> type_of_identifier s
+      | Array1DAccess(s, e2) -> type_of_identifier s
       | ArrayLiteral([e]) -> String
 
       | Dotop(e1, field) -> let lt = expr e1 in

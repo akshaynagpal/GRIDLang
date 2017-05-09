@@ -19,9 +19,9 @@ let translate (globals, functions, structs) =
 
   let new_global_builder = ref (L.builder context) in
   (*add all struct names to a hashtable*)
-  let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 50 in
+  let struct_types:(string, L.lltype) Hashtbl.t = Hashtbl.create 1000 in
   (*Create a reverse hashtable as well (necessary for looking up name from struct type for triggers*)
-  let struct_names:(L.lltype,string) Hashtbl.t = Hashtbl.create 50 in
+  let struct_names:(L.lltype,string) Hashtbl.t = Hashtbl.create 1000 in
   
   let add_empty_named_struct_types sdecl =
     let struct_t = L.named_struct_type context sdecl.A.sname in
@@ -77,7 +77,7 @@ let translate (globals, functions, structs) =
     | A.Array1DType (typ,size) -> let each_cell = L.const_null (ltype_of_typ typ) in
                                   let init = L.const_array (ltype_of_typ typ) (Array.of_list (create_rep_list [] each_cell size)) in 
                                   L.define_global n init the_module
-    | _ -> raise(Failure("Error declaring global")))
+    | _ -> raise(Failure("Invalid type of global declaration")))
     in Hashtbl.add vars_global n global_val;global_val 
   in
 
@@ -231,7 +231,7 @@ let translate (globals, functions, structs) =
     (* Return the value for a variable or formal argument *)
     let lookup n = try Hashtbl.find vars_local n
                     with Not_found -> try Hashtbl.find vars_global n 
-                  with Not_found -> raise(Failure("Could not find in locals or globals")) in
+                  with Not_found -> raise(Failure("Undeclared identifier "^n)) in
 
     let lookup_at_index s index builder=
        L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index]) "name" builder in
@@ -252,12 +252,10 @@ let translate (globals, functions, structs) =
       Some _ -> ()
       | None -> ignore (f builder) in  
 
-    (* This function has only been created to handle nested structs. It returns the left expr e.g. (book.page).x. If we do not need nested*)
-    (*structs in GRIDLang, we would remove this.*)
   let rec llvalue_expr_getter builder = function
      A.Id s -> lookup s
-    | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in lookup_at_index s index builder
-    | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in lookup_at_2d_index s index1 index2 builder
+    | A.Array1DAccess (s, e) ->  let index = expr builder e in lookup_at_index s index builder
+    | A.Array2DAccess(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 in lookup_at_2d_index s index1 index2 builder
 
     | A.Dotop(e1, field) ->  (*e1 is b and field is x in b.x where local decl is struct book b*)
       (match e1 with
@@ -271,74 +269,62 @@ let translate (globals, functions, structs) =
                                     player_type -> (A.PlayerType,s)
                                     | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
                                             (A.StructType(struct_name),s))
-                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
+                with Not_found -> raise(Failure("unable to find" ^ s ^ "in structure assignment"))
               )
         in
-        (*above three lines we have found the type of b, which is book*)
+
         (match etype with
             A.StructType t->
               let index_number_list = StringMap.find t struct_field_index_list in
-              let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
-              let struct_llvalue = lookup s in (*return the value of x*)
-              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
-              access_llvalue (*not sure what this last step is for*)
+              let index_number = StringMap.find field index_number_list in 
+              let struct_llvalue = lookup s in 
+              let access_llvalue = L.build_struct_gep struct_llvalue index_number "struct_lvalue" builder in
+              access_llvalue 
             | A.PointerType t-> let e' = expr builder e1 in
-              let e_loaded = L.build_load e' "loaded_deref" builder in
+              let e_loaded = L.build_load e' "ptr_deref" builder in
               let e1'_lltype = L.type_of e_loaded in
               let e1'_struct_name_string_option = L.struct_name e1'_lltype in
               let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
               let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
               let index_number = StringMap.find field index_number_list in
-              let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
-              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+              let access_llvalue = L.build_struct_gep e' index_number "struct_lvalue" builder in
+              let loaded_access = L.build_load access_llvalue "struct_ptr_lvalue" builder in
               loaded_access
             | A.PlayerType -> let t = "Player" in
                           let index_number_list = StringMap.find t struct_field_index_list in
-              let index_number = StringMap.find field index_number_list in  (*now using field, we find the field's(x) index number for book*)
-              let struct_llvalue = lookup s in (*return the value of x*)
-              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
+              let index_number = StringMap.find field index_number_list in 
+              let struct_llvalue = lookup s in
+              let access_llvalue = L.build_struct_gep struct_llvalue index_number "player_lvalue" builder in
               access_llvalue
-            | _ -> raise (Failure("No structype.")) 
+            | _ -> raise (Failure("Couldn't match type of " ^s ^ " in structure assignment")) 
         )
-        | _ as e1_expr ->  
-          let e1'_llvalue = llvalue_expr_getter builder e1_expr in (*This is also for handling nested structs*)
+        | _ as e1_expr ->  (*Handles nested structs*)
+          let e1'_llvalue = llvalue_expr_getter builder e1_expr in
           let loaded_e1' = expr builder e1_expr in
           let e1'_lltype = L.type_of loaded_e1' in
           let e1'_struct_name_string_option = L.struct_name e1'_lltype in
           let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
           let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
           let index_number = StringMap.find field index_number_list in
-          let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in access_llvalue 
+          let access_llvalue = L.build_struct_gep e1'_llvalue index_number "nested_struct_lvalue" builder in 
+          access_llvalue 
       )
 
     | A.Unop(op, e)  ->
       (match op with
         A.Deref ->
           let e_llvalue = (llvalue_expr_getter builder e) in
-          let e_loaded = L.build_load e_llvalue "loaded_deref" builder in 
+          let e_loaded = L.build_load e_llvalue "ptr_deref" builder in 
           e_loaded
-        |_ -> raise (Failure("nooo"))
+        |_ -> raise (Failure("Invalid Unop in llvalue_expr_getter"))
       )
-    |_ -> raise (Failure ("in llvalue_expr_getter but not a dotop!"))
+    |_ -> raise (Failure ("Invalid param to llvalue_expr_getter"))
 
   and expr builder = function
     A.Literal i -> L.const_int i32_t i
     | A.Null t -> L.const_pointer_null (ltype_of_typ(A.PointerType(A.StructType(t))))
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
     | A.Id s -> L.build_load (lookup s) s builder
-    | A.GridCreate (rows, cols) ->  let str_typ = A.StructType("listNode") in
-                              let arr_type = A.Array2DType (str_typ, rows, cols) in
-                              let grid_val = L.build_alloca (ltype_of_typ arr_type) "Grid" builder in
-                              let _ = Hashtbl.add vars_local "Grid" grid_val in
-                              (*First do a simple assign for the struct at index 0, 0)*)
-                              ignore(
-                              for x = 0 to rows do
-                              for y = 0 to cols do
-                                let cur_struct_ptr = A.Arr2DIndexLiteral("Grid",A.Literal(x),A.Literal(y)) in (*grid[0][0]*)
-                                expr builder (A.Assign(A.Dotop(cur_struct_ptr,"next"), A.Null("listNode")))
-                              done
-                              done);grid_val
-
     | A.GridAssign (e1, e2, e3) ->
                         let struct_llvalue = expr builder e3 in
                         let struct_type = L.type_of struct_llvalue in
@@ -358,15 +344,15 @@ let translate (globals, functions, structs) =
                         in
                         let dotoperator = A.Dotop(A.Id("newNode"), "owner") in 
                         let _ = expr builder (A.Assign(dotoperator, owner_val_expr)) in
-                        (*Assign the field in newNode that corresponds to the type on the right side to 
-                        have the struct_llvalue*)
-                        let good_struct = 
+
+                        (*Fill in the appropriate structure inside listNode*)
+                        let correct_struct = 
                           let get_good_struct sdecl= 
                             sdecl.A.sname = "listNode"
                           in
                           List.filter get_good_struct structs
                         in
-                        let actual_listnode_struct = List.hd good_struct in
+                        let actual_listnode_struct = List.hd correct_struct in
 
                         let name_type_pair_list = 
                           let is_correct_name struct_pair = 
@@ -383,7 +369,8 @@ let translate (globals, functions, structs) =
                         let var_name = (snd(name_type_pair)) in
                         let dotoperator = A.Dotop(A.Id("newNode"), var_name) in 
                         let _ = expr builder (A.Assign(dotoperator, A.Unop(A.Ref,e3))) in
-                        (*Next thing is to assign the tagtype "good"*)
+
+                        (*Next thing is to assign the tagtype that was filled in*)
                         let dotoperator = A.Dotop(A.Id("newNode"), "nametag") in 
                         let displayString = A.Dotop(e3, "displayString") in 
                         let _ = expr builder (A.Assign(dotoperator, displayString)) in
@@ -398,113 +385,119 @@ let translate (globals, functions, structs) =
             | A.Dotop (e1, field) -> let left_of_dot = 
                             (match e1 with
                               A.Id(s) -> s
-                              | _ -> raise(Failure("Invalid left-of-dot"))) in
+                              | _ -> raise(Failure("Invalid dot operation in Delete Player"))) in
                             left_of_dot ^ "." ^ field 
             | _ -> raise(Failure("Invalid attempt to delete from grid"))
             )
-          in
+            in
             expr builder (A.Call("deleteFromGrid", [e1; e2; A.String_Lit(tag_to_send)]));
     
     | A.Dotop(e1, field) -> 
-    let e' = expr builder e1 in
-      (match e1 with
-        A.Id s -> let etype =               fst(
+        let e' = expr builder e1 in
+          (match e1 with
+            A.Id s -> 
+              let etype =               
+              fst(
                 try List.find (fun t -> snd(t) = s) fdecl.A.locals
-                with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+                with Not_found -> 
+                try List.find (fun t -> snd(t) = s) fdecl.A.formals
                 with Not_found -> try let sval = lookup s in  (*Check in globals*)
-                                  let llvm_type = L.type_of sval in 
-                                  let player_type = ltype_of_typ (A.StructType "Player") in
-                                  (match llvm_type with
-                                    player_type -> (A.PlayerType,s)
-                                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
-                                            (A.StructType(struct_name),s))
-                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
-              )
-          in
-          (try match etype with
-            A.StructType t->
-              let index_number_list = StringMap.find t struct_field_index_list in
-              let index_number = StringMap.find field index_number_list in
-              let struct_llvalue = lookup s in
-              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
-              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-              loaded_access  
-            | A.PointerType t-> let e_loaded = L.build_load e' "loaded_deref" builder in
-              let e1'_lltype = L.type_of e_loaded in
+                  let llvm_type = L.type_of sval in 
+                  let player_type = ltype_of_typ (A.StructType "Player") in
+                  (match llvm_type with
+                    player_type -> (A.PlayerType,s)
+                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
+                            (A.StructType(struct_name),s))
+                with Not_found -> 
+                  raise(Failure("Unable to find" ^ s ^ "in Dotop expr"))
+                )
+                in
+                (try match etype with
+                  A.StructType t->
+                    let index_number_list = StringMap.find t struct_field_index_list in
+                    let index_number = StringMap.find field index_number_list in
+                    let struct_llvalue = lookup s in
+                    let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
+                    let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+                    loaded_access  
+                  | A.PointerType t-> let e_loaded = L.build_load e' "loaded_deref" builder in
+                    let e1'_lltype = L.type_of e_loaded in
+                    let e1'_struct_name_string_option = L.struct_name e1'_lltype in
+                    let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
+                    let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
+                    let index_number = StringMap.find field index_number_list in
+                    let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
+                    let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+                    loaded_access
+                  | A.PlayerType -> let t = "Player" in
+                                let index_number_list = StringMap.find t struct_field_index_list in
+                    let index_number = StringMap.find field index_number_list in
+                    let struct_llvalue = lookup s in
+                    let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
+                    let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
+                    loaded_access
+                  | _ -> raise (Failure("No structype."))
+                  with Not_found -> raise (Failure("unable to find" ^ s)) 
+                )
+              | _ as e1_expr -> 
+              let e1'_llvalue = llvalue_expr_getter builder e1_expr in
+              let loaded_e1' = expr builder e1_expr in
+              let e1'_lltype = L.type_of loaded_e1' in
               let e1'_struct_name_string_option = L.struct_name e1'_lltype in
               let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
               let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
               let index_number = StringMap.find field index_number_list in
-              let access_llvalue = L.build_struct_gep e' index_number "dotop_terminal" builder in
-              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-              loaded_access
-            | A.PlayerType -> let t = "Player" in
-                          let index_number_list = StringMap.find t struct_field_index_list in
-              let index_number = StringMap.find field index_number_list in
-              let struct_llvalue = lookup s in
-              let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
-              let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
-              loaded_access
-            | _ -> raise (Failure("No structype."))
-            with Not_found -> raise (Failure("unable to find" ^ s)) 
-          )
-        | _ as e1_expr -> 
-        let e1'_llvalue = llvalue_expr_getter builder e1_expr in
-        let loaded_e1' = expr builder e1_expr in
-        let e1'_lltype = L.type_of loaded_e1' in
-        let e1'_struct_name_string_option = L.struct_name e1'_lltype in
-        let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
-        let index_number_list = StringMap.find e1'_struct_name_string struct_field_index_list in
-        let index_number = StringMap.find field index_number_list in
-        let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
-        L.build_load access_llvalue "loaded_dotop" builder 
-      )
+              let access_llvalue = L.build_struct_gep e1'_llvalue index_number "gep_in_dotop" builder in
+              L.build_load access_llvalue "loaded_dotop" builder 
+            )
 
     | A.Unop(op, e) -> 
       let e' = expr builder e in
       (match op with
-        A.Neg     -> L.build_neg e' "tmp" builder
-            | A.Not     -> L.build_not e' "temp" builder
-        | A.Deref -> let e_loaded = L.build_load e' "loaded_deref" builder in
-          e_loaded
-        | A.Ref -> let e_llvalue = (llvalue_expr_getter builder e) in
-          e_llvalue
+        A.Neg -> L.build_neg e' "Neg_op" builder
+        | A.Not     -> L.build_not e' "Not_op" builder
+        | A.Deref -> L.build_load e' "Deref_op" builder
+        | A.Ref -> (llvalue_expr_getter builder e)
+        | _ -> raise(Failure("Invalid unary operation"))
       )
     | A.Assign (lhs, e2) -> 
-    let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
+      let e2' = expr builder e2 in  
       (match lhs with
-        | A.Array1DAssign (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
-                                                and value = expr builder v in
-                                                ignore(L.build_store value addr builder); value
-        (*Check type of v and then use that to call that "type name" ^ "rule"*)
+        | A.Array1DAssign (array_name, i, v) -> 
+          let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+          and value = expr builder v in
+          ignore(L.build_store value addr builder); value
+
         | A.Array2DAssign(array_name, i,j,v) -> 
-                                                let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
-                                                and value = expr builder v in
-                                                ignore(L.build_store value addr builder); value
+              let addr = (let index1 = expr builder i and index2 = expr builder j in 
+              lookup_at_2d_index array_name index1 index2 builder) 
+              and value = expr builder v in
+              ignore(L.build_store value addr builder); value
+
         |A.Id s ->ignore (L.build_store e2' (lookup s) builder); e2'
         
         |A.Dotop (e1, field) ->  
-        let e' = expr builder e1 in
-          (match e1 with
-            A.Id s -> 
-              let e1typ =  
-              (match s with
-              "newNode" ->  A.StructType ("listNode")
-            | _ -> 
-              fst(
-                try List.find (fun t -> snd(t) = s) fdecl.A.locals
-                with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
-                with Not_found -> try let sval = lookup s in  (*Check in globals*)
+          let e' = expr builder e1 in
+            (match e1 with
+              A.Id s -> 
+                let e1typ =  
+                (match s with
+                "newNode" ->  A.StructType ("listNode")
+                | _ -> 
+                  fst(
+                    try List.find (fun t -> snd(t) = s) fdecl.A.locals
+                    with Not_found -> try List.find (fun t -> snd(t) = s) fdecl.A.formals
+                    with Not_found -> try let sval = lookup s in  (*Check in globals*)
                                   let llvm_type = L.type_of sval in 
                                   let player_type = ltype_of_typ (A.StructType "Player") in
                                   (match llvm_type with
                                     player_type -> (A.PlayerType,s)
                                     | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
                                             (A.StructType(struct_name),s))
-                with Not_found -> raise(Failure("unable to find" ^ s ^ "in Sassign"))
-              ))
-            in  
-            (match e1typ with
+                    with Not_found -> raise(Failure("unable to find" ^ s ^ "in structure assignment"))
+                ))
+                in  
+              (match e1typ with
               A.StructType t -> (try 
                 let index_number_list = StringMap.find t struct_field_index_list in
                 let index_number = StringMap.find field index_number_list in
@@ -559,7 +552,7 @@ let translate (globals, functions, structs) =
               let e_loaded = L.build_load e_llvalue "loaded_deref" builder in 
               let _ = L.build_store e2' e_loaded builder in
               e2' 
-            |_ -> raise (Failure("nooo"))
+            |_ -> raise (Failure("Invalid unary operation"))
           )
         |_ -> raise (Failure("can't match in assign"))
       )
@@ -571,11 +564,8 @@ let translate (globals, functions, structs) =
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
       
-    | A.ArrAssign (s, ie, e2) -> let addr = (let index = expr builder ie in lookup_at_index s index builder) 
-                                 and value = expr builder e2 in
-                                 ignore(L.build_store value addr builder); value
-    | A.ArrIndexLiteral (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
-    | A.Arr2DIndexLiteral(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 
+    | A.Array1DAccess (s, e) ->  let index = expr builder e in L.build_load (lookup_at_index s index builder) "name" builder
+    | A.Array2DAccess(s,e1,e2) -> let index1 = expr builder e1 and index2 = expr builder e2 
                                       in L.build_load(lookup_at_2d_index s index1 index2 builder) "name" builder
     | A.ArrayLiteral (params) -> let val_zero = expr builder (List.hd params) in 
                                  let val_type = L.type_of val_zero in
