@@ -1,30 +1,73 @@
-void addToGrid(Player grid[2][2] g, int x, int y, Player listNode p_n){
+void addToGrid(int x, int y, *Item listNode p_n){
+	/*Set location of item p_n somewhere here*/
+	/*Having trouble setting a nested struct with a pointer on the left-most side. Leads to segmentation fault*/
+	*Item listNode iterator;
+	p_n.x = x;
+	p_n.y = y;
+  if(GridNew[x][y] == None)
+  {
+		GridNew[x][y] = p_n;
+		iterator = GridNew[x][y];	
+		iterator.next = None;
+		return;
+	}
+	else
+	{
+		/*Go through list to run colocation first*/
+		iterator = GridNew[x][y];
+	  while(iterator != None)
+	  {
+			if (iterator != p_n)
+			{
+				colocation(x, y, p_n, iterator);
+			}
+			iterator = iterator.next;
+		}
 
-	*Player listNode iterator;
-
-	iterator = &g[x][y].node_head;
-
-	while(iterator.next != None){
-		iterator = iterator.next;
-		if(iterator == &p_n){
-			print("Player already on grid coordinate");
+	  if(GridNew[x][y] == None)
+	  {
+			GridNew[x][y] = p_n;
+			iterator = GridNew[x][y];	
+			iterator.next = None;
 			return;
+		}
+
+		iterator = GridNew[x][y];
+	  while(iterator.next != None)
+	  {
+			iterator = iterator.next;
+		}
+		iterator.next = p_n;
+		iterator = iterator.next;
+		iterator.next = None;
+
 	}
 	
-	}
-	iterator.next = &p_n;
-    iterator = iterator.next;
-	iterator.next = None;
-
 }
 
 
-void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n){
-	
-	*Player listNode iterator;
-	iterator = &g[x][y].node_head;
+void deleteFromGrid(int x, int y, string tag){
 
-	while(iterator.next != None && iterator.next != &p_n){
+	*Item listNode iterator;
+	*Item listNode next_iterator;
+	iterator = GridNew[x][y];
+	next_iterator = iterator.next;
+
+	if(iterator.nametag == tag){
+		GridNew[x][y] = None;
+		iterator.next = None;
+		iterator = None;
+		return;
+	}
+
+	while(iterator.next != None ){
+		if(next_iterator.nametag == tag){
+			iterator.next = next_iterator.next;
+			next_iterator.next = None;
+			next_iterator = None;
+			return;
+		}
+		next_iterator = next_iterator.next;
 		iterator = iterator.next;
 	}
 
@@ -32,54 +75,198 @@ void deleteFromGrid(Player grid[2][2] g, int x, int y, Player listNode p_n){
 		print("Not found on given coordinate");
 		return;
 	}
+	
+}
 
-	iterator.next = p_n.next;
-	p_n.next = None;
+int printGrid(){
+	int x;
+	int y;
+	int i;
+	int k;
+	int width;
+	int tempLen;
+	int flag;
+	int max_width;
+	int border_len;
+	string printer;
+	*Item listNode iterator;
+	width = 0;
+	max_width = 0;
+	border_len = 0;
+	
+	for(x = 0; x < rows; x = x+1){
+		for(y = 0; y < cols; y = y+1){
+			iterator = GridNew[x][y];
+			width = 0;
+			if(iterator!=None){
+				width = width + getLen(iterator.nametag);
+				iterator = iterator.next;
+			}
+			while(iterator != None ){
+				width = width + 2;
+				width = width + getLen(iterator.nametag);
+				iterator = iterator.next;
+			}
+			if(width>max_width){
+				max_width = width;
+			}
+		}
+	}
 
+	border_len = max_width * cols + (cols);
+
+	for (i = 0; i < border_len; i=i+1)
+	{
+		print_sameline("_");
+	}
+	print_endline();
+	
+	/* printing column numbers*/
+
+	for(i=0;i<cols;i=i+1){	 
+		for(k=0; k < max_width/2; k=k+1){
+			print_sameline("_");
+		}
+		print_int_sameline(i);
+		for(k=0; k < max_width-(max_width/2); k=k+1){
+			print_sameline("_");
+		}
+		
+	}
+
+	print_endline();
+
+	for(x = 0; x < rows; x = x+1)
+	{
+		for(y = 0; y < cols; y = y+1)
+		{
+			tempLen = 0;
+			print_sameline("|");
+			iterator = GridNew[x][y];
+			if(iterator!=None){
+				printer = iterator.nametag;
+				tempLen = tempLen + getLen(printer);
+				print_sameline(printer);
+				iterator = iterator.next;
+			}
+			while(iterator !=None)
+			{	
+				print_sameline(", ");
+				printer = iterator.nametag;
+				tempLen = tempLen + getLen(printer);
+				tempLen = tempLen +2;
+				print_sameline(printer);
+				iterator = iterator.next;
+			}
+			for(k=0;k<max_width-tempLen;k=k+1){
+				print_sameline(" ");
+			}
+		}
+		print_sameline("|");	
+		print_int_sameline(x);
+		print_endline();
+	}
+
+	for (i = 0; i < border_len; i=i+1)
+	{
+		print_sameline("-");
+	}
+	return 0;
+}
+
+int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
+{
+	Item listNode temp;
+	*Item listNode p_n;
+	int result;
+	p_n = getHead(src_x, src_y);
+	if (p_n != None)
+	{
+		result = triggerRule(src_x, src_y, dst_x, dst_y, p_n.typetag);
+		if (result == 1)
+		{
+			deleteFromGrid(src_x, src_y, p_n.nametag);
+			addToGrid(dst_x, dst_y, p_n);
+		}
+		else
+		{
+			currentPlayerIndex = currentPlayerIndex - 1;			
+		}
+	}
+	else
+	{
+		print("No piece on cell");
+		currentPlayerIndex = currentPlayerIndex - 1;
+		return 0;
+	}
+	return result;
+}
+
+*Item listNode getHead(int x, int y){
+	*Item listNode head;
+	head = GridNew[x][y];
+	return head;
 
 }
 
-int printGrid(Player grid[2][2] g){
+*Item listNode getListNodeFromItem(string displayString)
+{
+	*Item listNode iterator;
 	int x;
 	int y;
-	int len;
-	int max_len;
-	*Player listNode iterator;
-	*Player good printer; 
-	len = 0;
-	max_len = 0;
-	
-	for(x = 0; x < 2; x = x+1){
-		for(y = 0; y < 2; y = y+1){
-			iterator = &g[x][y].node_head;
-	
-			while(iterator.next != None){
+	for(x = 0; x < rows; x = x+1)
+	{
+		for(y = 0; y < cols; y = y+1)
+		{
+			iterator = GridNew[x][y];
+			while(iterator != None )
+			{
+				if (iterator.nametag == displayString)
+				{
+					return iterator;
+				}
 				iterator = iterator.next;
-				len = len + 1 ;
 			}
-			if(max_len < len){
-				max_len = len;
-			}
-
 		}
-
 	}
-	print(max_len);
+	iterator = None;
+	return iterator;
+}
 
-	for(x = 0; x < 2; x = x+1){
-		for(y = 0; y < 2; y = y+1){
-			iterator = &g[x][y].node_head;
-			print_sameline("|");
-			while(iterator.next != None){
-				iterator = iterator.next;
-				printer  = iterator.good_node;
-				print_sameline(printer.s);
-				print_sameline(", ");
-				
-			}
-			print_sameline("|");	
+int checkBound(int x,int y){
+	if(x > -1 && x <= rows && y>-1 && y <= cols){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
+
+/*Currently assumes only x is different (column-wise)*/
+
+int traverse(int src_x, int src_y, int dst_x, int dst_y)
+{
+	int gx;
+	int sx;
+	int tx;
+	*Item listNode iter;
+	if (src_x > dst_x)
+	{
+		gx = src_x;
+		sx = dst_x;
+	}
+	else
+	{
+		gx = dst_x;
+		sx = src_x;
+	}
+	for(tx = sx+1; tx < gx; tx = tx+1)
+	{
+		iter = GridNew[tx][src_y];
+		if (iter != None)
+		{
+			return 1;
 		}
-		print_endline();
 	}
 	return 0;
 }

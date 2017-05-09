@@ -1,21 +1,68 @@
-Item horse {
-	int x;
-	string s;
-	*Item horse next;
-}
+import gridBasics.grid
 
 int checkGameEnd()
+ {
+  return 1;
+ }
+
+Player
+{ 
+  int x; 
+  int y; 
+  string s; 
+  Item horse hor;
+} 
+
+Item location
 {
-	return 1;
+  int x;
+  int y;
 }
 
+Item horse{
+  int x;
+  string s;
+  Item location loc;
+  *Item horse next;
+}
+
+Item bishop{
+  int x;
+  string s;
+  *Item bishop next;
+}
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  print("Inside colocation");
+/*  deleteFromGrid(x,y,i2.nametag);*/
+}
+
+Grid_Init<2,2> grid; 
+Player p1;
+Player p2;
+Player p3;
+Player[3] playerOrder;
+int playerOrderSize;
+
 int initialSetup(){ 
-	return 0;
+  playerOrder[0] = p1;
+  playerOrder[1] = p2;
+  playerOrder[2] = p3;
+  playerOrderSize = 3;
+  Grid <1,0> <-- p1.hor;
+  Grid <1,0> <-- p2.hor;
+  return 0;
 }
 
 int gameloop(){ 
-	int x;
-	x = 1;
-	print(x);
-	return 0;
+  Player p1;
+  p1.hor.x = 3;
+  print(p1.hor.x);
+/*  Item listNode headnode;
+  p1.x = 79;
+  print(currentPlayerIndex);*/
+/*  headnode = getHead(1,0);
+  moveOnGrid(0,0,headnode);*/
+  return 0; 
 }

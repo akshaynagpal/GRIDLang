@@ -13,7 +13,11 @@ let ruleInItemFound = ref false
 let insideItemStruct = ref false
 let exitingItemStruct = ref false
 let playerStructBraceCounter = ref 0
-let listNode = ref "Player listNode\n{\n"
+let listNode = ref "Item listNode\n{\n"
+let triggerRule = ref "int triggerRule(int src_x, int src_y, int dst_x, int dst_y, string typetag)\n{\nint x;\n"
+
+let append_to_string structName = 
+	triggerRule := !triggerRule ^ "if (typetag == \"" ^ structName ^"\")\n{\nx = "^structName^"rule(src_x, src_y, dst_x, dst_y);\nreturn x;\n}\n"
 
 let process_files filename1 =
 	let contains s1 s2 =
@@ -26,10 +30,10 @@ let process_files filename1 =
 	let ruleFunc = "int rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n"
 	in
 
-	let defaultPlayerStructFormals = "coordinate pos;\n" ^ "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
+	let defaultPlayerStructFormals = "bool win;\n" ^ "string displayString;\n" ^ "bool exists;\n"
 	in
 
-	let playerStruct = "Player good {\n" ^ defaultPlayerStructFormals ^ ruleFunc ^ "}\n"
+	let playerStruct = "Player {\n" ^ defaultPlayerStructFormals ^ "}\n"
 	in
 
 	let read_all_lines file_name =
@@ -50,6 +54,7 @@ let process_files filename1 =
 					  						let wordArr = Array.of_list(wordlis) in
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
+					  						let _ = append_to_string structName in
 					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";	
 			  							end
 			  						else
@@ -58,6 +63,7 @@ let process_files filename1 =
 					  						let wordArr = Array.of_list(wordlis) in
 					  						let structType = wordArr.(0) in
 					  						let structName = wordArr.(1) in
+					  						let _ = append_to_string structName in
 					  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
 			  							end
 			  					end
@@ -69,6 +75,11 @@ let process_files filename1 =
 		  				read_recursive ("" :: lines);
 		  			end
 		  		(* adding rule to item struct, start *)
+		  		else if (!insideItemStruct = true && (contains line "rule") && (contains line "(")) then
+		  			begin
+		  				ruleInItemFound := true;
+		  				read_recursive ( (line ^ "\n") :: lines);
+		  			end
 		  		else if (!insideItemStruct = true && (contains line "{")) then
 		  			begin
 		  				itemBraceCounter := !itemBraceCounter + 1;
@@ -77,10 +88,15 @@ let process_files filename1 =
 		  		else if (!insideItemStruct = true && (contains line "}")) then
 		  			begin
 		  				itemBraceCounter := !itemBraceCounter - 1;
-		  				if(!itemBraceCounter = 0) then 
+		  				if(!itemBraceCounter = 0) then
 		  					begin
 		  						insideItemStruct := false;
-		  						read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+			  					if (!ruleInItemFound = false) then 
+			  						begin
+			  							read_recursive ( (ruleFunc ^ line ^ "\n") :: lines);
+			  						end
+			  					else
+			  						read_recursive ( (line ^ "\n") :: lines);	
 		  					end
 		  				else
 		  					read_recursive ( (line ^ "\n") :: lines);
@@ -154,9 +170,8 @@ let process_files filename1 =
 		  						let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in
 		  						let wordArr = Array.of_list(wordlis) in
 		  						let structType = wordArr.(0) in
-		  						let structName = wordArr.(1) in
-		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
-		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
+(* 		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structType ^ "_node;\n";
+ *)		  						read_recursive ( (line ^ "\n" ^ defaultPlayerStructFormals) :: lines);
 		  					end
 		  				else if (contains line ";" = false && (contains line ")" = false)) then
 		  					begin
@@ -166,8 +181,7 @@ let process_files filename1 =
 		  						(* let wordlis = Str.split (Str.regexp " ") (List.hd(lis)) in *)
 		  						let wordArr = Array.of_list(wordlis) in
 		  						let structType = wordArr.(0) in
-		  						let structName = wordArr.(1) in
-		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structName ^ " " ^ structName ^ "_node;\n";
+(* 		  						listNode := !listNode ^ "*" ^ structType ^ " " ^ structType ^ "_node;\n"; *)
 		  						braceNotFound := true;
 		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
@@ -185,8 +199,9 @@ let process_files filename1 =
 			List.rev (lines) in 
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
-		let temp = !listNode ^ "string type;\n*Player listNode next;\n" ^ ruleFunc ^ "}\n" ^ concat (read_all_lines filename1) in
-			if (!tempImportFile = "") then
+	let temp = !listNode ^ "int x;\nint y;\nstring type;\n*Item listNode next;\nstring nametag;\nstring typetag;\n*Player owner;\nint rule(coordinate c1, coordinate c2) {\nreturn 1;\n}\n}\n" ^ concat (read_all_lines filename1) in
+	let temp2 = 
+		if (!tempImportFile = "") then
 				begin
 					if(!playerStuctFound = false) then
 						let res = playerStruct ^ "" ^ temp in
@@ -204,3 +219,6 @@ let process_files filename1 =
 					let importFile = concat (read_all_lines !tempImportFile) in
 					let res = temp ^ "" ^ importFile in
 						res
+	in
+  let temp2 = temp2 ^ !triggerRule ^ "}" in
+  temp2

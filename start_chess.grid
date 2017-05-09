@@ -1,0 +1,427 @@
+import gridBasics.grid
+
+int checkGameEnd()
+{
+  /*First trigger checkIfCheck for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
+  */
+  *Player p;
+  *Item listNode king_item;
+  int dst_x;
+  int dst_y;
+
+  /*Temporarily change current player*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+
+  if (currentPlayerIndex == 0)
+  {
+    king_item = getListNodeFromItem(p1.king.displayString);
+  }
+  else
+  {
+    king_item = getListNodeFromItem(p2.king.displayString);
+  }
+
+  if (checkIfCheck(king_item.x, king_item.y) == 1)
+  {
+    print("Currently under check");
+    for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
+    {
+      for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
+      {
+        if (triggerRule(king_item.x, king_item.y, dst_x, dst_y, king_item.typetag) == 1)
+        {
+          print("Can move to: ");
+          print(dst_x);
+          print(dst_y);
+          currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+          return 0;
+        }
+      }
+    }
+    print("Checkmate!");
+    printGrid();
+    return 1;
+  }
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  return 0;
+}
+
+/*Checks if the current player's king is under attack by opposing player's pieces*/
+int checkIfCheck(int dst_x, int dst_y)
+{
+  *Player p;
+  int x;
+  int y;
+  *Item listNode l;
+  /*Switch players to see if any of enemy's items are attacking the king*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  if (currentPlayerIndex == 0)
+  {
+    p = &p1;
+  }
+  else
+  {
+    p = &p2;
+  }
+
+  for(x = 0; x < rows; x = x+1)
+  {
+    for(y = 0; y < cols; y = y+1)
+    {
+      l = getHead(x,y);
+      if (l != None)
+      {
+        if (l.owner == p)
+        {
+          if (triggerRule(x, y, dst_x, dst_y, l.typetag) == 1)
+          {
+            currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+            return 1;
+          }
+        }
+      }
+    }
+  }
+  /*Switch back*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  return 0;
+}
+
+Item King
+{
+  string displayString;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    Player oppPlayer;
+    int xdiff;
+    int ydiff;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      /*print("Not your piece!");*/
+      return 0;
+    }
+
+    xdiff = abs(dst_x - src_x);
+    ydiff = abs(dst_y - src_y);
+    if (xdiff > 1 || ydiff > 1)
+    {
+      /*print("Invalid move for king");*/
+      return 0;
+    }
+
+    if (dst != None)
+    {
+      owner2 = dst.owner;
+      if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+      {
+        /*print("Can't kill your own piece");*/
+        return 0;
+      }
+    }
+
+    if (checkIfCheck(dst_x, dst_y) == 1)
+    {
+      /*print("Can't move into check");*/
+      return 0;
+    }
+    return 1;
+  }
+}
+
+Item Pawn
+{
+  string displayString;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    int direction;
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+/*      print("Not your piece!");*/
+      return 0;
+    }
+
+    direction = getDirectionFromIndex();
+
+    if(dst_x != src_x + direction)  /* check if pawn moves >1 step vertically, or in the wrong direction*/ 
+    {
+      /*print("Moving in the wrong direction");*/
+      return 0;
+    }
+    if (dst_y - src_y > 1 || dst_y - src_y < -1) /* check if pawn moves more than one square horizontally*/
+    {
+      /*print("Can't move more than one square horizontally with a pawn");*/
+      return 0;
+    }
+    if(dst_y == src_y - 1 || dst_y == src_y + 1) /* if pawn moves diagonally left 1 or right 1, check if item on destination square is the same color */
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if (owner1.color == owner2.color)
+        {
+          /*print("Can't kill your own piece");*/
+          return 0;
+        }
+        else
+        {
+          return 1;
+        }
+      }
+      else
+      {
+        return 0;
+      }
+    }
+    if (dst!=None)
+    {
+      /*print("Can only kill diagonally with a pawn");*/
+      return 0;
+    }
+    return 1;
+  }
+}
+
+Item Bishop
+{
+  string displayString;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      /*print("Not your piece!");*/
+      return 0;
+    }
+
+    if(abs(dst_x - src_x) == abs(dst_y - src_y))  /* moves diagonally only*/
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          /*print("Can't kill your own piece");*/
+          return 0;
+        }
+      }
+      return 1;
+    }
+    /*print("Non-diagonal move attempt with bishop");*/
+    return 0;
+  }
+}
+
+Item Knight
+{
+  string displayString;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    int xdiff;
+    int ydiff;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      /*print("Not your piece!");*/
+      return 0;
+    }
+
+    xdiff = abs(dst_x - src_x);
+    ydiff = abs(dst_y - src_y);
+    if(xdiff == 2 && ydiff == 1 || xdiff == 1 && ydiff == 2) 
+    {
+      if (dst!= None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          /*print("Cannot kill your own piece");*/
+          return 0;
+        }
+      }
+      return 1;
+    }
+    /*print("Invalid move for knight");*/
+    return 0;
+  }
+}
+
+Item Rook
+{
+  string displayString;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    *Item listNode src;
+    *Item listNode dst;
+    *Player owner1;
+    *Player owner2;
+    Player cur;
+    int xdiff;
+    int ydiff;
+    src = getHead(src_x, src_y);
+    dst = getHead(dst_x, dst_y);
+
+    /*Check if your piece*/
+    cur = playerOrder[currentPlayerIndex];
+    owner1 = src.owner;
+    if (cur.color != owner1.color)
+    {
+      /*print("Not your piece!");*/
+      return 0;
+    }
+
+    if(dst_x == src_x || dst_y == src_y)  /* moves either vertically or horizontally */
+    {
+      if (dst != None)
+      {
+        owner2 = dst.owner;
+        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        {
+          /*print("Cannot kill your own piece");*/
+          return 0;
+        }
+      }
+      /*Check if there is an obstacle in the way*/
+      if (traverse(src_x, src_y, dst_x, dst_y) == 1)
+      {
+        return 0;
+      }
+      return 1;
+    }
+    /*print("Invalid move for rook");*/
+    return 0;
+  }
+}
+
+Player
+{ 
+  Item Pawn pawn;
+  Item Bishop bishop;
+  Item Knight knight;
+  Item Rook rook;
+  Item King king;
+  string color;
+}
+
+int getDirectionFromIndex()
+{
+  int direction;
+  if(currentPlayerIndex == 0)
+  {
+    direction = -1;
+  }
+  else
+  {
+    direction = 1;
+  }
+  return direction;
+}
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  deleteFromGrid(x,y,i2.nametag);
+  return 0;
+}
+
+Grid_Init<5,4> grid;
+Player p1;
+Player p2;
+Player[2] playerOrder;
+int playerOrderSize;
+int count;
+
+int initialSetup(){
+  p1.color = "White";
+  p2.color = "Black"; 
+  playerOrder[0] = p1;
+  playerOrder[1] = p2;
+  playerOrderSize = 2;
+
+  p1.king.displayString = "W-King";
+  p1.rook.displayString = "W-Rook";
+  p1.knight.displayString = "W-Knight";
+  p1.bishop.displayString = "W-Bishop";
+  p1.pawn.displayString = "W-Pawn";
+
+  p2.king.displayString = "B-King";
+  p2.rook.displayString = "B-Rook";
+  p2.knight.displayString = "B-Knight";
+  p2.bishop.displayString = "B-Bishop";
+  p2.pawn.displayString = "B-Pawn";
+
+  Grid <4,3> <-- p1.king;
+  Grid <3,3> <-- p1.pawn;
+  Grid <4,1> <-- p1.bishop;
+  Grid <4,2> <-- p1.knight;
+  Grid <4,0> <-- p1.rook;
+
+  Grid <0,0> <-- p2.king;
+  Grid <1,0> <-- p2.pawn;
+  Grid <0,2> <-- p2.bishop;
+  Grid <0,1> <-- p2.knight;
+  Grid <0,3> <-- p2.rook;
+  return 0;
+}
+
+int gameloop(){ 
+  int src_x;
+  int src_y;
+  int dst_x;
+  int dst_y;
+  *Item listNode headnode;
+  Player cur;
+  printGrid();
+  print(currentPlayerIndex);
+  cur = playerOrder[currentPlayerIndex];
+  print(cur.color);
+  src_x = prompt();
+  src_y = prompt();
+  dst_x = prompt();
+  dst_y = prompt();
+  if (moveOnGrid(src_x, src_y, dst_x,dst_y) != 1)
+  {
+    print("Invalid move");
+  }
+  return 0; 
+}

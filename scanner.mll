@@ -31,6 +31,7 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
+| "%"      { MODULO }
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
@@ -47,7 +48,7 @@ rule token = parse
 | "Grid_Init"   { GRIDINIT }
 | "Grid"   { GRID }
 | "Player" { PLAYER }
-| "Item"   { PLAYER } (*Hacky. Since both Player and Item are just structs, we can avoid code duplication by having PLAYER as token for both*)
+| "Item"   { ITEM }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | '"'([^'"']* as lxm)'"' { STRING_LIT(lxm) }

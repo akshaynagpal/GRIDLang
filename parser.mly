@@ -11,8 +11,8 @@ let third (_,_,c) = c;;
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER COORDINATE
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL MODULO
+%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER ITEM COORDINATE
 %token <int> LITERAL
 %token <string> ID
 %token <string> STRING_LIT
@@ -72,9 +72,11 @@ typ:
   | STRING { String }
   | array1d_type { $1 }   /* int[4] */
   | array2d_type { $1 }   /* int[4][3] */
-  | PLAYER ID { StructType ($2) } 
-  | typ %prec POINTER TIMES { PointerType ($1) }  
+  | ITEM ID { StructType ($2) } 
+  | PLAYER { PlayerType }
+  | TIMES %prec POINTER typ { PointerType ($2) }  
   | COORDINATE { CoordinateType }
+  | GRIDINIT LT LITERAL COMMA LITERAL GT { GridType ($3, $5) }
 
 array1d_type:
     typ LARRAY LITERAL RARRAY %prec NOLARRAY { Array1DType($1,$3) }  /* int[4] */
@@ -94,10 +96,15 @@ vdecl:
    typ ID SEMI { ($1, $2) }
 
 sdecl:
-    PLAYER ID LBRACE vdecl_list fdecl RBRACE
+    ITEM ID LBRACE vdecl_list fdecl RBRACE
       { { sname = $2; 
       sformals = $4;
       sfunc = $5;
+      } }
+    | PLAYER LBRACE vdecl_list fdecl RBRACE
+      { { sname = "Player"; 
+      sformals = $3;
+      sfunc = $4;
       } }
 
 stmt_list:
@@ -124,9 +131,8 @@ expr:
   | NULL             { Null("listNode") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
-  | GRIDINIT LT LITERAL COMMA LITERAL GT  { GridCreate($3,$5)}
-  | GRID LT expr COMMA expr GT INARROW ID { GridAssign($3,$5,$8) }
-  | GRID LT expr COMMA expr GT OUTARROW ID { DeletePlayer($3,$5,$8) }
+  | GRID LT expr COMMA expr GT INARROW expr { GridAssign($3,$5,$8) }
+  | GRID LT expr COMMA expr GT OUTARROW expr { DeletePlayer($3,$5,$8) }
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
@@ -147,6 +153,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3) }
   | expr AND    expr { Binop($1, And,   $3) }
   | expr OR     expr { Binop($1, Or,    $3) }
+  | expr MODULO expr { Binop($1, Modulo, $3) }
   | expr DOT    ID   { Dotop($1, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | TIMES expr %prec DEREF { Unop(Deref, $2) }

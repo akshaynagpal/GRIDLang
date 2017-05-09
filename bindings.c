@@ -1,18 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+// get length of a string
+int getLen(char* x){
+   return strlen(x);
+}
 
 // get user input
-char *prompt()
+int prompt()
 {
-   static char str[50];
-   scanf("%s", str);
-   return str;
+   // static char str[50];
+   static int x;
+   scanf("%d", &x);
+   return x;
 }
 
 // print to console with a newline
 int print_endline(){
    printf("\n");
+   return 0;
+}
+
+// print string value of integer
+int print_int_sameline(int x){
+   printf("%d",x);
    return 0;
 }
 

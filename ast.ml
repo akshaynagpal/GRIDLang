@@ -5,9 +5,11 @@ type typ =
         | String 
         | Array1DType of typ * int  (* int[m] *)
         | CoordinateType
+        | PlayerType
         | Array2DType of typ * int * int  (* int[m][n] *)
         | StructType of string 
         | PointerType of typ
+        | GridType of int * int
 
 type op = Add 
           | Sub 
@@ -21,6 +23,7 @@ type op = Add
           | Geq 
           | And 
           | Or
+          | Modulo
 
 type uop = Neg | Not | Deref | Ref
 
@@ -38,8 +41,8 @@ type expr =
   | Binop of expr * op * expr
   | Dotop of expr * string
   | Unop of uop * expr
-  | GridAssign of expr * expr * string
-  | DeletePlayer of expr * expr * string
+  | GridAssign of expr * expr * expr
+  | DeletePlayer of expr * expr * expr
   | Assign of expr * expr
   | GridCreate of int * int
   | Array1DAccess of string * expr * expr (* assigning some value to an array *)
