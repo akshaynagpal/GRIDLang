@@ -492,11 +492,11 @@ let translate (globals, functions, structs) =
     | A.Assign (lhs, e2) -> 
     let e2' = expr builder e2 in  (*we have combined all the assign with match statements. So this method works for x = 1 and book.x = 1 both*)
       (match lhs with
-        | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+        | A.Array1DAssign (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
         (*Check type of v and then use that to call that "type name" ^ "rule"*)
-        | A.Array2DAccess(array_name, i,j,v) -> 
+        | A.Array2DAssign(array_name, i,j,v) -> 
                                                 let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
@@ -582,10 +582,10 @@ let translate (globals, functions, structs) =
           )
         |_ -> raise (Failure("can't match in assign"))
       )
-    | A.Array1DAccess (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
+    | A.Array1DAssign (array_name, i, v) -> let addr = (let index = expr builder i in lookup_at_index array_name index builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value
-    | A.Array2DAccess(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
+    | A.Array2DAssign(array_name, i,j,v) -> let addr = (let index1 = expr builder i and index2 = expr builder j in lookup_at_2d_index array_name index1 index2 builder) 
                                                 and value = expr builder v in
                                                 ignore(L.build_store value addr builder); value  
     | A.String_Lit(s) -> L.build_global_stringptr s "name" builder
