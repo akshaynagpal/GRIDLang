@@ -51,16 +51,6 @@ let check (globals, functions, structs) =
   
   in
 
-  (*
-  let add_default_sformals user_struct =
-    if user_struct.sname = "Player" then
-      begin
-        let predefined_formals = [(CoordinateType, "position"); (Bool, "win"); (String, "displayString")] 
-        in
-          let user_struct.modified_sformals = List.append user_struct.sformals predefined_formals
-      end
-  in
-  *)
   (**** Checking Global Variables ****)
 
   List.iter (check_not_void (fun n -> "illegal void global " ^ n)) globals;
@@ -71,31 +61,7 @@ let check (globals, functions, structs) =
  
   report_duplicate (fun n -> "duplicate struct " ^ n)
     (List.map (fun sd -> sd.sname) structs);
-  
-  (* List.iter add_default_sformals structs; *)
-  
-  (*
-  let struct_decls = List.fold_left (fun m fd -> StringMap.add fd.fname fd m)
-                         built_in_decls functions
-  in
-
-  let function_decl s = try StringMap.find s function_decls
-       with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
-
-  type func_decl = {
-      typ : typ;
-      fname : string;
-      formals : bind list;
-      locals : bind list;
-      body : stmt list;
-    }
-
-  type struct_decl = {   (* for adding player datatype *)
-      sname: string;
-      sformals: bind list;
-  }
-  *)
-  
+    
   (**** Checking Functions ****)
 
   if List.mem "print" (List.map (fun fd -> fd.fname) functions)

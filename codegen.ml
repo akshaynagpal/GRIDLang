@@ -42,7 +42,6 @@ let translate (globals, functions, structs) =
     | A.Array1DType (typ,size) -> array_t (ltype_of_typ typ) size 
     | A.PointerType t -> L.pointer_type (ltype_of_typ t) 
     | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 
-    | A.CoordinateType -> array_t i32_t 2 (*Declare struct of type coordinate_t here*)
     | A.GridType (rows, cols) -> ltype_of_typ (A.Array2DType ((A.StructType("listNode")), rows, cols))
   in
 
@@ -326,8 +325,6 @@ let translate (globals, functions, structs) =
     A.Literal i -> L.const_int i32_t i
     | A.Null t -> L.const_pointer_null (ltype_of_typ(A.PointerType(A.StructType(t))))
     | A.BoolLit b -> L.const_int i1_t (if b then 1 else 0)
-    | A.Coordinate_Lit(x, y) -> let x' = expr builder x and y' = expr builder y in
-    (*Create array literal with [x,y] here*) L.const_array (ltype_of_typ(A.Int)) (Array.of_list [x';y'])
     | A.Id s -> L.build_load (lookup s) s builder
     | A.GridCreate (rows, cols) ->  let str_typ = A.StructType("listNode") in
                               let arr_type = A.Array2DType (str_typ, rows, cols) in

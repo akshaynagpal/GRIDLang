@@ -12,7 +12,7 @@ let third (_,_,c) = c;;
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF MODULO
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER ITEM COORDINATE
+%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER ITEM
 %token <int> LITERAL
 %token <string> ID
 %token <string> STRING_LIT
@@ -75,7 +75,6 @@ typ:
   | ITEM ID { StructType ($2) } 
   | PLAYER { PlayerType }
   | typ TIMES %prec POINTER { PointerType ($1) }  
-  | COORDINATE { CoordinateType }
   | GRIDINIT LT LITERAL COMMA LITERAL GT { GridType ($3, $5) }
 
 array1d_type:
@@ -136,7 +135,6 @@ expr:
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
-  | LT expr COMMA expr GT   { Coordinate_Lit($2,$4)}
   | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAssign($1,$3,$5,$8)}  /* x(3,4) = something */
   | ID LARRAY expr RARRAY ASSIGN expr { Array1DAssign($1, $3, $6) }  /* x[4] = something */
   | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Arr2DIndexLiteral($1,$3,$5) } /* x(3,4) */

@@ -4,7 +4,6 @@ type typ =
         | Void 
         | String 
         | Array1DType of typ * int  (* int[m] *)
-        | CoordinateType
         | PlayerType
         | Array2DType of typ * int * int  (* int[m][n] *)
         | StructType of string 
@@ -35,7 +34,6 @@ type expr =
   | BoolLit of bool
   | ArrIndexLiteral of string * expr
   | Arr2DIndexLiteral of string * expr * expr
-  | Coordinate_Lit of expr * expr
   | Call of string * expr list
   | Id of string
   | Binop of expr * op * expr
@@ -48,7 +46,6 @@ type expr =
   | Array1DAssign of string * expr * expr (* assigning some value to an array *)
   | Array2DAssign of string * expr * expr * expr (* assigning some value to a 2D array *)
   | String_Lit of string
-  | CoordinateAssign of string * expr * expr
   | ArrAssign of string * expr * expr  (* assigning some value to an array *)
   | ArrayLiteral of expr list   (* list inside array *)
   | Repeat                (* added repeat keyword in expr*)
@@ -109,7 +106,6 @@ let rec string_of_expr = function
   | Arr2DIndexLiteral(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
   | Id(s) -> s
   | String_Lit(s) -> s
-  | Coordinate_Lit(e1, e2) -> string_of_expr e1 ^ ", " ^ string_of_expr e2
   | Dotop(e, s) -> string_of_expr e ^ "." ^ s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
@@ -117,7 +113,6 @@ let rec string_of_expr = function
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
   | Array1DAssign(s, e1, e2) -> s (* assigning some value to an array *)
   | Array2DAssign(s, e1, e2, e3) -> s (* assigning some value to a 2D array *)
-  | CoordinateAssign(s, e1, e2) -> s
   | Repeat -> "repeat"              (* added repeat keyword in expr*)
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
@@ -143,7 +138,6 @@ let rec string_of_typ = function
   | Void -> "void"
   | String -> "string"
   | Array1DType(typ, e) -> string_of_typ typ ^ " array [" ^ string_of_int e ^ "]"
-  | CoordinateType -> "coordinate"
   | Array2DType(typ, e1, e2) -> string_of_typ typ ^ " array [" ^ string_of_int e1 ^ "][" ^ string_of_int e2 ^ "]"
   | StructType(s) -> "struct " ^ s
   | PointerType(typ) -> string_of_typ typ ^ " pointer"
