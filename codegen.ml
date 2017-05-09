@@ -134,10 +134,10 @@ let translate (globals, functions, structs) =
   let printf_func = L.declare_function "printf" printf_t the_module in
 
   (* Declare built-in prompt() function *)
-  let prompt_t = L.function_type i32_t [||] in
+  let prompt_t = L.function_type i32_t [| str_t |] in
   let prompt_func = L.declare_function "prompt" prompt_t the_module in
 
-  (* Declare built-in prompt() function *)
+  (* Declare built-in abs() function *)
   let abs_t = L.function_type i32_t [|i32_t|] in
   let abs_func = L.declare_function "abs" abs_t the_module in
 
@@ -629,8 +629,8 @@ let translate (globals, functions, structs) =
             L.build_call printf_func [| str_format_str ; (expr builder e) |]
             "printf" builder
 
-    | A.Call ("prompt", []) ->
-        L.build_call prompt_func [||] "prompt" builder
+    | A.Call ("prompt", [e]) ->
+        L.build_call prompt_func [|expr builder e|] "prompt" builder
     
     | A.Call ("abs", [e]) ->
         L.build_call abs_func [|expr builder e|] "absl" builder

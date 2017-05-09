@@ -85,7 +85,7 @@ Check() {
                              s/.grid//'`
     reffile=`echo $1 | sed 's/.grid$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
-    echo "$reffile"
+    #echo "$reffile"
     echo -n "$basename........."
 
     echo 1>&2
@@ -120,7 +120,7 @@ CheckFail() {
                              s/.grid//'`
     reffile=`echo $1 | sed 's/.grid$//'`
     basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
-
+    #echo "$reffile"
     echo -n "$basename........."
 
     echo 1>&2
