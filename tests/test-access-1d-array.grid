@@ -1,14 +1,32 @@
+import gridBasics.grid
+
+int checkGameEnd()
+ {
+  return 1;
+ }
+
+Player
+{ 
+  string name;
+} 
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  print("Inside colocation");
+}
+
+Grid_Init<0,0> grid; 
+int playerOrderSize;
+
+int initialSetup(){ 
+  playerOrderSize = 2;
+  return 0;
+}
+
 int gameloop(){
-    int j;
     int[4] x;
     x = [1,2,3,4];
     x[0]=5;
-    j = x[0];
-    print(j);
+    print(x[0]);
     return 0;
-}
-
-int checkGameEnd()
-{
-  return 1;
 }

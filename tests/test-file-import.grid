@@ -1,12 +1,30 @@
-import gridBasics.grid;
+import gridBasics.grid
+
+int checkGameEnd()
+ {
+  return 1;
+ }
+
+Player
+{ 
+  string name;
+} 
+
+int colocation(int x, int y, Item listNode i1, Item listNode i2)
+{
+  return 0;
+}
+
+Grid_Init<0,0> grid; 
+int playerOrderSize;
+
+int initialSetup(){ 
+  playerOrderSize = 2;
+  return 0;
+}
 
 int gameloop(){
-	print("Hello World");
-	int k;
-	k = test();
+	print("Import success");
 	return 0;
 }
 
-int test(){
-	return 1;
-}
