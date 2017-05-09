@@ -158,9 +158,9 @@ let translate (globals, functions, structs) =
   let getLen_t = L.function_type i32_t [| str_t |] in
   let getLen_func = L.declare_function "getLen" getLen_t the_module in
 
-  (* Declare built-in to_string() function*)
-  let to_string_t = L.function_type str_t [| i32_t |] in
-  let to_string_func = L.declare_function "to_string" to_string_t the_module in
+  (* Declare built-in print_int_sameline() function*)
+  let print_int_sameline_t = L.function_type i32_t [| i32_t |] in
+  let print_int_sameline_func = L.declare_function "print_int_sameline" print_int_sameline_t the_module in
 
   let main_func_map = StringMap.add "initialSetup" "main" StringMap.empty in
 
@@ -649,8 +649,8 @@ let translate (globals, functions, structs) =
     | A.Call("getLen",[e])  ->
         L.build_call getLen_func [|expr builder e|] "getLen" builder 
 
-    | A.Call("to_string",[e])  ->
-        L.build_call to_string_func [|expr builder e|] "to_string" builder 
+    | A.Call("print_int_sameline",[e])  ->
+        L.build_call print_int_sameline_func [|expr builder e|] "print_int_sameline" builder 
  
     | A.Call (f, act) ->
         let map_arguments actual =
