@@ -8,41 +8,53 @@ int checkGameEnd()
   *Item listNode king_item;
   int dst_x;
   int dst_y;
+
+  /*Temporarily change current player*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+
   if (currentPlayerIndex == 0)
   {
-    p = &p2;
+    king_item = getListNodeFromItem(p1.king.displayString);
   }
   else
   {
-    p = &p1;
+    king_item = getListNodeFromItem(p2.king.displayString);
   }
-  king_item = getListNodeFromItem(p1.king.displayString);
+
   if (checkIfCheck(king_item.x, king_item.y) == 1)
   {
+    print("Currently under check");
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
       {
         if (triggerRule(king_item.x, king_item.y, dst_x, dst_y, king_item.typetag) == 1)
         {
-          print("Can move to this");
+          print("Can move to: ");
+          print(dst_x);
+          print(dst_y);
+          currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
           return 0;
         }
       }
     }
-    print("Can't move anywhere");
+    print("Checkmate!");
+    printGrid();
     return 1;
   }
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
   return 0;
 }
 
+/*Checks if the current player's king is under attack by opposing player's pieces*/
 int checkIfCheck(int dst_x, int dst_y)
 {
   *Player p;
   int x;
   int y;
   *Item listNode l;
-
+  /*Switch players to see if any of enemy's items are attacking the king*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
   if (currentPlayerIndex == 0)
   {
     p = &p1;
@@ -62,11 +74,16 @@ int checkIfCheck(int dst_x, int dst_y)
         if (l.owner == p)
         {
           if (triggerRule(x, y, dst_x, dst_y, l.typetag) == 1)
+          {
+            currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
             return 1;
+          }
         }
       }
     }
   }
+  /*Switch back*/
+  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
   return 0;
 }
 
@@ -83,8 +100,6 @@ Item King
     Player oppPlayer;
     int xdiff;
     int ydiff;
-    int opposingIndex;
-    Item King oppking;
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
 
@@ -115,15 +130,11 @@ Item King
       }
     }
 
-    /*Temporarily change current player index*/
-    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
     if (checkIfCheck(dst_x, dst_y) == 1)
     {
       /*print("Can't move into check");*/
-      currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
       return 0;
     }
-    currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
     return 1;
   }
 }
@@ -311,6 +322,11 @@ Item Rook
           return 0;
         }
       }
+      /*Check if there is an obstacle in the way*/
+      if (traverse(src_x, src_y, dst_x, dst_y) == 1)
+      {
+        return 0;
+      }
       return 1;
     }
     /*print("Invalid move for rook");*/
@@ -344,9 +360,7 @@ int getDirectionFromIndex()
 
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
-  print("Inside colocation");
   deleteFromGrid(x,y,i2.nametag);
-  printGrid();
   return 0;
 }
 
