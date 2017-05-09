@@ -85,7 +85,6 @@ int printGrid(){
 	int k;
 	int width;
 	int tempLen;
-	string dim;
 	int flag;
 	int max_width;
 	int border_len;
@@ -114,11 +113,25 @@ int printGrid(){
 		}
 	}
 
-	border_len = max_width * cols + (cols+1);
+	border_len = max_width * cols + (cols);
 
 	for (i = 0; i < border_len; i=i+1)
 	{
 		print_sameline("_");
+	}
+	print_endline();
+	
+	/* printing column numbers*/
+
+	for(i=0;i<cols;i=i+1){	 
+		for(k=0; k < max_width/2; k=k+1){
+			print_sameline("_");
+		}
+		print_int_sameline(i);
+		for(k=0; k < max_width-(max_width/2); k=k+1){
+			print_sameline("_");
+		}
+		
 	}
 
 	print_endline();
@@ -149,7 +162,8 @@ int printGrid(){
 				print_sameline(" ");
 			}
 		}
-		print_sameline("|");		
+		print_sameline("|");	
+		print_int_sameline(x);
 		print_endline();
 	}
 
@@ -158,7 +172,6 @@ int printGrid(){
 		print_sameline("-");
 	}
 	return 0;
-	
 }
 
 int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)

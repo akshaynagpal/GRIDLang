@@ -23,11 +23,10 @@ int print_endline(){
    return 0;
 }
 
-// get string value of integer
-char* to_string(int x){
-   char snum[20];
-   // itoa(x, snum, 10);
-   return snum[0];
+// print string value of integer
+int print_int_sameline(int x){
+   printf("%d",x);
+   return 0;
 }
 
 // print to console without a newline
