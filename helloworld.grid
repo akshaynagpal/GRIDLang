@@ -7,19 +7,18 @@ int checkGameEnd()
 
 Player
 { 
-  string name;
 } 
 
 int colocation(int x, int y, Item listNode i1, Item listNode i2)
 {
-  print("Inside colocation");
+  return 0;
 }
 
 Grid_Init<0,0> grid; 
 int playerOrderSize;
 
 int initialSetup(){ 
-  playerOrderSize = 2;
+  playerOrderSize = 1;
   return 0;
 }
 
