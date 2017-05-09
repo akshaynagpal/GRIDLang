@@ -412,7 +412,6 @@ int gameloop(){
   Item listNode* headnode;
   Player cur;
   printGrid();
-  print(currentPlayerIndex);
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);
   src_x = prompt("Enter source x:");

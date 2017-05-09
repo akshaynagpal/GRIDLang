@@ -180,7 +180,7 @@ let check (globals, functions, structs) =
 
     let rec type_of_identifier s =
       (match s with
-        "GridNew" -> PointerType(StructType("listNode"))
+        "GridData" -> PointerType(StructType("listNode"))
         | "rows" -> Int
         | "cols" -> Int
         | "currentPlayerIndex" -> Int

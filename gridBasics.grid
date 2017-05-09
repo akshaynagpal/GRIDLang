@@ -4,17 +4,17 @@ void addToGrid(int x, int y, Item listNode* p_n){
 	Item listNode* iterator;
 	p_n.x = x;
 	p_n.y = y;
-  if(GridNew[x,y] == None)
+  if(GridData[x,y] == None)
   {
-		GridNew[x,y] = p_n;
-		iterator = GridNew[x,y];	
+		GridData[x,y] = p_n;
+		iterator = GridData[x,y];	
 		iterator.next = None;
 		return;
 	}
 	else
 	{
 		/*Go through list to run colocation first*/
-		iterator = GridNew[x,y];
+		iterator = GridData[x,y];
 	  while(iterator != None)
 	  {
 			if (iterator != p_n)
@@ -24,15 +24,15 @@ void addToGrid(int x, int y, Item listNode* p_n){
 			iterator = iterator.next;
 		}
 
-	  if(GridNew[x,y] == None)
+	  if(GridData[x,y] == None)
 	  {
-			GridNew[x,y] = p_n;
-			iterator = GridNew[x,y];	
+			GridData[x,y] = p_n;
+			iterator = GridData[x,y];	
 			iterator.next = None;
 			return;
 		}
 
-		iterator = GridNew[x,y];
+		iterator = GridData[x,y];
 	  while(iterator.next != None)
 	  {
 			iterator = iterator.next;
@@ -50,11 +50,11 @@ void deleteFromGrid(int x, int y, string tag){
 
 	Item listNode* iterator;
 	Item listNode* next_iterator;
-	iterator = GridNew[x,y];
+	iterator = GridData[x,y];
 	next_iterator = iterator.next;
 
 	if(iterator.nametag == tag){
-		GridNew[x,y] = None;
+		GridData[x,y] = None;
 		iterator.next = None;
 		iterator = None;
 		return;
@@ -96,7 +96,7 @@ int printGrid(){
 	
 	for(x = 0; x < rows; x = x+1){
 		for(y = 0; y < cols; y = y+1){
-			iterator = GridNew[x,y];
+			iterator = GridData[x,y];
 			width = 0;
 			if(iterator!=None){
 				width = width + getLen(iterator.nametag);
@@ -142,7 +142,7 @@ int printGrid(){
 		{
 			tempLen = 0;
 			print_sameline("|");
-			iterator = GridNew[x,y];
+			iterator = GridData[x,y];
 			if(iterator!=None){
 				printer = iterator.nametag;
 				tempLen = tempLen + getLen(printer);
@@ -171,6 +171,7 @@ int printGrid(){
 	{
 		print_sameline("-");
 	}
+	print_endline();
 	return 0;
 }
 
@@ -204,7 +205,7 @@ int moveOnGrid(int src_x, int src_y, int dst_x, int dst_y)
 
 Item listNode* getHead(int x, int y){
 	Item listNode* head;
-	head = GridNew[x,y];
+	head = GridData[x,y];
 	return head;
 
 }
@@ -218,7 +219,7 @@ Item listNode* getListNodeFromItem(string displayString)
 	{
 		for(y = 0; y < cols; y = y+1)
 		{
-			iterator = GridNew[x,y];
+			iterator = GridData[x,y];
 			while(iterator != None )
 			{
 				if (iterator.nametag == displayString)
@@ -262,7 +263,7 @@ int traverse(int src_x, int src_y, int dst_x, int dst_y)
 	}
 	for(tx = sx+1; tx < gx; tx = tx+1)
 	{
-		iter = GridNew[tx,src_y];
+		iter = GridData[tx,src_y];
 		if (iter != None)
 		{
 			return 1;

@@ -59,8 +59,8 @@ let translate (globals, functions, structs) =
     let each_col_init = L.const_array str_typ (Array.of_list (create_rep_list [] cell_init cols)) in
     let ty_each_col = array_t str_typ cols in
     let init = L.const_array ty_each_col (Array.of_list (create_rep_list [] each_col_init rows)) in
-    let grid_val = L.define_global "GridNew" init the_module in 
-    let _ = Hashtbl.add vars_global "GridNew" grid_val in
+    let grid_val = L.define_global "GridData" init the_module in 
+    let _ = Hashtbl.add vars_global "GridData" grid_val in
     grid_val 
   in
 
