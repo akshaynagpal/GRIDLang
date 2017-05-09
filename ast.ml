@@ -40,7 +40,7 @@ type expr =
   | Dotop of expr * string
   | Unop of uop * expr
   | GridAssign of expr * expr * expr
-  | DeletePlayer of expr * expr * expr
+  | DeleteItem of expr * expr * expr
   | Assign of expr * expr
   | Array1DAssign of string * expr * expr (* assigning some value to an array *)
   | Array2DAssign of string * expr * expr * expr (* assigning some value to a 2D array *)
@@ -102,7 +102,7 @@ let rec string_of_expr = function
   | BoolLit(false) -> "false"
   | Null s -> "Null " ^ s
   | GridAssign(e1, e2, e3) -> "GridAssign"
-  | DeletePlayer(e1, e2, e3) -> "DeletePlayer" 
+  | DeleteItem(e1, e2, e3) -> "DeleteItem" 
   | Array1DAccess(s, e) -> s ^ "[" ^ string_of_expr e ^ "]"
   | Array2DAccess(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
   | ArrayLiteral([e]) -> "ArrayLiteral"

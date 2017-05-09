@@ -268,6 +268,7 @@ let translate (globals, functions, structs) =
                                   let player_type = ltype_of_typ (A.StructType "Player") in
                                   (match llvm_type with
                                     player_type -> (A.PlayerType,s)
+                                    | i32_t -> (A.Int, s)
                                     | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
                                             (A.StructType(struct_name),s))
                 with Not_found -> raise(Failure("unable to find" ^ s ^ "in structure assignment"))
@@ -379,7 +380,7 @@ let translate (globals, functions, structs) =
                         let _ = expr builder (A.Assign(dotoperator, A.String_Lit(struct_name))) in
                         expr builder (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));]))
 
-    | A.DeletePlayer (e1, e2, e3) -> 
+    | A.DeleteItem (e1, e2, e3) -> 
             let tag_to_send = 
             (match e3 with
             A.Id s -> s
@@ -637,7 +638,16 @@ let translate (globals, functions, structs) =
                   fst( 
                   try List.find (fun t->snd(t)=s) fdecl.A.locals with
                   |Not_found -> List.find (fun t->snd(t)=s) fdecl.A.formals
-                  |Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+                  |Not_found -> try let sval = lookup s in  (*Check in globals*)
+                                  let llvm_type = L.type_of sval in 
+                                  let player_type = ltype_of_typ (A.StructType "Player") in
+                                  (match llvm_type with
+                                    player_type -> (A.PlayerType,s)
+                                    | i32_t -> (A.Int, s)
+                                    | _ -> let struct_name = Hashtbl.find struct_names llvm_type in 
+                                            (A.StructType(struct_name),s))
+                  with Not_found -> raise (Failure("Unable to find" ^ s ^ "in map_arguments ID")))
+
                   in
                   (match etype with
                     A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)

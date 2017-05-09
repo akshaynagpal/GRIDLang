@@ -200,10 +200,10 @@ let check (globals, functions, structs) =
       | Id s -> type_of_identifier s
       | Null t -> PointerType(StructType(t))
       (*Placeholders. Add Actual type checking here*)
-      | GridAssign(e1, e2, e3) -> String
-      | DeletePlayer(e1, e2, e3) -> String
-      | Array2DAssign(e1, e2, e3, e4) -> String
-      | Array1DAssign(e1, e2, e3) -> String
+      | GridAssign(e1, e2, e3) -> Void
+      | DeleteItem(e1, e2, e3) -> Void
+      | Array2DAssign(e1, e2, e3, e4) -> expr e4
+      | Array1DAssign(e1, e2, e3) -> expr e3
       | Array2DAccess(s, e2, e3) -> type_of_identifier s
       | Array1DAccess(s, e2) -> type_of_identifier s
       | ArrayLiteral([e]) -> String

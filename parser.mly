@@ -131,7 +131,7 @@ expr:
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | GRID LT expr COMMA expr GT INARROW expr { GridAssign($3,$5,$8) }
-  | GRID LT expr COMMA expr GT OUTARROW expr { DeletePlayer($3,$5,$8) }
+  | GRID LT expr COMMA expr GT OUTARROW expr { DeleteItem($3,$5,$8) }
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
