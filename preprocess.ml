@@ -49,7 +49,8 @@ let process_files filename1 =
 			try
 				let line = input_line in_channel in
 					let _ = 
-						if ((contains line "playerOrder") && (contains line "Player")) then 
+						if (Str.string_match (Str.regexp "Player\[[0-9]+\] playerOrder;") line 0) then
+						(* if ((contains line "playerOrder") && (contains line "Player")) then  *)
 							begin
 								let pos = Str.search_forward (Str.regexp "[0-9]+") line 0 in
 								let nextPos =
@@ -190,7 +191,7 @@ let process_files filename1 =
 		  						insidePlayerStruct := false;
 		  						if (!ruleInPlayerFound = false) then
 		  							begin
-		  								read_recursive ( (line ^ "\n") :: lines);
+		  								read_recursive ( (ruleFunc ^ "\n" ^ line ^ "\n") :: lines);
 		  							end
 		  						else
 		  							begin
