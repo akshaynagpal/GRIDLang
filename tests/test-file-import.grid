@@ -1,4 +1,7 @@
-int gameloop(){
+import gridBasics.grid;
+
+Grid_Init<0,0>;
+int setup(){
 	print("Import success");
 	return 0;
 }

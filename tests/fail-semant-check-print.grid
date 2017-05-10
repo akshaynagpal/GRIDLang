@@ -1,0 +1,11 @@
+Player{
+	int x;
+	Player *next;
+}
+
+int setup()
+{
+	Player* p4;
+	print(p4);
+	return 0; 
+}

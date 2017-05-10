@@ -1,0 +1,16 @@
+import gridBasics.grid;
+Player
+{ 
+	int x,y; 
+	string s; 
+	Player* next;
+} 
+
+Grid_Init<5,4>;
+
+int setup()
+{
+	Player p1, p2; 
+	p2.z = 3;
+	return 0; 
+}

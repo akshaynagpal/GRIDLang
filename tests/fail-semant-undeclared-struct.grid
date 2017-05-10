@@ -1,0 +1,17 @@
+Player
+{ 
+	int x,y;
+	string s; 
+	Player* next;
+}
+
+Grid_Init<5,4>;
+
+int setup()
+{ 
+	Player p1; 
+	p2.x = 3;
+	print(p2.x);
+	return 0; 
+
+}
