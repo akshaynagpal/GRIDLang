@@ -261,6 +261,11 @@ Item Bishop
         }
       }
 
+      if (traverse(src_x, src_y, dst_x, dst_y) == 1)
+      {
+        return 0;
+      }
+
       if (currentPlayerIndex == 0)
       {
         king_item = getListNodeFromItem(p1.king.displayString);
@@ -315,6 +320,7 @@ Item Knight
           return 0;
         }
       }
+
       if (currentPlayerIndex == 0)
       {
         king_item = getListNodeFromItem(p1.king.displayString);
