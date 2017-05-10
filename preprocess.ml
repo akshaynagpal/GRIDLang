@@ -108,6 +108,11 @@ let process_files filename1 =
 		  				tempImportFile := "gridBasics.grid";
 		  				read_recursive ("" :: lines);
 		  			end
+		  		else if(contains line "Grid_Init<") then
+		  			begin
+		  				let modifiedLine = Str.replace_first (Str.regexp ";") " grid;" line in
+		  					read_recursive ( (modifiedLine ^ "\n") :: lines);
+		  			end
 		  		(* adding rule to item struct, start *)
 		  		else if (!insideItemStruct = true && (contains line "rule") && (contains line "(")) then
 		  			begin
