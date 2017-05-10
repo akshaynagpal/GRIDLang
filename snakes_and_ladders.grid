@@ -97,7 +97,7 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
   return 0;
 }
 
-Grid_Init<6,6> grid;
+Grid_Init<6,6>;
 Player p1, p2;
 
 int setup(){ 
