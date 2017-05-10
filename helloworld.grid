@@ -1,3 +1,4 @@
+import gridBasics.grid
 
 int checkGameEnd()
  {
@@ -26,6 +27,7 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
 
 Grid_Init<7,7> grid; 
 Player p1;
+
 int playerOrderSize;
 
 int initialSetup(){ 
@@ -48,6 +50,7 @@ int gameloop(){
   int i;
   i = traverse(0,2,5,2);
   print(i);
+  print("Hello world");
   printGrid();
   return 0; 
 }
