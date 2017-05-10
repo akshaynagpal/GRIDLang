@@ -104,11 +104,6 @@ bool checkIfUnderAttack(int dst_x, int dst_y)
   return false;
 }
 
-int Pawnrule()
-{
-  
-}
-
 Item King
 {
   string displayString;
