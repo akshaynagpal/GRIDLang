@@ -23,19 +23,17 @@ int checkGameEnd()
   if (checkIfUnderAttack(king_item.x, king_item.y))
   {
     print("Currently under check");
+
     /*See if item attacking the king is itself under attack*/
     tempx = attx;
     tempy = atty;
-    
     nextPlayer();
     if (checkIfUnderAttack(tempx, tempy)) 
     {
-      nextPlayer();
-      printGrid();
-      print("Checkmate!!");
-      return 1;
+      return 0;
     }
     nextPlayer();
+
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
