@@ -2,15 +2,14 @@ import gridBasics.grid
 
 int checkGameEnd()
 {
-  /*First trigger checkIfCheck for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0
-  */
+  /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0*/
+
   Player* p;
   Item listNode* king_item;
-  int dst_x;
-  int dst_y;
+  int dst_x, dst_y, tempx, tempy;
 
   /*Temporarily change current player*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
 
   if (currentPlayerIndex == 0)
   {
@@ -21,9 +20,22 @@ int checkGameEnd()
     king_item = getListNodeFromItem(p2.king.displayString);
   }
 
-  if (checkIfCheck(king_item.x, king_item.y) == 1)
+  if (checkIfUnderAttack(king_item.x, king_item.y))
   {
     print("Currently under check");
+    /*See if item attacking the king is itself under attack*/
+    tempx = attx;
+    tempy = atty;
+    
+    nextPlayer();
+    if (checkIfUnderAttack(tempx, tempy)) 
+    {
+      nextPlayer();
+      printGrid();
+      print("Checkmate!!");
+      return 1;
+    }
+    nextPlayer();
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
@@ -33,7 +45,7 @@ int checkGameEnd()
           print("Can move to: ");
           print(dst_x);
           print(dst_y);
-          currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+          nextPlayer();
           return 0;
         }
       }
@@ -42,19 +54,22 @@ int checkGameEnd()
     print("Checkmate!");
     return 1;
   }
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  /*Change back*/
+  nextPlayer();
   return 0;
 }
 
+int attx;
+int atty;
 /*Checks if the current player's king is under attack by opposing player's pieces*/
-int checkIfCheck(int dst_x, int dst_y)
+bool checkIfUnderAttack(int dst_x, int dst_y)
 {
   Player* p;
-  int x;
-  int y;
+  int x, y;
   Item listNode* l;
+
   /*Switch players to see if any of enemy's items are attacking the king*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
+  nextPlayer();
   if (currentPlayerIndex == 0)
   {
     p = &p1;
@@ -75,16 +90,18 @@ int checkIfCheck(int dst_x, int dst_y)
         {
           if (triggerRule(x, y, dst_x, dst_y, l.typetag) == 1)
           {
-            currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
-            return 1;
+            attx = x;
+            atty = y;
+            nextPlayer();
+            return true;
           }
         }
       }
     }
   }
   /*Switch back*/
-  currentPlayerIndex = (currentPlayerIndex + 1) % playerOrderSize;
-  return 0;
+  nextPlayer();
+  return false;
 }
 
 Item King
@@ -92,14 +109,11 @@ Item King
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src;
-    Item listNode* dst;
-    Player* owner1;
-    Player* owner2;
+    Item listNode* src, dst;
+    Player* owner1, owner2;
     Player cur;
-    Player oppPlayer;
-    int xdiff;
-    int ydiff;
+    int xdiff, ydiff;
+
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
 
@@ -130,7 +144,7 @@ Item King
       }
     }
 
-    if (checkIfCheck(dst_x, dst_y) == 1)
+    if (checkIfUnderAttack(dst_x, dst_y))
     {
       /*print("Can't move into check");*/
       return 0;
@@ -145,11 +159,10 @@ Item Pawn
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     int direction;
-    Item listNode* src;
-    Item listNode* dst;
-    Player* owner1;
-    Player* owner2;
+    Item listNode* src, dst, king_item;
+    Player* owner1, owner2;
     Player cur;
+
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
 
@@ -199,6 +212,21 @@ Item Pawn
       /*print("Can only kill diagonally with a pawn");*/
       return 0;
     }
+
+
+    if (currentPlayerIndex == 0)
+    {
+      king_item = getListNodeFromItem(p1.king.displayString);
+    }
+    else
+    {
+      king_item = getListNodeFromItem(p2.king.displayString);
+    }
+    if (checkIfUnderAttack(king_item.x, king_item.y))
+    {
+      return 0;
+    }
+    
     return 1;
   }
 }
@@ -208,10 +236,8 @@ Item Bishop
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src;
-    Item listNode* dst;
-    Player* owner1;
-    Player* owner2;
+    Item listNode* src, dst, king_item;
+    Player* owner1, owner2;
     Player cur;
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
@@ -236,6 +262,19 @@ Item Bishop
           return 0;
         }
       }
+
+      if (currentPlayerIndex == 0)
+      {
+        king_item = getListNodeFromItem(p1.king.displayString);
+      }
+      else
+      {
+        king_item = getListNodeFromItem(p2.king.displayString);
+      }
+      if (checkIfUnderAttack(king_item.x, king_item.y))
+      {
+        return 0;
+      }
       return 1;
     }
     /*print("Non-diagonal move attempt with bishop");*/
@@ -248,13 +287,11 @@ Item Knight
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src;
-    Item listNode* dst;
-    Player* owner1;
-    Player* owner2;
+    Item listNode* src, dst, king_item;
+    Player* owner1, owner2;
     Player cur;
-    int xdiff;
-    int ydiff;
+    int xdiff, ydiff;
+
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
 
@@ -280,6 +317,18 @@ Item Knight
           return 0;
         }
       }
+      if (currentPlayerIndex == 0)
+      {
+        king_item = getListNodeFromItem(p1.king.displayString);
+      }
+      else
+      {
+        king_item = getListNodeFromItem(p2.king.displayString);
+      }
+      if (checkIfUnderAttack(king_item.x, king_item.y))
+      {
+        return 0;
+      }
       return 1;
     }
     /*print("Invalid move for knight");*/
@@ -292,13 +341,11 @@ Item Rook
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src;
-    Item listNode* dst;
-    Player* owner1;
-    Player* owner2;
+    Item listNode* src, dst, king_item;
+    Player* owner1, owner2;
     Player cur;
-    int xdiff;
-    int ydiff;
+    int xdiff, ydiff;
+
     src = getHead(src_x, src_y);
     dst = getHead(dst_x, dst_y);
 
@@ -324,6 +371,18 @@ Item Rook
       }
       /*Check if there is an obstacle in the way*/
       if (traverse(src_x, src_y, dst_x, dst_y) == 1)
+      {
+        return 0;
+      }
+      if (currentPlayerIndex == 0)
+      {
+        king_item = getListNodeFromItem(p1.king.displayString);
+      }
+      else
+      {
+        king_item = getListNodeFromItem(p2.king.displayString);
+      }
+      if (checkIfUnderAttack(king_item.x, king_item.y))
       {
         return 0;
       }
@@ -365,8 +424,7 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
 }
 
 Grid_Init<5,4> grid;
-Player p1;
-Player p2;
+Player p1, p2;
 Player[2] playerOrder;
 int playerOrderSize;
 int count;
@@ -405,20 +463,18 @@ int initialSetup(){
 }
 
 int gameloop(){ 
-  int src_x;
-  int src_y;
-  int dst_x;
-  int dst_y;
-  Item listNode* headnode;
+  int src_x, src_y, dst_x, dst_y;
+  Item listNode* headnode, p_n;
   Player cur;
-  printGrid();
   cur = playerOrder[currentPlayerIndex];
+  printGrid();
   print(cur.color);
   src_x = prompt("Enter source x:");
   src_y = prompt("Enter source y:");
   dst_x = prompt("Enter destination x:");
   dst_y = prompt("Enter destination y:");
-  if (moveOnGrid(src_x, src_y, dst_x,dst_y) != 1)
+  p_n = getHead(src_x, src_y);
+  if (moveOnGrid(p_n, dst_x,dst_y) != 1)
   {
     print("Invalid move");
   }

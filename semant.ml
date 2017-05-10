@@ -116,7 +116,9 @@ let check (globals, functions, structs) =
        locals = []; body = [] }))
    in
 
-  let built_in_decls = StringMap.add "prompt" 
+  let built_in_decls = StringMap.add "abs" 
+       { typ = Int; fname = "abs"; formals = [(Int, "x")];
+       locals = []; body = [] } (StringMap.add "prompt" 
        { typ = Int; fname = "prompt"; formals = [(String, "x")];
        locals = []; body = [] }
        (StringMap.add "print_int_sameline" 
@@ -127,7 +129,7 @@ let check (globals, functions, structs) =
        { typ = Int; fname = "print_sameline"; formals = [(String, "x")];
        locals = []; body = [] } (StringMap.add "getLen" 
        { typ = Int; fname = "getLen"; formals = [(String, "x")];
-       locals = []; body = [] } built_in_decls))))
+       locals = []; body = [] } built_in_decls)))))
   
   in
 
@@ -200,10 +202,10 @@ let check (globals, functions, structs) =
       | Id s -> type_of_identifier s
       | Null t -> PointerType(StructType(t))
       (*Placeholders. Add Actual type checking here*)
-      | GridAssign(e1, e2, e3) -> String
-      | DeletePlayer(e1, e2, e3) -> String
-      | Array2DAssign(e1, e2, e3, e4) -> String
-      | Array1DAssign(e1, e2, e3) -> String
+      | GridAssign(e1, e2, e3) -> Void
+      | DeleteItem(e1, e2, e3) -> Void
+      | Array2DAssign(e1, e2, e3, e4) -> expr e4
+      | Array1DAssign(e1, e2, e3) -> expr e3
       | Array2DAccess(s, e2, e3) -> type_of_identifier s
       | Array1DAccess(s, e2) -> type_of_identifier s
       | ArrayLiteral([e]) -> String
