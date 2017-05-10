@@ -13,7 +13,16 @@ void addToGrid(int x, int y, Item listNode* p_n){
 	}
 	else
 	{
-		/*Go through list to run colocation first*/
+		iterator = GridData[x,y];
+	  while(iterator.next != None)
+	  {
+			iterator = iterator.next;
+		}
+		iterator.next = p_n;
+		iterator = iterator.next;
+		iterator.next = None;
+
+		/*Go through list to run colocation*/
 		iterator = GridData[x,y];
 	  while(iterator != None)
 	  {
@@ -23,23 +32,6 @@ void addToGrid(int x, int y, Item listNode* p_n){
 			}
 			iterator = iterator.next;
 		}
-
-	  if(GridData[x,y] == None)
-	  {
-			GridData[x,y] = p_n;
-			iterator = GridData[x,y];	
-			iterator.next = None;
-			return;
-		}
-
-		iterator = GridData[x,y];
-	  while(iterator.next != None)
-	  {
-			iterator = iterator.next;
-		}
-		iterator.next = p_n;
-		iterator = iterator.next;
-		iterator.next = None;
 
 	}
 	
@@ -54,7 +46,7 @@ void deleteFromGrid(int x, int y, string tag){
 	next_iterator = iterator.next;
 
 	if(iterator.nametag == tag){
-		GridData[x,y] = None;
+		GridData[x,y] = iterator.next;
 		iterator.next = None;
 		iterator = None;
 		return;
@@ -177,7 +169,6 @@ int printGrid(){
 
 int moveOnGrid(Item listNode* p_n, int dst_x, int dst_y)
 {
-	Item listNode temp;
 	int result, src_x, src_y;
 	if (p_n != None)
 	{

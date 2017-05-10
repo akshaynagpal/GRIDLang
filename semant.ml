@@ -116,7 +116,9 @@ let check (globals, functions, structs) =
        locals = []; body = [] }))
    in
 
-  let built_in_decls = StringMap.add "abs" 
+  let built_in_decls = StringMap.add "diceThrow" 
+       { typ = Int; fname = "diceThrow"; formals = [];
+       locals = []; body = [] } (StringMap.add "abs" 
        { typ = Int; fname = "abs"; formals = [(Int, "x")];
        locals = []; body = [] } (StringMap.add "prompt" 
        { typ = Int; fname = "prompt"; formals = [(String, "x")];
@@ -129,7 +131,7 @@ let check (globals, functions, structs) =
        { typ = Int; fname = "print_sameline"; formals = [(String, "x")];
        locals = []; body = [] } (StringMap.add "getLen" 
        { typ = Int; fname = "getLen"; formals = [(String, "x")];
-       locals = []; body = [] } built_in_decls)))))
+       locals = []; body = [] } built_in_decls))))))
   
   in
 

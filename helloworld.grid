@@ -1,6 +1,6 @@
 
-int setup()
-{ 
-  print("hello world");
+int setup(){ 
+  print("Hello World");
   return 0;
 }
+

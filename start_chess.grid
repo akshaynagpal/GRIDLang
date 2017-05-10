@@ -429,7 +429,7 @@ Player[2] playerOrder;
 int playerOrderSize;
 int count;
 
-int initialSetup(){
+int setup(){
   p1.color = "White";
   p2.color = "Black"; 
   playerOrder[0] = p1;
