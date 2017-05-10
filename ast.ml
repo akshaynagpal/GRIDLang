@@ -101,11 +101,11 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | Null s -> "Null " ^ s
-  | GridAssign(e1, e2, e3) -> "GridAssign"
-  | DeleteItem(e1, e2, e3) -> "DeleteItem" 
+  | GridAssign(e1, e2, e3) -> "GridAssign" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
+  | DeleteItem(e1, e2, e3) -> "DeleteItem" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
   | Array1DAccess(s, e) -> s ^ "[" ^ string_of_expr e ^ "]"
   | Array2DAccess(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
-  | ArrayLiteral(e) -> "ArrayLiteral"
+  | ArrayLiteral(e) -> "ArrayLiteral[" ^ String.concat "," (List.map string_of_expr e) ^ "]"
   | Id(s) -> s
   | String_Lit(s) -> s
   | Dotop(e, s) -> string_of_expr e ^ "." ^ s
@@ -113,8 +113,8 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
-  | Array1DAssign(s, e1, e2) -> s (* assigning some value to an array *)
-  | Array2DAssign(s, e1, e2, e3) -> s (* assigning some value to a 2D array *)
+  | Array1DAssign(s, e1, e2) -> s ^ "[" ^string_of_expr e1 ^"] ="^ string_of_expr e2 (* assigning some value to an array *)
+  | Array2DAssign(s, e1, e2, e3) -> s ^ "[" ^ string_of_expr e1 ^ "," ^string_of_expr e2 ^ "] ="^ string_of_expr e3 (* assigning some value to a 2D array *)
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
@@ -143,7 +143,7 @@ let rec string_of_typ = function
   | StructType(s) -> "struct " ^ s
   | PointerType(typ) -> string_of_typ typ ^ " pointer"
   | PlayerType -> "Player"
-  | GridType(i,j) -> "Grid"
+  | GridType(i,j) -> "Grid " ^ string_of_int i ^ " , "^ string_of_int j
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
