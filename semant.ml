@@ -44,10 +44,10 @@ let check (globals, functions, structs) =
       with Not_found -> raise (Failure("Struct " ^ a ^ " does not have field " ^ b))
   in
 
-  let check_access lvaluet rvalues =
+  let rec check_access lvaluet rvalues =
      match lvaluet with
        StructType s -> match_struct_to_accessor s rvalues
-       | PointerType(StructType(t)) ->match_struct_to_accessor t rvalues
+       | PointerType(t) ->check_access t rvalues
        | PlayerType -> match_struct_to_accessor "Player" rvalues
        | _ -> raise (Failure(string_of_typ lvaluet ^ " is not a struct"))
   
@@ -287,4 +287,12 @@ let check (globals, functions, structs) =
     stmt (Block func.body)
    
   in
-  List.iter check_function functions
+  List.iter check_function functions;
+
+  let struct_functions = 
+    let get_struct_funcs str_f_list sdecl =
+      List.append str_f_list [sdecl.sfunc]
+    in
+    List.fold_left get_struct_funcs [] structs
+  in
+  List.iter check_function struct_functions;
