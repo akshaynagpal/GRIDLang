@@ -1,0 +1,192 @@
+import gridBasics.grid
+
+int checkGameEnd()
+{
+  Item Token *t;
+  Item listNode *token;
+  if(currentPlayerIndex == 0)
+  {
+    t = &p1.token;
+  }
+  else
+  {
+    t = &p2.token;
+  }
+  /*Get grid item from item*/
+  token = getListNodeFromItem(t.displayString);
+  if (token.x == 0 && token.y == 5)
+  {
+    printGrid();
+    print("Winner is: ");
+    print(t.displayString);
+    return 1;
+  }
+  return 0;
+}
+
+Player
+{
+  Item Token token;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    return 1;
+  }
+} 
+
+Item Ladder
+{
+}
+
+Item LadderTop
+{
+}
+
+Item Snake
+{
+}
+
+Item Snaketail
+{
+}
+
+Item Token
+{
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    return checkBound(dst_x, dst_y);
+  }
+}
+
+int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+{
+  Item listNode* l;
+  int dst_x, dst_y;
+  if(i1.typetag == "Token" && i2.typetag == "Snake")
+  {
+    printGrid();
+    print("Got bit!");
+    if (i2.nametag == "S1-Head")
+    {
+      l = getListNodeFromItem("S1-Tail");
+    }
+    if (i2.nametag == "S2-Head")
+    {
+      l = getListNodeFromItem("S2-Tail");
+    }
+    dst_x = l.x;
+    dst_y = l.y;
+    moveOnGrid(i1, dst_x, dst_y);
+  }
+  if(i1.typetag == "Token" && i2.typetag == "Ladder")
+  {
+    printGrid();
+    print("Ladder boost!");
+    if (i2.nametag == "L1-Bottom")
+    {
+      l = getListNodeFromItem("L1-Top");
+    }
+    if (i2.nametag == "L2-Bottom")
+    {
+      l = getListNodeFromItem("L2-Top");
+    }
+
+    dst_x = l.x;
+    dst_y = l.y;
+    moveOnGrid(i1, dst_x, dst_y);
+  }
+  return 0;
+}
+
+Grid_Init<6,6> grid;
+Player p1, p2;
+
+int setup(){ 
+  Item Ladder ladder1, ladder2;
+  Item LadderTop ladder1_top, ladder2_top;
+  Item Snake snake1, snake2;
+  Item Snaketail snake1_tail, snake2_tail;
+  playerOrderSize = 2;
+  ladder1.displayString = "L1-Bottom";
+  ladder2.displayString = "L2-Bottom";
+  ladder1_top.displayString = "L1-Top";
+  ladder2_top.displayString = "L2-Top";
+
+  snake1.displayString = "S1-Head";
+  snake1_tail.displayString = "S1-Tail";
+  snake2.displayString = "S2-Head";
+  snake2_tail.displayString = "S2-Tail";
+
+  p1.token.displayString = "P1";
+  p2.token.displayString = "P2";
+  
+  Grid <4,2> <-- snake1;
+  Grid <5,4> <-- snake1_tail;
+  Grid <0,4> <-- snake2;
+  Grid <5,1> <-- snake2_tail;
+
+  Grid <2,3> <-- ladder1;
+  Grid <0,1> <-- ladder1_top;
+  Grid <4,0> <-- ladder2;
+  Grid <2,0> <-- ladder2_top;
+
+  Grid <5,5> <-- p1.token;
+  Grid <5,5> <-- p2.token;
+  return 0;
+}
+
+int makeMove(int dice)
+{
+  int i, src_x, src_y, dst_x, dst_y, direction;
+  Item Token *t;
+  Item listNode *token;
+  if(currentPlayerIndex == 0)
+  {
+    t = &p1.token;
+  }
+  else
+  {
+    t = &p2.token;
+  }
+  /*Get grid item from item*/
+  token = getListNodeFromItem(t.displayString);
+
+  src_x = token.x;
+  src_y = token.y;
+  dst_x = src_x;
+  dst_y = src_y;
+
+  /*Find the destination cell using dice and source loc of player token*/
+  /*First find out the current direction the token will move in*/
+  if (token.x % 2 == 0)
+  {
+    direction = 1;
+  }
+  else
+  {
+    direction = -1;
+  }
+  for(i=0; i<dice ; i=i+1)
+  {
+    if((dst_y == 0 && direction == -1) || (dst_y == 5 && direction == 1))
+    {
+      dst_x = dst_x - 1;
+      direction = -direction;    
+    }
+    else
+    {
+      dst_y = dst_y + direction;
+    }
+  }
+  print("Dice roll");
+  print(dice);
+  moveOnGrid(token, dst_x, dst_y);
+}
+
+int gameloop(){
+  int dice; 
+  printGrid();
+  prompt("Go!");
+  dice = diceThrow();
+  makeMove(dice);
+  return 0; 
+}
