@@ -198,6 +198,7 @@ let check (globals, functions, structs) =
         | _ ->  try let sym_type = StringMap.find s symbols in
                     (match sym_type with
                       Array1DType(t,i) -> t
+                      | Array2DType(t,i1,i2) -> t
                       | _ -> sym_type
                     )
               with Not_found -> raise (Failure ("undeclared identifier " ^ s)))
@@ -254,6 +255,7 @@ let check (globals, functions, structs) =
                 begin
                   if check_assign_func ft et = false then
                     if check_assign_func String et = false then
+                      if check_assign_func Bool et = false then
                       if check_assign_func Bool et = false then
                       raise (Failure "Invalid type for print")
                 end
