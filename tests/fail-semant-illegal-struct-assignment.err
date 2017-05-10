@@ -1,3 +1,1 @@
-Stored value type does not match pointer operand type!
-  store i1 true, i32* %x
- i32LLVM ERROR: Broken module found, compilation aborted!
+Fatal error: exception Failure("illegal assignment int = bool in p2.x = true")
