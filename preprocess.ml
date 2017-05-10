@@ -145,7 +145,7 @@ let process_files filename1 =
 		  				braceCounter := if (contains line "{") then	(!braceCounter) + 1 else !braceCounter;
 		  				if(!braceCounter = 1) then
 		  					begin
-		  						read_recursive ( (line ^ "\nplayerOrderSize = " ^ string_of_int(!playerOrderIntSize) ^ ";\n") :: lines);
+		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
 		  				else
 		  					begin
@@ -157,7 +157,7 @@ let process_files filename1 =
 		  				braceCounter := !braceCounter + 1;
 		  				if(!braceCounter = 1) then
 		  					begin
-		  						read_recursive ( (line ^ "\nplayerOrderSize = " ^ string_of_int(!playerOrderIntSize) ^ ";\n") :: lines);
+		  						read_recursive ( (line ^ "\n") :: lines);
 		  					end
 		  				else
 		  					begin
@@ -168,7 +168,7 @@ let process_files filename1 =
 		  		else if (contains line "return" && !doBraceCount && !braceCounter = 1) then
 		  			begin
 		  				doBraceCount := false;
-		  				read_recursive ( ( "gameloop();\n" ^ line ^ "\n" ) :: lines);
+		  				read_recursive ( ( "playerOrderSize = " ^ string_of_int(!playerOrderIntSize) ^ ";\n" ^ "gameloop();\n" ^ line ^ "\n" ) :: lines);
 		  			end
 		  		else if (!doBraceCount && contains line "}") then
 		  			begin
