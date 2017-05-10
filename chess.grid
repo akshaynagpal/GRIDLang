@@ -81,7 +81,7 @@ bool checkIfUnderAttack(int dst_x, int dst_y)
   {
     for(y = 0; y < cols; y = y+1)
     {
-      l = getHead(x,y);
+      l = getPieceAtLocation(x,y);
       if (l != None)
       {
         if (l.owner == p)
@@ -112,8 +112,8 @@ Piece King
     Player cur;
     int xdiff, ydiff;
 
-    src = getHead(src_x, src_y);
-    dst = getHead(dst_x, dst_y);
+    src = getPieceAtLocation(src_x, src_y);
+    dst = getPieceAtLocation(dst_x, dst_y);
 
     /*Check if your piece*/
     cur = playerOrder[currentPlayerIndex];
@@ -161,8 +161,8 @@ Piece Pawn
     Player* owner1, owner2;
     Player cur;
 
-    src = getHead(src_x, src_y);
-    dst = getHead(dst_x, dst_y);
+    src = getPieceAtLocation(src_x, src_y);
+    dst = getPieceAtLocation(dst_x, dst_y);
 
     /*Check if your piece*/
     cur = playerOrder[currentPlayerIndex];
@@ -237,8 +237,8 @@ Piece Bishop
     Piece GenericPiece* src, dst, king_item;
     Player* owner1, owner2;
     Player cur;
-    src = getHead(src_x, src_y);
-    dst = getHead(dst_x, dst_y);
+    src = getPieceAtLocation(src_x, src_y);
+    dst = getPieceAtLocation(dst_x, dst_y);
 
     /*Check if your piece*/
     cur = playerOrder[currentPlayerIndex];
@@ -295,8 +295,8 @@ Piece Knight
     Player cur;
     int xdiff, ydiff;
 
-    src = getHead(src_x, src_y);
-    dst = getHead(dst_x, dst_y);
+    src = getPieceAtLocation(src_x, src_y);
+    dst = getPieceAtLocation(dst_x, dst_y);
 
     /*Check if your piece*/
     cur = playerOrder[currentPlayerIndex];
@@ -350,8 +350,8 @@ Piece Rook
     Player cur;
     int xdiff, ydiff;
 
-    src = getHead(src_x, src_y);
-    dst = getHead(dst_x, dst_y);
+    src = getPieceAtLocation(src_x, src_y);
+    dst = getPieceAtLocation(dst_x, dst_y);
 
     /*Check if your piece*/
     cur = playerOrder[currentPlayerIndex];
@@ -479,7 +479,7 @@ int gameloop(){
   src_y = prompt("Enter source y:");
   dst_x = prompt("Enter destination x:");
   dst_y = prompt("Enter destination y:");
-  p_n = getHead(src_x, src_y);
+  p_n = getPieceAtLocation(src_x, src_y);
   if (moveOnGrid(p_n, dst_x,dst_y) != 1)
   {
     print("Invalid move");

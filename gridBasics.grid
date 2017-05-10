@@ -194,7 +194,7 @@ int moveOnGrid(Piece GenericPiece* p_n, int dst_x, int dst_y)
 	return result;
 }
 
-Piece GenericPiece* getHead(int x, int y){
+Piece GenericPiece* getPieceAtLocation(int x, int y){
 	Piece GenericPiece* head;
 	head = GridData[x,y];
 	return head;

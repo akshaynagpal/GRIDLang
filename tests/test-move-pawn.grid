@@ -52,7 +52,7 @@ int gameloop(){
   src_y = 2;
   dst_x = 2;
   dst_y = 2;
-  l = getHead(src_x, src_y);
+  l = getPieceAtLocation(src_x, src_y);
   moveOnGrid(l, dst_x,dst_y);
   printGrid();
   return 0; 
