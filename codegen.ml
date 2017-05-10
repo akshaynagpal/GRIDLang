@@ -594,9 +594,10 @@ let translate (globals, functions, structs) =
       | A.Unop(op, e) ->
         let e' = expr builder e in
         (match op with
-          A.Neg     -> L.build_neg
-          | A.Not     -> L.build_not
-        ) e' "tmp" builder     
+          A.Neg     -> L.build_neg e' "tmp" builder 
+          | A.Not     -> L.build_not e' "tmp" builder 
+          | A.Ref -> llvalue_expr_getter builder e
+          | A.Deref -> L.build_load e' "tmp" builder )    
     | A.Call ("print", [e]) -> 
           let e' = expr builder e in
             if (L.type_of e' = i32_t || L.type_of e' = i1_t) then 
