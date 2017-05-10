@@ -211,7 +211,6 @@ let check (globals, functions, structs) =
       | String_Lit _ -> String
       | Id s -> type_of_identifier s
       | Null t -> PointerType(StructType(t))
-      (*Placeholders. Add Actual type checking here*)
       | GridAssign(_, _, _) -> Void
       | DeleteItem(_, _, _) -> Void
       | Array2DAssign(_, _, _, e4) -> expr e4
@@ -269,7 +268,6 @@ let check (globals, functions, structs) =
               fd.formals actuals;
             fd.typ
       | _ -> raise(Failure("Couldn't find expression's type in semant"))
-            (* raise(Failure("Couldn't find " ^ string_of_expr e)) *)
     in
 
     let check_bool_expr e = if expr e != Bool
