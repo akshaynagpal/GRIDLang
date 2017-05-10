@@ -1,16 +1,19 @@
+Player{
+	int x;
+	Player *next;
+}
+
 int setup()
 { 
-Player p1; 
-Player p2; 
-Player p3; 
+Player p1,p2,p3;
+Player* p4; 
 Player[2] parray; 
 p2.x = 3;
 
 parray[0] = p1;
 parray[0].next = &p2;
+p4 = parray[0].next;
 p3 = *(parray[0].next);
 print(p3.x);
-
-
 return 0; 
 }
