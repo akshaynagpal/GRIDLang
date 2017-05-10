@@ -103,8 +103,18 @@ let check (globals, functions, structs) =
   if List.mem "print" (List.map (fun fd -> fd.fname) functions)
   then raise (Failure ("function print may not be defined")) else ();
 
+
+  let struct_function_names = 
+    let get_struct_func_names str_f_list sdecl =
+      List.append str_f_list [sdecl.sname ^ sdecl.sfunc.fname]
+    in
+    List.fold_left get_struct_func_names [] structs
+  in
+
   report_duplicate (fun n -> "duplicate function " ^ n)
-    (List.map (fun fd -> fd.fname) functions);
+    (List.append struct_function_names (List.map (fun fd -> fd.fname) functions));
+
+
 
   (* Function declaration for a named function *)
   let built_in_decls =  StringMap.add "print"
