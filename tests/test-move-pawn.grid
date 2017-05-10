@@ -23,7 +23,7 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
   return 0;
 }
 
-Grid_Init<5,4> grid;
+Grid_Init<5,4>;
 Player p1,p2;
 Player[2] playerOrder;
 int count;
@@ -44,6 +44,7 @@ int setup(){
 int gameloop(){ 
   int src_x,src_y,dst_x,dst_y;
   Player cur;
+  Item listNode* l;
   printGrid();
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);
@@ -51,7 +52,8 @@ int gameloop(){
   src_y = 2;
   dst_x = 2;
   dst_y = 2;
-  moveOnGrid(src_x, src_y, dst_x,dst_y);
+  l = getHead(src_x, src_y);
+  moveOnGrid(l, dst_x,dst_y);
   printGrid();
   return 0; 
 }
