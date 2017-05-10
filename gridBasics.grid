@@ -13,7 +13,16 @@ void addToGrid(int x, int y, Item listNode* p_n){
 	}
 	else
 	{
-		/*Go through list to run colocation first*/
+		iterator = GridData[x,y];
+	  while(iterator.next != None)
+	  {
+			iterator = iterator.next;
+		}
+		iterator.next = p_n;
+		iterator = iterator.next;
+		iterator.next = None;
+
+		/*Go through list to run colocation*/
 		iterator = GridData[x,y];
 	  while(iterator != None)
 	  {
@@ -23,23 +32,6 @@ void addToGrid(int x, int y, Item listNode* p_n){
 			}
 			iterator = iterator.next;
 		}
-
-	  if(GridData[x,y] == None)
-	  {
-			GridData[x,y] = p_n;
-			iterator = GridData[x,y];	
-			iterator.next = None;
-			return;
-		}
-
-		iterator = GridData[x,y];
-	  while(iterator.next != None)
-	  {
-			iterator = iterator.next;
-		}
-		iterator.next = p_n;
-		iterator = iterator.next;
-		iterator.next = None;
 
 	}
 	
