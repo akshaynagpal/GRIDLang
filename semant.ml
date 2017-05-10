@@ -210,7 +210,7 @@ let check (globals, functions, structs) =
       | Array1DAssign(e1, e2, e3) -> expr e3
       | Array2DAccess(s, e2, e3) -> type_of_identifier s
       | Array1DAccess(s, e2) -> type_of_identifier s
-      | ArrayLiteral([e]) -> String
+      | ArrayLiteral(e) -> expr (List.hd e)
 
       | Dotop(e1, field) -> let lt = expr e1 in
          check_access (lt) (field)
@@ -232,8 +232,8 @@ let check (globals, functions, structs) =
           | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
            string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void
-      | Assign(var, e) as ex -> let lt = expr var
-                                and rt = expr e in
+      | Assign(var, e) as ex -> let lt = expr var in 
+                                let rt = expr e in
               check_assign lt rt (Failure ("illegal assignment " ^ string_of_typ lt ^
               " = " ^ string_of_typ rt ^ " in " ^ 
               string_of_expr ex))

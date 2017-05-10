@@ -105,7 +105,7 @@ let rec string_of_expr = function
   | DeleteItem(e1, e2, e3) -> "DeleteItem" 
   | Array1DAccess(s, e) -> s ^ "[" ^ string_of_expr e ^ "]"
   | Array2DAccess(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
-  | ArrayLiteral([e]) -> "ArrayLiteral"
+  | ArrayLiteral(e) -> "ArrayLiteral"
   | Id(s) -> s
   | String_Lit(s) -> s
   | Dotop(e, s) -> string_of_expr e ^ "." ^ s
