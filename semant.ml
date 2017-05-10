@@ -152,16 +152,13 @@ let check (globals, functions, structs) =
       try StringMap.find s function_decls
        with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
   in
-
-  (* 
-  let _ = function_decl "layout" in (* Ensure "layout" is defined *)
-  *)
+ 
+  let _ = function_decl "setup" in (* Ensure "layout" is defined *)
+  
   let _ = function_decl "gameloop" in (* Ensure "gameloop" is defined *)
-  (* 
+   
   let _ = function_decl "colocation" in (* Ensure "coLocation" is defined *)
   let _ = function_decl "checkGameEnd" in (* Ensure "checkGameEnd" is defined *)
-  let _ = function_decl "gameOver" in (* Ensure "gameOver" is defined *) 
-  *)
 
   let check_function func =
     
