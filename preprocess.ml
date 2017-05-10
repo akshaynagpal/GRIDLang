@@ -190,7 +190,7 @@ let process_files filename1 =
 		  						insidePlayerStruct := false;
 		  						if (!ruleInPlayerFound = false) then
 		  							begin
-		  								read_recursive ( (line ^ "\n") :: lines);
+		  								read_recursive ( (ruleFunc ^ "\n" ^ line ^ "\n") :: lines);
 		  							end
 		  						else
 		  							begin
