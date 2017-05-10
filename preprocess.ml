@@ -14,10 +14,10 @@ let insideItemStruct = ref false
 let exitingItemStruct = ref false
 let checkGameEndFound = ref false
 let playerStructBraceCounter = ref 0
-let listNode = ref "Item listNode\n{\n"
+let listNode = ref "Piece GenericPiece\n{\n"
 let triggerRule = ref "int triggerRule(int src_x, int src_y, int dst_x, int dst_y, string typetag)\n{\nint x;\n"
 let colocPresent = ref false
-let colocBlock = "int colocation(int x, int y, Item listNode* i1, Item listNode* i2)\n{\nreturn 0;\n}\n"
+let colocBlock = "int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)\n{\nreturn 0;\n}\n"
 let itemStructBraceFound = ref false
 let gameloopFound = ref false
 (* let playerOrderFound = ref false *)
@@ -76,7 +76,7 @@ let process_files filename1 =
 					let _ = 
 						if (contains line "colocation") then colocPresent := true in
 					let _ =
-						if (contains line "Item") then
+						if (contains line "Piece") then
 			  			begin
 			  				if (contains line ";" = false && (contains line ")" = false)) then
 			  					begin
@@ -257,7 +257,7 @@ let process_files filename1 =
 
 	let concat = List.fold_left (fun a x -> a ^ x) "" in 
 	let playerOrderSize = "int playerOrderSize;\n" in
-	let listNodeContent = "int x;\nint y;\nstring type;\nItem listNode* next;\nstring nametag;
+	let listNodeContent = "int x;\nint y;\nPiece GenericPiece* next;\nstring nametag;
 	\nstring typetag;\nPlayer* owner;\nint rule(int src_x, int src_y, int dst_x, int dst_y) {\nreturn 1;\n}\n}\n" in
 	let temp =  !listNode ^ listNodeContent ^ "\n" ^ playerOrderSize ^ concat (read_all_lines filename1) in
 	let temp1 = if(!colocPresent = false) then colocBlock ^ "\n" ^ temp else temp in

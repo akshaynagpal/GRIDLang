@@ -41,7 +41,7 @@ let translate (globals, functions, structs) =
     | A.Array1DType (typ,size) -> array_t (ltype_of_typ typ) size 
     | A.PointerType t -> L.pointer_type (ltype_of_typ t) 
     | A.Array2DType (typ,size1,size2) -> array_t (array_t (ltype_of_typ typ) size2) size1 
-    | A.GridType (rows, cols) -> ltype_of_typ (A.Array2DType ((A.StructType("listNode")), rows, cols))
+    | A.GridType (rows, cols) -> ltype_of_typ (A.Array2DType ((A.StructType("GenericPiece")), rows, cols))
   in
 
 
@@ -53,7 +53,7 @@ let translate (globals, functions, structs) =
       |_ -> create_rep_list (llvm_val::this_list) llvm_val (count-1))
     in
   let createThisGrid rows cols =
-    let str_typ = ltype_of_typ (A.PointerType(A.StructType("listNode"))) in
+    let str_typ = ltype_of_typ (A.PointerType(A.StructType("GenericPiece"))) in
     let cell_init = L.const_pointer_null str_typ in
     let each_col_init = L.const_array str_typ (Array.of_list (create_rep_list [] cell_init cols)) in
     let ty_each_col = array_t str_typ cols in
@@ -324,7 +324,7 @@ let translate (globals, functions, structs) =
                         let struct_type = L.type_of struct_llvalue in
                         let struct_name = Hashtbl.find struct_names struct_type in
                         (*Create a list node*)
-                        let struct_listnode_type = Hashtbl.find struct_types "listNode" in 
+                        let struct_listnode_type = Hashtbl.find struct_types "GenericPiece" in 
                         let struct_val = L.build_alloca (struct_listnode_type) "newNode" builder in
                         let _ = Hashtbl.add vars_local "newNode" struct_val in
                         (*Assign newNode.owner as the left side of e3*)
@@ -342,7 +342,7 @@ let translate (globals, functions, structs) =
                         (*Fill in the appropriate structure inside listNode*)
                         let correct_struct = 
                           let get_good_struct sdecl= 
-                            sdecl.A.sname = "listNode"
+                            sdecl.A.sname = "GenericPiece"
                           in
                           List.filter get_good_struct structs
                         in
@@ -372,7 +372,7 @@ let translate (globals, functions, structs) =
                         let _ = expr builder (A.Assign(dotoperator, A.String_Lit(struct_name))) in
                         expr builder (A.Call("addToGrid", [e1; e2; A.Unop(A.Ref, (A.Id("newNode")));]))
 
-    | A.DeleteItem (e1, e2, e3) -> 
+    | A.DeletePiece (e1, e2, e3) -> 
             let tag_to_send = 
             (match e3 with
             A.Id s -> s
@@ -476,7 +476,7 @@ let translate (globals, functions, structs) =
               A.Id s -> 
                 let e1typ =  
                 (match s with
-                "newNode" ->  A.StructType ("listNode")
+                "newNode" ->  A.StructType ("GenericPiece")
                 | _ -> 
                   fst(
                     try List.find (fun t -> snd(t) = s) fdecl.A.locals

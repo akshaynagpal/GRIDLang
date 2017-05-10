@@ -2,8 +2,8 @@ import gridBasics.grid
 
 int checkGameEnd()
 {
-  Item Token *t;
-  Item listNode *token;
+  Piece Token *t;
+  Piece GenericPiece *token;
   if(currentPlayerIndex == 0)
   {
     t = &p1.token;
@@ -13,7 +13,7 @@ int checkGameEnd()
     t = &p2.token;
   }
   /*Get grid item from item*/
-  token = getListNodeFromItem(t.displayString);
+  token = getPieceFromGrid(t.displayString);
   if (token.x == 0 && token.y == 5)
   {
     printGrid();
@@ -26,30 +26,30 @@ int checkGameEnd()
 
 Player
 {
-  Item Token token;
+  Piece Token token;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     return 1;
   }
 } 
 
-Item Ladder
+Piece Ladder
 {
 }
 
-Item LadderTop
+Piece LadderTop
 {
 }
 
-Item Snake
+Piece Snake
 {
 }
 
-Item Snaketail
+Piece Snaketail
 {
 }
 
-Item Token
+Piece Token
 {
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
@@ -57,9 +57,9 @@ Item Token
   }
 }
 
-int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)
 {
-  Item listNode* l;
+  Piece GenericPiece* l;
   int dst_x, dst_y;
   if(i1.typetag == "Token" && i2.typetag == "Snake")
   {
@@ -67,11 +67,11 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
     print("Got bit!");
     if (i2.nametag == "S1-Head")
     {
-      l = getListNodeFromItem("S1-Tail");
+      l = getPieceFromGrid("S1-Tail");
     }
     if (i2.nametag == "S2-Head")
     {
-      l = getListNodeFromItem("S2-Tail");
+      l = getPieceFromGrid("S2-Tail");
     }
     dst_x = l.x;
     dst_y = l.y;
@@ -83,11 +83,11 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
     print("Ladder boost!");
     if (i2.nametag == "L1-Bottom")
     {
-      l = getListNodeFromItem("L1-Top");
+      l = getPieceFromGrid("L1-Top");
     }
     if (i2.nametag == "L2-Bottom")
     {
-      l = getListNodeFromItem("L2-Top");
+      l = getPieceFromGrid("L2-Top");
     }
 
     dst_x = l.x;
@@ -102,10 +102,10 @@ Player p1, p2;
 Player[2] playerOrder;
 
 int setup(){ 
-  Item Ladder ladder1, ladder2;
-  Item LadderTop ladder1_top, ladder2_top;
-  Item Snake snake1, snake2;
-  Item Snaketail snake1_tail, snake2_tail;
+  Piece Ladder ladder1, ladder2;
+  Piece LadderTop ladder1_top, ladder2_top;
+  Piece Snake snake1, snake2;
+  Piece Snaketail snake1_tail, snake2_tail;
   ladder1.displayString = "L1-Bottom";
   ladder2.displayString = "L2-Bottom";
   ladder1_top.displayString = "L1-Top";
@@ -137,8 +137,8 @@ int setup(){
 int makeMove(int dice)
 {
   int i, src_x, src_y, dst_x, dst_y, direction;
-  Item Token *t;
-  Item listNode *token;
+  Piece Token *t;
+  Piece GenericPiece *token;
   if(currentPlayerIndex == 0)
   {
     t = &p1.token;
@@ -148,7 +148,7 @@ int makeMove(int dice)
     t = &p2.token;
   }
   /*Get grid item from item*/
-  token = getListNodeFromItem(t.displayString);
+  token = getPieceFromGrid(t.displayString);
 
   src_x = token.x;
   src_y = token.y;

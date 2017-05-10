@@ -5,7 +5,7 @@ int checkGameEnd()
   /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0*/
 
   Player* p;
-  Item listNode* king_item;
+  Piece GenericPiece* king_piece;
   int dst_x, dst_y, tempx, tempy;
 
   /*Temporarily change current player*/
@@ -13,14 +13,14 @@ int checkGameEnd()
 
   if (currentPlayerIndex == 0)
   {
-    king_item = getListNodeFromItem(p1.king.displayString);
+    king_piece = getPieceFromGrid(p1.king.displayString);
   }
   else
   {
-    king_item = getListNodeFromItem(p2.king.displayString);
+    king_piece = getPieceFromGrid(p2.king.displayString);
   }
 
-  if (checkIfUnderAttack(king_item.x, king_item.y))
+  if (checkIfUnderAttack(king_piece.x, king_piece.y))
   {
     print("Currently under check");
 
@@ -38,7 +38,7 @@ int checkGameEnd()
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
       {
-        if (triggerRule(king_item.x, king_item.y, dst_x, dst_y, king_item.typetag) == 1)
+        if (triggerRule(king_piece.x, king_piece.y, dst_x, dst_y, king_piece.typetag) == 1)
         {
           print("Can move to: ");
           print(dst_x);
@@ -64,7 +64,7 @@ bool checkIfUnderAttack(int dst_x, int dst_y)
 {
   Player* p;
   int x, y;
-  Item listNode* l;
+  Piece GenericPiece* l;
 
   /*Switch players to see if any of enemy's items are attacking the king*/
   nextPlayer();
@@ -102,12 +102,12 @@ bool checkIfUnderAttack(int dst_x, int dst_y)
   return false;
 }
 
-Item King
+Piece King
 {
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src, dst;
+    Piece GenericPiece* src, dst;
     Player* owner1, owner2;
     Player cur;
     int xdiff, ydiff;
@@ -151,13 +151,13 @@ Item King
   }
 }
 
-Item Pawn
+Piece Pawn
 {
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
     int direction;
-    Item listNode* src, dst, king_item;
+    Piece GenericPiece* src, dst, king_item;
     Player* owner1, owner2;
     Player cur;
 
@@ -214,11 +214,11 @@ Item Pawn
 
     if (currentPlayerIndex == 0)
     {
-      king_item = getListNodeFromItem(p1.king.displayString);
+      king_item = getPieceFromGrid(p1.king.displayString);
     }
     else
     {
-      king_item = getListNodeFromItem(p2.king.displayString);
+      king_item = getPieceFromGrid(p2.king.displayString);
     }
     if (checkIfUnderAttack(king_item.x, king_item.y))
     {
@@ -229,12 +229,12 @@ Item Pawn
   }
 }
 
-Item Bishop
+Piece Bishop
 {
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src, dst, king_item;
+    Piece GenericPiece* src, dst, king_item;
     Player* owner1, owner2;
     Player cur;
     src = getHead(src_x, src_y);
@@ -268,11 +268,11 @@ Item Bishop
 
       if (currentPlayerIndex == 0)
       {
-        king_item = getListNodeFromItem(p1.king.displayString);
+        king_item = getPieceFromGrid(p1.king.displayString);
       }
       else
       {
-        king_item = getListNodeFromItem(p2.king.displayString);
+        king_item = getPieceFromGrid(p2.king.displayString);
       }
       if (checkIfUnderAttack(king_item.x, king_item.y))
       {
@@ -285,12 +285,12 @@ Item Bishop
   }
 }
 
-Item Knight
+Piece Knight
 {
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src, dst, king_item;
+    Piece GenericPiece* src, dst, king_item;
     Player* owner1, owner2;
     Player cur;
     int xdiff, ydiff;
@@ -323,11 +323,11 @@ Item Knight
 
       if (currentPlayerIndex == 0)
       {
-        king_item = getListNodeFromItem(p1.king.displayString);
+        king_item = getPieceFromGrid(p1.king.displayString);
       }
       else
       {
-        king_item = getListNodeFromItem(p2.king.displayString);
+        king_item = getPieceFromGrid(p2.king.displayString);
       }
       if (checkIfUnderAttack(king_item.x, king_item.y))
       {
@@ -340,12 +340,12 @@ Item Knight
   }
 }
 
-Item Rook
+Piece Rook
 {
   string displayString;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
-    Item listNode* src, dst, king_item;
+    Piece GenericPiece* src, dst, king_item;
     Player* owner1, owner2;
     Player cur;
     int xdiff, ydiff;
@@ -380,11 +380,11 @@ Item Rook
       }
       if (currentPlayerIndex == 0)
       {
-        king_item = getListNodeFromItem(p1.king.displayString);
+        king_item = getPieceFromGrid(p1.king.displayString);
       }
       else
       {
-        king_item = getListNodeFromItem(p2.king.displayString);
+        king_item = getPieceFromGrid(p2.king.displayString);
       }
       if (checkIfUnderAttack(king_item.x, king_item.y))
       {
@@ -399,11 +399,11 @@ Item Rook
 
 Player
 { 
-  Item Pawn pawn;
-  Item Bishop bishop;
-  Item Knight knight;
-  Item Rook rook;
-  Item King king;
+  Piece Pawn pawn;
+  Piece Bishop bishop;
+  Piece Knight knight;
+  Piece Rook rook;
+  Piece King king;
   string color;
   int rule(int src_x, int src_y, int dst_x, int dst_y)
   {
@@ -425,7 +425,7 @@ int getDirectionFromIndex()
   return direction;
 }
 
-int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)
 {
   deleteFromGrid(x,y,i2.nametag);
   return 0;
@@ -470,7 +470,7 @@ int setup(){
 
 int gameloop(){ 
   int src_x, src_y, dst_x, dst_y;
-  Item listNode* headnode, p_n;
+  Piece GenericPiece* headnode, p_n;
   Player cur;
   cur = playerOrder[currentPlayerIndex];
   printGrid();

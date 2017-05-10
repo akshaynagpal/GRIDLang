@@ -5,7 +5,7 @@ int checkGameEnd()
   return 1;
 }
 
-Item Pawn
+Piece Pawn
 {
   int something;
   string displayString;  
@@ -13,11 +13,11 @@ Item Pawn
 
 Player
 { 
-  Item Pawn pawn;
+  Piece Pawn pawn;
   string color;
 }
 
-int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)
 {
   print("Inside colocation");
   return 0;
@@ -44,7 +44,7 @@ int setup(){
 int gameloop(){ 
   int src_x,src_y,dst_x,dst_y;
   Player cur;
-  Item listNode* l;
+  Piece GenericPiece* l;
   printGrid();
   cur = playerOrder[currentPlayerIndex];
   print(cur.color);

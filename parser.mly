@@ -12,7 +12,7 @@ let third (_,_,c) = c;;
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA LARRAY RARRAY
 %token PLUS MINUS TIMES DIVIDE INARROW OUTARROW ASSIGN NOT DOT PERCENT DEREF REF MODULO
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR GRIDINIT GRID NULL
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER ITEM
+%token RETURN IF ELSE FOR WHILE INT BOOL VOID STRING PLAYER PIECE
 %token <int> LITERAL
 %token <string> ID
 %token <string> STRING_LIT
@@ -72,7 +72,7 @@ typ:
   | STRING { String }
   | array1d_type { $1 }   /* int[4] */
   | array2d_type { $1 }   /* int[4][3] */
-  | ITEM ID { StructType ($2) } 
+  | PIECE ID { StructType ($2) } 
   | PLAYER { PlayerType }
   | typ TIMES %prec POINTER { PointerType ($1) }  
   | GRIDINIT LT LITERAL COMMA LITERAL GT { GridType ($3, $5) }
@@ -99,7 +99,7 @@ vdecl:
    typ multi_vdecl SEMI { List.map (fun x -> ($1,x)) $2 }
 
 sdecl:
-    ITEM ID LBRACE vdecl_list fdecl RBRACE
+    PIECE ID LBRACE vdecl_list fdecl RBRACE
       { { sname = $2; 
       sformals = $4;
       sfunc = $5;
@@ -131,11 +131,11 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1) }
-  | NULL             { Null("listNode") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
+  | NULL             { Null("GenericPiece") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | GRID LT expr COMMA expr GT INARROW expr { GridAssign($3,$5,$8) }
-  | GRID LT expr COMMA expr GT OUTARROW expr { DeleteItem($3,$5,$8) }
+  | GRID LT expr COMMA expr GT OUTARROW expr { DeletePiece($3,$5,$8) }
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }

@@ -1,7 +1,7 @@
-void addToGrid(int x, int y, Item listNode* p_n){
+void addToGrid(int x, int y, Piece GenericPiece* p_n){
 	/*Set location of item p_n somewhere here*/
 	/*Having trouble setting a nested struct with a pointer on the left-most side. Leads to segmentation fault*/
-	Item listNode* iterator;
+	Piece GenericPiece* iterator;
 	p_n.x = x;
 	p_n.y = y;
   if(GridData[x,y] == None)
@@ -40,8 +40,8 @@ void addToGrid(int x, int y, Item listNode* p_n){
 
 void deleteFromGrid(int x, int y, string tag){
 
-	Item listNode* iterator;
-	Item listNode* next_iterator;
+	Piece GenericPiece* iterator;
+	Piece GenericPiece* next_iterator;
 	iterator = GridData[x,y];
 	next_iterator = iterator.next;
 
@@ -81,7 +81,7 @@ int printGrid(){
 	int max_width;
 	int border_len;
 	string printer;
-	Item listNode* iterator;
+	Piece GenericPiece* iterator;
 	width = 0;
 	max_width = 0;
 	border_len = 0;
@@ -167,7 +167,7 @@ int printGrid(){
 	return 0;
 }
 
-int moveOnGrid(Item listNode* p_n, int dst_x, int dst_y)
+int moveOnGrid(Piece GenericPiece* p_n, int dst_x, int dst_y)
 {
 	int result, src_x, src_y;
 	if (p_n != None)
@@ -194,16 +194,16 @@ int moveOnGrid(Item listNode* p_n, int dst_x, int dst_y)
 	return result;
 }
 
-Item listNode* getHead(int x, int y){
-	Item listNode* head;
+Piece GenericPiece* getHead(int x, int y){
+	Piece GenericPiece* head;
 	head = GridData[x,y];
 	return head;
 
 }
 
-Item listNode* getListNodeFromItem(string displayString)
+Piece GenericPiece* getPieceFromGrid(string displayString)
 {
-	Item listNode* iterator;
+	Piece GenericPiece* iterator;
 	int x;
 	int y;
 	for(x = 0; x < rows; x = x+1)
@@ -247,7 +247,7 @@ int traverse(int src_x, int src_y, int dst_x, int dst_y)
 	int start_y;
 	int end_x;
 	int end_y;
-	Item listNode* iter;
+	Piece GenericPiece* iter;
 
 	if(dst_y == src_y){
 		if (src_x > dst_x){

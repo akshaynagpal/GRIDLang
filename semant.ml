@@ -157,7 +157,7 @@ let check (globals, functions, structs) =
 
     let type_of_identifier s =
       (match s with
-        "GridData" -> PointerType(StructType("listNode"))
+        "GridData" -> PointerType(StructType("GenericPiece"))
         | "rows" -> Int
         | "cols" -> Int
         | "currentPlayerIndex" -> Int
@@ -178,7 +178,7 @@ let check (globals, functions, structs) =
       | Id s -> type_of_identifier s
       | Null t -> PointerType(StructType(t))
       | GridAssign(_, _, _) -> Void
-      | DeleteItem(_, _, _) -> Void
+      | DeletePiece(_, _, _) -> Void
       | Array2DAssign(_, _, _, e4) -> expr e4
       | Array1DAssign(_, _, e3) -> expr e3
       | Array2DAccess(s, _, _) -> type_of_identifier s

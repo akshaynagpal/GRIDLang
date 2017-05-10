@@ -10,10 +10,10 @@ Player
 int x; 
 int y; 
 string s; 
-Item horse h1;
+Piece horse h1;
 } 
 
-Item horse
+Piece horse
 { 
 int x; 
 int y; 
@@ -21,7 +21,7 @@ string s;
 
 } 
 
-int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)
 {
   return 0;
 }

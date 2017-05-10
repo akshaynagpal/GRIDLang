@@ -10,7 +10,7 @@ Player
   string name;
 } 
 
-int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
+int colocation(int x, int y, Piece GenericPiece* i1, Piece GenericPiece* i2)
 {
   return 0;
 }
