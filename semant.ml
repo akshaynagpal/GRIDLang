@@ -247,7 +247,8 @@ let check (globals, functions, structs) =
                 begin
                   if check_assign_func ft et = false then
                     if check_assign_func String et = false then
-                      raise (Failure "Error")
+                      if check_assign_func Bool et = false then
+                      raise (Failure "Invalid type for print")
                 end
               else
                 if check_assign_func ft et = false then 
