@@ -3,7 +3,7 @@ void myvoid()
   return;
 }
 
-int main()
+int setup()
 {
   int i;
 
