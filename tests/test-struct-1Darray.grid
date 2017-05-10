@@ -1,3 +1,7 @@
+Player{
+	int x,y;
+	string s;
+}
 
 int setup()
 { 
