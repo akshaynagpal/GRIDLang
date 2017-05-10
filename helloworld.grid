@@ -37,7 +37,8 @@ int initialSetup(){
   p1.h4.displayString = "h4";
   p1.h5.displayString = "h5";
   p1.h6.displayString = "h6";
-  Grid<0,2> <-- p1.h1;  
+  
+  Grid<3,6> <-- p1.h1;  
   Grid<3,2> <-- p1.h3;  
   Grid<3,0> <-- p1.h5;  
   Grid<5,2> <-- p1.h6;  
@@ -48,7 +49,7 @@ int initialSetup(){
 
 int gameloop(){ 
   int i;
-  i = traverse(0,2,5,2);
+  i = traverse(3,0,3,6);
   print(i);
   print("Hello world");
   printGrid();
