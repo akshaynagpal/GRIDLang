@@ -432,7 +432,7 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
   return 0;
 }
 
-Grid_Init<5,4> grid;
+Grid_Init<5,4>;
 Player p1, p2;
 Player[2] playerOrder;
 int count;
