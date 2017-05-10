@@ -401,6 +401,10 @@ Player
   Item Rook rook;
   Item King king;
   string color;
+  int rule(int src_x, int src_y, int dst_x, int dst_y)
+  {
+    return 1;
+  }
 }
 
 int getDirectionFromIndex()
@@ -426,7 +430,6 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
 Grid_Init<5,4> grid;
 Player p1, p2;
 Player[2] playerOrder;
-int playerOrderSize;
 int count;
 
 int setup(){
@@ -434,7 +437,6 @@ int setup(){
   p2.color = "Black"; 
   playerOrder[0] = p1;
   playerOrder[1] = p2;
-  playerOrderSize = 2;
 
   p1.king.displayString = "W-King";
   p1.rook.displayString = "W-Rook";
