@@ -1,5 +1,6 @@
 import gridBasics.grid
 
+int flag;
 int checkGameEnd()
 {
   /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0*/
@@ -24,16 +25,7 @@ int checkGameEnd()
   {
     print("Currently under check");
 
-    /*See if item attacking the king is itself under attack*/
-    tempx = attx;
-    tempy = atty;
-    nextPlayer();
-    if (checkIfUnderAttack(tempx, tempy)) 
-    {
-      return 0;
-    }
-    nextPlayer();
-
+    flag = 1;
     for(dst_x = 0; dst_x < rows; dst_x = dst_x + 1)
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
@@ -44,10 +36,12 @@ int checkGameEnd()
           print(dst_x);
           print(dst_y);
           nextPlayer();
+          flag = 0;
           return 0;
         }
       }
     }
+    flag = 0;
     printGrid();
     print("Checkmate!");
     return 1;
@@ -190,7 +184,7 @@ Piece Pawn
       if (dst != None)
       {
         owner2 = dst.owner;
-        if (owner1.color == owner2.color)
+        if (owner1.color == owner2.color && flag!=1)
         {
           /*print("Can't kill your own piece");*/
           return 0;
@@ -254,7 +248,7 @@ Piece Bishop
       if (dst != None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
         {
           /*print("Can't kill your own piece");*/
           return 0;
@@ -314,7 +308,7 @@ Piece Knight
       if (dst!= None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
         {
           /*print("Cannot kill your own piece");*/
           return 0;
@@ -367,7 +361,7 @@ Piece Rook
       if (dst != None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
         {
           /*print("Cannot kill your own piece");*/
           return 0;
@@ -441,6 +435,7 @@ int setup(){
   p2.color = "Black"; 
   playerOrder[0] = p1;
   playerOrder[1] = p2;
+  flag = 0;
 
   p1.king.displayString = "W-King";
   p1.rook.displayString = "W-Rook";
