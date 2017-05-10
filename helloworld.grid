@@ -1,3 +1,4 @@
+import gridBasics.grid
 
 int checkGameEnd()
  {
@@ -6,21 +7,51 @@ int checkGameEnd()
 
 Player
 { 
+	Item horse h1;
+	Item horse h2;
+	Item horse h3;
+	Item horse h4;
+	Item horse h5;
+	Item horse h6;
 } 
+
+Item horse{
+	string displayString;
+	int h;
+}
 
 int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
 {
   return 0;
 }
 
+Grid_Init<7,7> grid; 
+Player p1;
+
 int playerOrderSize;
 
 int initialSetup(){ 
+  p1.h1.displayString = "h1";
+  p1.h2.displayString = "h2";
+  p1.h3.displayString = "h3";
+  p1.h4.displayString = "h4";
+  p1.h5.displayString = "h5";
+  p1.h6.displayString = "h6";
+  
+  Grid<3,6> <-- p1.h1;  
+  Grid<3,2> <-- p1.h3;  
+  Grid<3,0> <-- p1.h5;  
+  Grid<5,2> <-- p1.h6;  
+  
   playerOrderSize = 1;
   return 0;
 }
 
 int gameloop(){ 
+  int i;
+  i = traverse(3,0,3,6);
+  print(i);
   print("Hello world");
+  printGrid();
   return 0; 
 }
