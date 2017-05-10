@@ -237,6 +237,8 @@ let check (globals, functions, structs) =
           Neg when t = Int -> Int
           | Not when t = Bool -> Bool
           | Ref when true -> PointerType t
+          | Deref -> match t with PointerType(some_type) -> some_type
+                              | _ -> raise(Failure("Dereferencing non-pointer"))
           | _ -> raise (Failure ("illegal unary operator " ^ string_of_uop op ^
            string_of_typ t ^ " in " ^ string_of_expr ex)))
       | Noexpr -> Void
