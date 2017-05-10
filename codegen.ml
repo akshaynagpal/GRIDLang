@@ -163,7 +163,7 @@ let translate (globals, functions, structs) =
   let print_int_sameline_t = L.function_type i32_t [| i32_t |] in
   let print_int_sameline_func = L.declare_function "print_int_sameline" print_int_sameline_t the_module in
 
-  let main_func_map = StringMap.add "initialSetup" "main" StringMap.empty in
+  let main_func_map = StringMap.add "setup" "main" StringMap.empty in
 
   (* Define each struct function (arguments and return type) so we can call it *)
   let struct_function_decls =
