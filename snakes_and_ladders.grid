@@ -99,13 +99,13 @@ int colocation(int x, int y, Item listNode* i1, Item listNode* i2)
 
 Grid_Init<6,6>;
 Player p1, p2;
+Player[2] playerOrder;
 
 int setup(){ 
   Item Ladder ladder1, ladder2;
   Item LadderTop ladder1_top, ladder2_top;
   Item Snake snake1, snake2;
   Item Snaketail snake1_tail, snake2_tail;
-  playerOrderSize = 2;
   ladder1.displayString = "L1-Bottom";
   ladder2.displayString = "L2-Bottom";
   ladder1_top.displayString = "L1-Top";

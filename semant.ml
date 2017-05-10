@@ -22,7 +22,7 @@ let check (globals, functions, structs) =
   (* Raise an exception if a given binding is to a void type *)
   let check_not_void exceptf = function
     (Void, n) -> raise (Failure (exceptf n))
-    | (String, x) -> ()
+    | (String, _) -> ()
     | _ -> ()
   in
   
@@ -189,7 +189,7 @@ let check (globals, functions, structs) =
   StringMap.empty (globals @ func.formals @ func.locals )
     in
 
-    let rec type_of_identifier s =
+    let type_of_identifier s =
       (match s with
         "GridData" -> PointerType(StructType("listNode"))
         | "rows" -> Int
@@ -197,8 +197,8 @@ let check (globals, functions, structs) =
         | "currentPlayerIndex" -> Int
         | _ ->  try let sym_type = StringMap.find s symbols in
                     (match sym_type with
-                      Array1DType(t,i) -> t
-                      | Array2DType(t,i1,i2) -> t
+                      Array1DType(t,_) -> t
+                      | Array2DType(t,_,_) -> t
                       | _ -> sym_type
                     )
               with Not_found -> raise (Failure ("undeclared identifier " ^ s)))
@@ -212,12 +212,12 @@ let check (globals, functions, structs) =
       | Id s -> type_of_identifier s
       | Null t -> PointerType(StructType(t))
       (*Placeholders. Add Actual type checking here*)
-      | GridAssign(e1, e2, e3) -> Void
-      | DeleteItem(e1, e2, e3) -> Void
-      | Array2DAssign(e1, e2, e3, e4) -> expr e4
-      | Array1DAssign(e1, e2, e3) -> expr e3
-      | Array2DAccess(s, e2, e3) -> type_of_identifier s
-      | Array1DAccess(s, e2) -> type_of_identifier s
+      | GridAssign(_, _, _) -> Void
+      | DeleteItem(_, _, _) -> Void
+      | Array2DAssign(_, _, _, e4) -> expr e4
+      | Array1DAssign(_, _, e3) -> expr e3
+      | Array2DAccess(s, _, _) -> type_of_identifier s
+      | Array1DAccess(s, _) -> type_of_identifier s
       | ArrayLiteral(e) -> expr (List.hd e)
 
       | Dotop(e1, field) -> let lt = expr e1 in

@@ -13,7 +13,6 @@ let translate (globals, functions, structs) =
   and i8_t   = L.i8_type   context
   and i1_t   = L.i1_type   context
   and void_t = L.void_type context 
-  and ptr_t  = L.pointer_type (L.i8_type (context))
   and array_t   = L.array_type in
   let str_t = L.pointer_type i8_t in
 
@@ -64,7 +63,7 @@ let translate (globals, functions, structs) =
     grid_val 
   in
 
-  let rec other_global_vars (t,n) =
+  let other_global_vars (t,n) =
     let global_val = 
     (match t with
      A.Int -> L.define_global n (L.const_int (ltype_of_typ (A.Int)) 0) the_module
@@ -94,7 +93,7 @@ let translate (globals, functions, structs) =
           createThisGrid rows cols
         | _ -> other_global_vars (t,n)
   in
-  List.map global_var_func globals;
+  ignore(List.map global_var_func globals);
 
   let global_val = L.define_global "currentPlayerIndex" (L.const_int (ltype_of_typ (A.Int)) 0) the_module in
   Hashtbl.add vars_global "currentPlayerIndex" global_val;
@@ -181,9 +180,9 @@ let translate (globals, functions, structs) =
       let get_formal_types formal =
         let (t, _) = formal in
         match t with
-          A.Array1DType (typ,size) -> L.pointer_type (ltype_of_typ t)
-        | A.Array2DType (typ, size1, size2) -> L.pointer_type (ltype_of_typ t)
-        | A.StructType s -> L.pointer_type (ltype_of_typ t)
+          A.Array1DType (_,_) -> L.pointer_type (ltype_of_typ t)
+        | A.Array2DType (_, _, _) -> L.pointer_type (ltype_of_typ t)
+        | A.StructType _ -> L.pointer_type (ltype_of_typ t)
         | _ -> ltype_of_typ t
       in
       let name = try StringMap.find fdecl.A.fname main_func_map with Not_found -> fdecl.A.fname
@@ -211,9 +210,9 @@ let translate (globals, functions, structs) =
     let local_vars =
       let add_formal (t, n) p = L.set_value_name n p;
         match t with
-          A.Array1DType (typ, size) -> Hashtbl.add vars_local n p
-          | A.Array2DType (typ, size1, size2) -> Hashtbl.add vars_local n p
-          | A.StructType s -> Hashtbl.add vars_local n p
+          A.Array1DType (_, _) -> Hashtbl.add vars_local n p
+          | A.Array2DType (_, _, _) -> Hashtbl.add vars_local n p
+          | A.StructType _ -> Hashtbl.add vars_local n p
           | _ -> let local = L.build_alloca (ltype_of_typ t) n builder in
           ignore (L.build_store p local builder);Hashtbl.add vars_local n local
       in
@@ -241,13 +240,6 @@ let translate (globals, functions, structs) =
     let lookup_at_2d_index s index1 index2 builder=
       L.build_in_bounds_gep (lookup s) (Array.of_list [L.const_int i32_t 0; index1; index2]) "name" builder in
     
-    let build_1D_array_access array_name i1 index builder isAssign = 
-      if isAssign
-        then L.build_gep (lookup array_name) [| i1;index|] array_name builder
-      else
-        L.build_load (L.build_gep (lookup array_name) [|i1;index|] array_name builder) array_name builder
-    in 
-
     let add_terminal builder f =
       match L.block_terminator (L.insertion_block builder) with
       Some _ -> ()
@@ -282,7 +274,7 @@ let translate (globals, functions, structs) =
               let struct_llvalue = lookup s in 
               let access_llvalue = L.build_struct_gep struct_llvalue index_number "struct_lvalue" builder in
               access_llvalue 
-            | A.PointerType t-> let e' = expr builder e1 in
+            | A.PointerType _-> let e' = expr builder e1 in
               let e_loaded = L.build_load e' "ptr_deref" builder in
               let e1'_lltype = L.type_of e_loaded in
               let e1'_struct_name_string_option = L.struct_name e1'_lltype in
@@ -338,10 +330,10 @@ let translate (globals, functions, structs) =
                         (*Assign newNode.owner as the left side of e3*)
                         let owner_val_expr = 
                         (match e3 with
-                          A.Dotop(e1, field) -> 
+                          A.Dotop(e1, _) -> 
                                                 (*Do a lookup of e1*)
                                                   A.Unop(A.Ref,e1)
-                          | A.Id (s) -> A.Null("Player")
+                          | A.Id (_) -> A.Null("Player")
                           | _ -> raise(Failure("Unknown type for GridAssign")))
                         in
                         let dotoperator = A.Dotop(A.Id("newNode"), "owner") in 
@@ -422,7 +414,7 @@ let translate (globals, functions, structs) =
                     let access_llvalue = L.build_struct_gep struct_llvalue index_number "dotop_terminal" builder in
                     let loaded_access = L.build_load access_llvalue "loaded_dotop_terminal" builder in
                     loaded_access  
-                  | A.PointerType t-> let e_loaded = L.build_load e' "loaded_deref" builder in
+                  | A.PointerType _-> let e_loaded = L.build_load e' "loaded_deref" builder in
                     let e1'_lltype = L.type_of e_loaded in
                     let e1'_struct_name_string_option = L.struct_name e1'_lltype in
                     let e1'_struct_name_string = string_option_to_string e1'_struct_name_string_option in
@@ -510,7 +502,7 @@ let translate (globals, functions, structs) =
                 )
                 with Not_found -> raise (Failure("unable to find" ^ s)) )
 
-              | A.PointerType t -> 
+              | A.PointerType _ -> 
               let e_loaded = L.build_load e' "loaded_deref" builder in
               let e1'_lltype = L.type_of e_loaded in
               let e1'_struct_name_string_option = L.struct_name e1'_lltype in
@@ -651,9 +643,9 @@ let translate (globals, functions, structs) =
 
                   in
                   (match etype with
-                    A.Array1DType (typ,size)-> llvalue_expr_getter builder (actual)
-                    | A.Array2DType (typ, size1, size2) -> llvalue_expr_getter builder (actual)
-                    | A.StructType s -> llvalue_expr_getter builder (actual)
+                    A.Array1DType (_,_)-> llvalue_expr_getter builder (actual)
+                    | A.Array2DType (_, _, _) -> llvalue_expr_getter builder (actual)
+                    | A.StructType _ -> llvalue_expr_getter builder (actual)
                     | _ -> expr builder actual))
           | _ -> expr builder actual)
           in 
