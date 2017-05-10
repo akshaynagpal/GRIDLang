@@ -54,7 +54,7 @@ void deleteFromGrid(int x, int y, string tag){
 	next_iterator = iterator.next;
 
 	if(iterator.nametag == tag){
-		GridData[x,y] = None;
+		GridData[x,y] = iterator.next;
 		iterator.next = None;
 		iterator = None;
 		return;
@@ -177,7 +177,6 @@ int printGrid(){
 
 int moveOnGrid(Item listNode* p_n, int dst_x, int dst_y)
 {
-	Item listNode temp;
 	int result, src_x, src_y;
 	if (p_n != None)
 	{
