@@ -24,6 +24,7 @@ clean :
 .PHONY : cleantest
 cleantest:
 	rm -rf *.ll *.err *.diff
+	rm -rf ./tests/*.ll ./tests/*.s ./tests/*.out 
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 

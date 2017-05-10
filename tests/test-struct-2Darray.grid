@@ -1,31 +1,4 @@
-import gridBasics.grid
-
-int checkGameEnd()
- {
-  return 1;
- }
-
-Player
-{ 
-int x; 
-int y; 
-string s; 
-} 
-
-int colocation(int x, int y, Item listNode i1, Item listNode i2)
-{
-  return 0;
-}
-
-Grid_Init<0,0> grid; 
-int playerOrderSize;
-
-int initialSetup(){ 
-  playerOrderSize = 1;
-  return 0;
-}
-
-int gameloop()
+int setup()
 { 
 Player p1;
 Player[2,2] parray; 
