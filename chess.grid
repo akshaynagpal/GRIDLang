@@ -3,10 +3,12 @@ import gridBasics.grid
 int flag;
 int checkGameEnd()
 {
-  /*First trigger checkIfUnderAttack for current location of opposing king. Then, trigger rule for king to see if he can move anywhere. But triggerRule() takes a destination coordinate. I wan to check if he can move anywhere (this situation is unique to the king). Will have to run over all rows and columns and see if triggerRule passes for any. If so, return 0. If not, return 0*/
+  /*First trigger checkIfUnderAttack for current location of opposing king. 
+  Then, trigger rule for king to see if he can move anywhere. 
+  But triggerRule() takes a destination coordinate.*/ 
 
   Player* p;
-  Piece GenericPiece* king_piece;
+  Piece GenericPiece* kp;
   int dst_x, dst_y, tempx, tempy;
 
   /*Temporarily change current player*/
@@ -14,14 +16,14 @@ int checkGameEnd()
 
   if (currentPlayerIndex == 0)
   {
-    king_piece = getPieceFromGrid(p1.king.displayString);
+    kp = getPieceFromGrid(p1.king.displayString);
   }
   else
   {
-    king_piece = getPieceFromGrid(p2.king.displayString);
+    kp = getPieceFromGrid(p2.king.displayString);
   }
 
-  if (checkIfUnderAttack(king_piece.x, king_piece.y))
+  if (checkIfUnderAttack(kp.x, kp.y))
   {
     print("Currently under check");
 
@@ -30,7 +32,7 @@ int checkGameEnd()
     {
       for(dst_y = 0; dst_y < cols; dst_y = dst_y + 1)
       {
-        if (triggerRule(king_piece.x, king_piece.y, dst_x, dst_y, king_piece.typetag) == 1)
+        if (triggerRule(kp.x, kp.y, dst_x, dst_y, kp.typetag) == 1)
         {
           print("Can move to: ");
           print(dst_x);
@@ -53,7 +55,6 @@ int checkGameEnd()
 
 int attx;
 int atty;
-/*Checks if the current player's king is under attack by opposing player's pieces*/
 bool checkIfUnderAttack(int dst_x, int dst_y)
 {
   Player* p;
@@ -114,7 +115,6 @@ Piece King
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -122,23 +122,20 @@ Piece King
     ydiff = abs(dst_y - src_y);
     if (xdiff > 1 || ydiff > 1)
     {
-      /*print("Invalid move for king");*/
       return 0;
     }
 
     if (dst != None)
     {
       owner2 = dst.owner;
-      if(owner2.color == owner1.color)  /* moving to a block with some item of same color, which is not allowed */
+      if(owner2.color == owner1.color)
       {
-        /*print("Can't kill your own piece");*/
         return 0;
       }
     }
 
     if (checkIfUnderAttack(dst_x, dst_y))
     {
-      /*print("Can't move into check");*/
       return 0;
     }
     return 1;
@@ -163,30 +160,26 @@ Piece Pawn
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-/*      print("Not your piece!");*/
       return 0;
     }
 
     direction = getDirectionFromIndex();
 
-    if(dst_x != src_x + direction)  /* check if pawn moves >1 step vertically, or in the wrong direction*/ 
+    if(dst_x != src_x + direction)
     {
-      /*print("Moving in the wrong direction");*/
       return 0;
     }
-    if (dst_y - src_y > 1 || dst_y - src_y < -1) /* check if pawn moves more than one square horizontally*/
+    if (dst_y - src_y > 1 || dst_y - src_y < -1)
     {
-      /*print("Can't move more than one square horizontally with a pawn");*/
       return 0;
     }
-    if(dst_y == src_y - 1 || dst_y == src_y + 1) /* if pawn moves diagonally left 1 or right 1, check if item on destination square is the same color */
+    if(dst_y == src_y - 1 || dst_y == src_y + 1) 
     {
       if (dst != None)
       {
         owner2 = dst.owner;
         if (owner1.color == owner2.color && flag!=1)
         {
-          /*print("Can't kill your own piece");*/
           return 0;
         }
         else
@@ -201,7 +194,6 @@ Piece Pawn
     }
     if (dst!=None)
     {
-      /*print("Can only kill diagonally with a pawn");*/
       return 0;
     }
 
@@ -239,7 +231,6 @@ Piece Bishop
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -248,9 +239,8 @@ Piece Bishop
       if (dst != None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)  
         {
-          /*print("Can't kill your own piece");*/
           return 0;
         }
       }
@@ -274,7 +264,6 @@ Piece Bishop
       }
       return 1;
     }
-    /*print("Non-diagonal move attempt with bishop");*/
     return 0;
   }
 }
@@ -297,7 +286,6 @@ Piece Knight
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      /*print("Not your piece!");*/
       return 0;
     }
 
@@ -308,9 +296,8 @@ Piece Knight
       if (dst!= None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)  
         {
-          /*print("Cannot kill your own piece");*/
           return 0;
         }
       }
@@ -329,7 +316,6 @@ Piece Knight
       }
       return 1;
     }
-    /*print("Invalid move for knight");*/
     return 0;
   }
 }
@@ -352,18 +338,16 @@ Piece Rook
     owner1 = src.owner;
     if (cur.color != owner1.color)
     {
-      /*print("Not your piece!");*/
       return 0;
     }
 
-    if(dst_x == src_x || dst_y == src_y)  /* moves either vertically or horizontally */
+    if(dst_x == src_x || dst_y == src_y)
     {
       if (dst != None)
       {
         owner2 = dst.owner;
-        if(owner2.color == owner1.color && flag!=1)  /* moving to a block with some item of same color, which is not allowed */
+        if(owner2.color == owner1.color && flag!=1)
         {
-          /*print("Cannot kill your own piece");*/
           return 0;
         }
       }
@@ -386,7 +370,6 @@ Piece Rook
       }
       return 1;
     }
-    /*print("Invalid move for rook");*/
     return 0;
   }
 }

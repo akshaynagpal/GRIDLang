@@ -42,10 +42,10 @@ type expr =
   | GridAssign of expr * expr * expr
   | DeletePiece of expr * expr * expr
   | Assign of expr * expr
-  | Array1DAssign of string * expr * expr (* assigning some value to an array *)
-  | Array2DAssign of string * expr * expr * expr (* assigning some value to a 2D array *)
+  | Array1DAssign of string * expr * expr
+  | Array2DAssign of string * expr * expr * expr 
   | String_Lit of string
-  | ArrayLiteral of expr list   (* list inside array *)
+  | ArrayLiteral of expr list
   | Noexpr
   
   
@@ -65,7 +65,7 @@ type func_decl = {
     body : stmt list;
   }
 
-type struct_decl = {   (* for adding player datatype *)
+type struct_decl = {   
     sname: string;
     sformals: bind list;
     sfunc: func_decl;
@@ -101,11 +101,15 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | Null s -> "Null " ^ s
-  | GridAssign(e1, e2, e3) -> "GridAssign" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
-  | DeletePiece(e1, e2, e3) -> "DeletePiece" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
+  | GridAssign(e1, e2, e3) -> 
+    "GridAssign" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
+  | DeletePiece(e1, e2, e3) -> 
+    "DeletePiece" ^string_of_expr e1 ^ string_of_expr e2 ^ string_of_expr e3
   | Array1DAccess(s, e) -> s ^ "[" ^ string_of_expr e ^ "]"
-  | Array2DAccess(s, e1, e2) -> s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
-  | ArrayLiteral(e) -> "ArrayLiteral[" ^ String.concat "," (List.map string_of_expr e) ^ "]"
+  | Array2DAccess(s, e1, e2) -> 
+    s ^ "[" ^ string_of_expr e1 ^ "]" ^ "[" ^ string_of_expr e2 ^ "]"
+  | ArrayLiteral(e) -> 
+    "ArrayLiteral[" ^ String.concat "," (List.map string_of_expr e) ^ "]"
   | Id(s) -> s
   | String_Lit(s) -> s
   | Dotop(e, s) -> string_of_expr e ^ "." ^ s
@@ -113,10 +117,12 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
-  | Array1DAssign(s, e1, e2) -> s ^ "[" ^string_of_expr e1 ^"] ="^ string_of_expr e2 (* assigning some value to an array *)
-  | Array2DAssign(s, e1, e2, e3) -> s ^ "[" ^ string_of_expr e1 ^ "," ^string_of_expr e2 ^ "] ="^ string_of_expr e3 (* assigning some value to a 2D array *)
+  | Array1DAssign(s, e1, e2) -> 
+    s ^ "[" ^string_of_expr e1 ^"] ="^ string_of_expr e2 
+  | Array2DAssign(s, e1, e2, e3) -> 
+      s ^ "[" ^ string_of_expr e1 ^ "," ^string_of_expr e2 ^ "] ="^ string_of_expr e3
   | Call(f, el) ->
-      f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+    f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
 
 
@@ -138,8 +144,10 @@ let rec string_of_typ = function
   | Bool -> "bool"
   | Void -> "void"
   | String -> "string"
-  | Array1DType(typ, e) -> string_of_typ typ ^ " array [" ^ string_of_int e ^ "]"
-  | Array2DType(typ, e1, e2) -> string_of_typ typ ^ " array [" ^ string_of_int e1 ^ "][" ^ string_of_int e2 ^ "]"
+  | Array1DType(typ, e) -> 
+    string_of_typ typ ^ " array [" ^ string_of_int e ^ "]"
+  | Array2DType(typ, e1, e2) -> 
+    string_of_typ typ ^ " array [" ^ string_of_int e1 ^ "][" ^ string_of_int e2 ^ "]"
   | StructType(s) -> "struct " ^ s
   | PointerType(typ) -> string_of_typ typ ^ " pointer"
   | PlayerType -> "Player"

@@ -116,20 +116,17 @@ let check (globals, functions, structs) =
   in
 
   (*Add struct functions*)
-  let function_decls = List.fold_left (fun m sdecl -> let fd = sdecl.sfunc in StringMap.add (sdecl.sname ^ fd.fname) fd m) function_decls structs
+  let function_decls = 
+  List.fold_left (fun m sdecl -> 
+  let fd = sdecl.sfunc in StringMap.add (sdecl.sname ^ fd.fname) fd m) function_decls structs
   in
-(*Debugging: Print all struct function names*)
-(*  let function_names_string = List.fold_left (fun s sdecl -> let fd = sdecl.sfunc in s ^ " " ^ sdecl.sname ^ fd.fname) "" structs
-  in
-
-  raise(Failure(function_names_string));*)
 
   let function_decl s = 
       try StringMap.find s function_decls
        with Not_found -> raise (Failure (s ^ " function is either missing or unrecognized") )
   in
  
-  let _ = function_decl "setup" in (* Ensure "layout" is defined *)
+  let _ = function_decl "setup" in (* Ensure "setup" is defined *)
   
   let _ = function_decl "gameloop" in (* Ensure "gameloop" is defined *)
    

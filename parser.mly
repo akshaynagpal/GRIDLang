@@ -131,7 +131,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1) }
-  | NULL             { Null("GenericPiece") }   /*Hardcoded null to be only for type listNode. To make it generic will have to infer the type of left expr in assign*/
+  | NULL             { Null("GenericPiece") }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | GRID LT expr COMMA expr GT INARROW expr { GridAssign($3,$5,$8) }
@@ -139,10 +139,10 @@ expr:
   | expr ASSIGN expr { Assign($1,$3) }
   | ID               { Id($1) }
   | STRING_LIT        { String_Lit($1) }
-  | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAssign($1,$3,$5,$8)}  /* x(3,4) = something */
-  | ID LARRAY expr RARRAY ASSIGN expr { Array1DAssign($1, $3, $6) }  /* x[4] = something */
-  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Array2DAccess ($1,$3,$5) } /* x(3,4) */
-  | ID LARRAY expr RARRAY %prec NOLARRAY{Array1DAccess($1,$3)} /* x[4] */
+  | ID LARRAY expr COMMA expr RARRAY ASSIGN expr { Array2DAssign($1,$3,$5,$8)}
+  | ID LARRAY expr RARRAY ASSIGN expr { Array1DAssign($1, $3, $6) }
+  | ID LARRAY expr COMMA expr RARRAY %prec NOASSIGN { Array2DAccess ($1,$3,$5) }
+  | ID LARRAY expr RARRAY %prec NOLARRAY{Array1DAccess($1,$3)}
   | expr PLUS   expr { Binop($1, Add,   $3) }
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }
@@ -163,7 +163,7 @@ expr:
   | NOT expr         { Unop(Not, $2) }
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
-  | LARRAY arr_literal RARRAY {ArrayLiteral(List.rev $2)}       /* [1,2,3,4] */
+  | LARRAY arr_literal RARRAY {ArrayLiteral(List.rev $2)}
 
 actuals_opt:
     /* nothing */ { [] }
