@@ -38,7 +38,7 @@ int gameloop() {
 }
 ```
 - The function _gameloop()_ is implicitly called from _setup()_.
-- _gameloop() runs in a loop until the function _checkGameEnd()_ returns 1
+- _gameloop()_ runs in a loop until the function _checkGameEnd()_ returns 1
 - Once _checkGameEnd()_ returns 1, the program execution ends.
 
 This final sample demonstrates the non-primitive data types _Player_, _Piece_ and _Grid_.
@@ -80,5 +80,5 @@ int setup() {
 - _Piece_ is a structure that can be placed on the grid. It has the default property _displayString_ (the string that represents it on the grid).
 - A _Player_ is a structure that can hold _Pieces_ and other properties.
 - `Grid\_Init<x,y>` creates a grid with _x_ rows and _y_ columns, on which Pieces can be placed.
-- `Grid<x,y> <-- p1.t` adds the `Piece p1.t` to the location <x,y> on the grid
+- `Grid<x,y> <-- p1.t` adds the _Piece p1.t_ to the location <x,y> on the grid
 - `printGrid()` is a library function that prints the grid.
