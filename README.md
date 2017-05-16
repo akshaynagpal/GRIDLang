@@ -1,3 +1,4 @@
+![grid_logo.jpg](grid_logo.jpg)
 # GridLang
 GRIDLang is a language to design games in an intuitive and expressive manner. It enables developers to quickly prototype grid-based games and get a programmatic view of it.  It simplifies the process of defining rules for a game, creating a grid and manipulating them. There are in-built language components focused on game development that enables developers to express more with less lines of code.    
 GRIDLang is a move-driven language. The control flow of the program depends on the movement of pieces on a grid structure. This allows for template functions that will be triggered based on pre-specified events, so that the programmer can focus on the game logic without having to worry about controlling the overall flow. 
