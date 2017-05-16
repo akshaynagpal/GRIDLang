@@ -6,7 +6,7 @@ GRIDLang is a move-driven language. The control flow of the program depends on t
 ### Using the Compiler
 Inside the GRIDLang directory, type `make`. This creates grid.native, which generates the LLVM IR when given a file in GRIDLang. A file can be run by using `./gridrun.sh -r filename.grid`
 ### Sample Programs
-A simple helloworld.grid program in our language can be written as follows:
+A simple **helloworld.grid** program in our language can be written as follows:
 ```
 int setup() { 
   print("Hello World");
@@ -82,3 +82,6 @@ int setup() {
 - `Grid\_Init<x,y>` creates a grid with _x_ rows and _y_ columns, on which Pieces can be placed.
 - `Grid<x,y> <-- p1.t` adds the _Piece p1.t_ to the location <x,y> on the grid
 - `printGrid()` is a library function that prints the grid.
+
+For full fledged games written in GRIDLang, you can find a mini version of **chess** and **snakes and ladders** in [games](games) folder.     
+The full report on the language along with the Language Reference Manual can be found [GRIDLang_FinalReport.pdf](GRIDLang_FinalReport.pdf)
